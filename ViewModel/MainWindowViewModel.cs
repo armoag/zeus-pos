@@ -20,7 +20,7 @@ namespace Zeus
     {
         #region Fields
         //Main instances
-        private static InventoryBase _inventoryInstance = null;
+        private static IInventory _inventoryInstance = null;
         private static MainWindowViewModel _appInstance = null;
         private static PosGeneralPageViewModel _posGeneralInstance = null;
         private static Pos _posInstance = null;
@@ -40,11 +40,11 @@ namespace Zeus
         private static string _pageFourTitle;
         private static string _pageFiveTitle;
         private static string _currentPageListTitle;
-        private static ObservableCollection<ProductBase> _currentPageListProducts = new ObservableCollection<ProductBase>();
+        private static ObservableCollection<IProduct> _currentPageListProducts = new ObservableCollection<IProduct>();
         private static string _currentSelectedItemsListPageFileName;
-        private static ProductBase _selectedPageListProduct;
+        private static IProduct _selectedPageListProduct;
         private static int _lastSelectedProductsPage = 1;
-        public ObservableCollection<ProductBase> _productObjects;
+        public ObservableCollection<IProduct> _productObjects;
         private int _groupSquaresAvailable;
 
         //Navegation related fields
@@ -54,12 +54,12 @@ namespace Zeus
         private string _checkoutTotal;// = "2";
 
         //Carts related fields
-        private ObservableCollection<ProductBase> _cartProducts;
-        private static ProductBase _selectedCartProduct;
+        private ObservableCollection<IProduct> _cartProducts;
+        private static IProduct _selectedCartProduct;
         private int _currentCartNumber;
-        private static ObservableCollection<ProductBase> _cartOneProducts = new ObservableCollection<ProductBase>();
-        private static ObservableCollection<ProductBase> _cartTwoProducts = new ObservableCollection<ProductBase>();
-        private static ObservableCollection<ProductBase> _cartThreeProducts = new ObservableCollection<ProductBase>();
+        private static ObservableCollection<IProduct> _cartOneProducts = new ObservableCollection<IProduct>();
+        private static ObservableCollection<IProduct> _cartTwoProducts = new ObservableCollection<IProduct>();
+        private static ObservableCollection<IProduct> _cartThreeProducts = new ObservableCollection<IProduct>();
 
         //Payment related fields
         private decimal _paymentTotalUSD;
@@ -78,7 +78,7 @@ namespace Zeus
         private bool _partialPaymentEnabled = false;
 
         //Inventory Related Fields
-        private ProductBase _inventoryTemporalItem;
+        private IProduct _inventoryTemporalItem;
         private static ObservableCollection<string> _categoriesList;
         private static ObservableCollection<string> _currentCategoryList;
 
@@ -87,7 +87,7 @@ namespace Zeus
         private string _newCategoryItem;
 
         //Holds active cart product list
-        private static ObservableCollection<ProductBase> _currentCartProducts = new ObservableCollection<ProductBase>()
+        private static ObservableCollection<IProduct> _currentCartProducts = new ObservableCollection<IProduct>()
         {
 
         };
@@ -193,7 +193,7 @@ namespace Zeus
             }
         }
 
-        public ProductBase InventoryTemporalItem
+        public IProduct InventoryTemporalItem
         {
             get
             {
@@ -206,7 +206,7 @@ namespace Zeus
             }
         }
 
-        public static InventoryBase InventoryInstance
+        public static IInventory InventoryInstance
         {
             get { return _inventoryInstance; }
         }
@@ -349,7 +349,7 @@ namespace Zeus
         /// <summary>
         /// Hold active cart items list
         /// </summary>
-        public ObservableCollection<ProductBase> CurrentCartProducts
+        public ObservableCollection<IProduct> CurrentCartProducts
         {
             get { return _currentCartProducts; }
             set
@@ -363,7 +363,7 @@ namespace Zeus
         /// <summary>
         /// Holds currently selected item
         /// </summary>
-        public ProductBase SelectedCartProduct
+        public IProduct SelectedCartProduct
         {
             get { return _selectedCartProduct; }
             set
@@ -377,7 +377,7 @@ namespace Zeus
         /// <summary>
         /// Holds currently selected item for the product page list
         /// </summary>
-        public ProductBase SelectedPageListProduct
+        public IProduct SelectedPageListProduct
         {
             get { return _selectedPageListProduct; }
             set
@@ -390,7 +390,7 @@ namespace Zeus
         /// <summary>
         /// Hold active cart items list
         /// </summary>
-        public ObservableCollection<ProductBase> CurrentPageListProducts
+        public ObservableCollection<IProduct> CurrentPageListProducts
         {
             get { return _currentPageListProducts; }
             set
@@ -503,7 +503,7 @@ namespace Zeus
             }
         }
 
-        public ObservableCollection<ProductBase> ProductObjects
+        public ObservableCollection<IProduct> ProductObjects
         {
             get { return _productObjects; }
             set
@@ -941,9 +941,9 @@ namespace Zeus
         /// Hold active cart items list
         /// </summary>
         /// 
-        private ObservableCollection<ProductBase> _inventorySearchedProducts;
+        private ObservableCollection<IProduct> _inventorySearchedProducts;
 
-        public ObservableCollection<ProductBase> InventorySearchedProducts
+        public ObservableCollection<IProduct> InventorySearchedProducts
         {
             get { return _inventorySearchedProducts; }
             set
@@ -953,8 +953,8 @@ namespace Zeus
             }
         }
 
-        private ProductBase _selectedInventoryProduct;
-        public ProductBase SelectedInventoryProduct
+        private IProduct _selectedInventoryProduct;
+        public IProduct SelectedInventoryProduct
         {
             get { return _selectedInventoryProduct; }
             set
@@ -1849,8 +1849,8 @@ namespace Zeus
 
         internal void Execute_SubtractFromProductListCommand(object parameter)
         {
-            var index = CurrentCartProducts.IndexOf((ProductBase)parameter);
-            var activeProduct = (ProductBase)parameter;
+            var index = CurrentCartProducts.IndexOf((IProduct)parameter);
+            var activeProduct = (IProduct)parameter;
             CurrentCartProducts.RemoveAt(index);
             activeProduct.LastQuantitySold -= 1;
             if (activeProduct.LastQuantitySold > 0)
@@ -1872,8 +1872,8 @@ namespace Zeus
 
         internal void Execute_AddToProductListCommand(object parameter)
         {
-            var index = CurrentCartProducts.IndexOf((ProductBase)parameter);
-            var activeProduct = (ProductBase)parameter;
+            var index = CurrentCartProducts.IndexOf((IProduct)parameter);
+            var activeProduct = (IProduct)parameter;
 
             CurrentCartProducts.RemoveAt(index);
             activeProduct.LastQuantitySold += 1;
@@ -1895,8 +1895,8 @@ namespace Zeus
 
         internal void Execute_ApplyDiscountToProductListCommand(object parameter)
         {
-            var index = CurrentCartProducts.IndexOf((ProductBase)parameter);
-            var activeProduct = (ProductBase)parameter;
+            var index = CurrentCartProducts.IndexOf((IProduct)parameter);
+            var activeProduct = (IProduct)parameter;
             CurrentCartProducts.RemoveAt(index);
             activeProduct.Price = Math.Round(activeProduct.Price*(1 - DiscountPercent), 2);
             CurrentCartProducts.Insert(index, activeProduct);
@@ -1934,7 +1934,7 @@ namespace Zeus
         internal void Execute_SelectProductsListCommand(object parameter)
         {
             var currentProductListTitle = string.Empty;
-            List<ProductBase> items;
+            List<IProduct> items;
 
             switch ((string)parameter)
             {
@@ -1976,7 +1976,8 @@ namespace Zeus
         {
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new object for every product 
-            var product = new ProductBase((ProductBase) parameter) {LastQuantitySold = 1};
+            IProduct product = new ProductBase((IProduct) parameter) {LastQuantitySold = 1};
+           // var product = new IProduct((IProduct) parameter) {LastQuantitySold = 1};
             AddProductToCart(product);
         }
 
@@ -1996,7 +1997,7 @@ namespace Zeus
         {
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new object for every product 
-            var product = new ProductBase((ProductBase)parameter) { LastQuantitySold = 1 };
+            IProduct product = new ProductBase((IProduct)parameter) { LastQuantitySold = 1 };
             AddManualProductToCart(product);
         }
 
@@ -2073,7 +2074,7 @@ namespace Zeus
         {
             if (CurrentCustomer.PointsAvailable >= 1)
             {
-                ProductBase productMimic;
+                IProduct productMimic;
                 var tempTotal = CalculateCurrentCartTotal();
                 if (CurrentCustomer.PointsAvailable > Convert.ToDouble(tempTotal))
                 {
@@ -2253,7 +2254,7 @@ namespace Zeus
         internal void Execute_MoveUpListItemCommand(object parameter)
         {
             var updatedProductList = Utilities.MoveListItemUp(CurrentPageListProducts, (int)parameter);
-            CurrentPageListProducts = new ObservableCollection<ProductBase>(updatedProductList);
+            CurrentPageListProducts = new ObservableCollection<IProduct>(updatedProductList);
         }
         internal bool CanExecute_MoveUpListItemCommand(object parameter)
         {
@@ -2268,7 +2269,7 @@ namespace Zeus
         internal void Execute_MoveDownListItemCommand(object parameter)
         {
             var updatedProductList = Utilities.MoveListItemDown(CurrentPageListProducts, (int)parameter);
-            CurrentPageListProducts = new ObservableCollection<ProductBase>(updatedProductList);
+            CurrentPageListProducts = new ObservableCollection<IProduct>(updatedProductList);
         }
         internal bool CanExecute_MoveDownListItemCommand(object parameter)
         {
@@ -2617,7 +2618,7 @@ namespace Zeus
         {
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new object for every product 
-            var product = new ProductBase((ProductBase)parameter) { LastQuantitySold = 1 };
+            IProduct product = new ProductBase((IProduct)parameter) { LastQuantitySold = 1 };
             AddProductToCart(product);
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda Agregada al Carrito:" + " " + product.Code);
@@ -2638,7 +2639,7 @@ namespace Zeus
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
             //Inventory search method that returns a list of products for the datagrid
-            InventorySearchedProducts = new ObservableCollection<ProductBase>(_inventoryInstance.Search(InventorySearchText));
+            InventorySearchedProducts = new ObservableCollection<IProduct>(_inventoryInstance.Search(InventorySearchText));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Inventario:" + " " + InventorySearchText);
             InventorySearchText = "";
@@ -4068,7 +4069,7 @@ namespace Zeus
 
         #region CartMethods
 
-        public void AddProductToCart(ProductBase product)
+        public void AddProductToCart(IProduct product)
         {
             //Check if product already exists in the file
             if (product.Price != 0M)
@@ -4105,7 +4106,7 @@ namespace Zeus
         /// Method to add a product to a cart
         /// </summary>
         /// <param name="product"></param>
-        public void AddManualProductToCart(ProductBase product)
+        public void AddManualProductToCart(IProduct product)
         {
             if (!CategoriesList.Contains(product.Category)) product.Category = "General";
             //Check if product already exists in the file
@@ -4121,7 +4122,7 @@ namespace Zeus
             }
         }
 
-        public void RemoveProductFromCart(ProductBase product)
+        public void RemoveProductFromCart(IProduct product)
         {
             if (CurrentCartProducts.Contains(product))
             {
@@ -4139,7 +4140,7 @@ namespace Zeus
             return total;
         }
 
-        public void AddOneAdditinoalQuantityToProductInCart(ProductBase product, int cartIndex)
+        public void AddOneAdditinoalQuantityToProductInCart(IProduct product, int cartIndex)
         {
             var productIndex = CurrentCartProducts.IndexOf(product);
             product.LastQuantitySold = product.LastQuantitySold + 1;
@@ -4408,7 +4409,7 @@ namespace Zeus
         /// <param name="transactionDate"></param>
         /// <param name="transactionType"></param>
         /// <returns></returns>
-        private bool UpdateInventory(ProductBase product, DateTime transactionDate, TransactionType transactionType)
+        private bool UpdateInventory(IProduct product, DateTime transactionDate, TransactionType transactionType)
         {
             if (product.Id == 0) return false;
 
@@ -4510,7 +4511,7 @@ namespace Zeus
             {
                 case 1:
                     {
-                        var tempList = new ObservableCollection<ProductBase>();
+                        var tempList = new ObservableCollection<IProduct>();
                         items = CategoryCatalog.GetList(Constants.DataFolderPath + Constants.ProductPageOne);
                         pageTitle = items.First();
                         items.RemoveAt(0);
@@ -4520,7 +4521,7 @@ namespace Zeus
 
                 case 2:
                     {
-                        var tempList = new ObservableCollection<ProductBase>();
+                        var tempList = new ObservableCollection<IProduct>();
                         items = CategoryCatalog.GetList(Constants.DataFolderPath + Constants.ProductPageTwo);
                         pageTitle = items.First();
                         items.RemoveAt(0);
@@ -4530,7 +4531,7 @@ namespace Zeus
 
                 case 3:
                     {
-                        var tempList = new ObservableCollection<ProductBase>();
+                        var tempList = new ObservableCollection<IProduct>();
                         items = CategoryCatalog.GetList(Constants.DataFolderPath + Constants.ProductPageThree);
                         pageTitle = items.First();
                         items.RemoveAt(0);
@@ -4539,7 +4540,7 @@ namespace Zeus
                     }
                 case 4:
                     {
-                        var tempList = new ObservableCollection<ProductBase>();
+                        var tempList = new ObservableCollection<IProduct>();
                         items = CategoryCatalog.GetList(Constants.DataFolderPath + Constants.ProductPageFour);
                         pageTitle = items.First();
                         items.RemoveAt(0);
@@ -4548,7 +4549,7 @@ namespace Zeus
                     }
                 case 5:
                     {
-                        var tempList = new ObservableCollection<ProductBase>();
+                        var tempList = new ObservableCollection<IProduct>();
                         items = CategoryCatalog.GetList(Constants.DataFolderPath + Constants.ProductPageFive);
                         pageTitle = items.First();
                         items.RemoveAt(0);
@@ -4572,16 +4573,16 @@ namespace Zeus
         /// <param name="pageNumber"></param>
         /// <param name="pageTitle"></param>
         /// <returns></returns>
-        public ObservableCollection<ProductBase> GetPageProductsList(int pageNumber, out string pageTitle)
+        public ObservableCollection<IProduct> GetPageProductsList(int pageNumber, out string pageTitle)
         {
-            List<ProductBase> items;
-            ObservableCollection<ProductBase> products;
+            List<IProduct> items;
+            ObservableCollection<IProduct> products;
             switch (pageNumber)
             {
                 case 1:
                     {
                         items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
-                        products = new ObservableCollection<ProductBase>(items);
+                        products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageOneTitle = pageTitle;
                         //TODO: need to change to only change page titles when the changes are saved
@@ -4593,7 +4594,7 @@ namespace Zeus
                 case 2:
                     {
                         items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageTwo, out pageTitle);
-                        products = new ObservableCollection<ProductBase>(items);
+                        products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageTwoTitle = pageTitle;
                         CurrentPageListTitle = pageTitle;
@@ -4604,7 +4605,7 @@ namespace Zeus
                 case 3:
                     {
                         items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageThree, out pageTitle);
-                        products = new ObservableCollection<ProductBase>(items);
+                        products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageThreeTitle = pageTitle;
                         CurrentPageListTitle = pageTitle;
@@ -4614,7 +4615,7 @@ namespace Zeus
                 case 4:
                     {
                         items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageFour, out pageTitle);
-                        products = new ObservableCollection<ProductBase>(items);
+                        products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFourTitle = pageTitle;
                         CurrentPageListTitle = pageTitle;
@@ -4624,7 +4625,7 @@ namespace Zeus
                 case 5:
                     {
                         items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageFive, out pageTitle);
-                        products = new ObservableCollection<ProductBase>(items);
+                        products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFiveTitle = pageTitle;
                         CurrentPageListTitle = pageTitle;
@@ -4633,8 +4634,8 @@ namespace Zeus
                     }
                 default:
                     {
-                        items = new List<ProductBase>() { ProductBase.Add("Varios", "Varios", 1, 1)};
-                        products = new ObservableCollection<ProductBase>(items);
+                        items = new List<IProduct>() { ProductBase.Add("Varios", "Varios", 1, 1)};
+                        products = new ObservableCollection<IProduct>(items);
                         pageTitle = "Pagina de Productos";
                         break;
                     }

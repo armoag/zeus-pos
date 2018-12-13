@@ -12,7 +12,7 @@ namespace Zeus
     /// <summary>
     /// Class for products to be used in the inventory and point of sale system
     /// </summary>
-    public class ProductBase
+    public class ProductBase : IProduct
     {
         #region Fields
         private BitmapImage _image;
@@ -101,7 +101,7 @@ namespace Zeus
 
         }
 
-        public ProductBase(ProductBase product)
+        public ProductBase(IProduct product)
         {
             //Basic
             this.Id = product.Id;
@@ -137,7 +137,7 @@ namespace Zeus
         #region Methods
 
         //Create a basic product with minimal information for manual transactions
-        public static ProductBase Add(string description, string category, decimal soldPrice, int lastQuantitySold)
+        public static IProduct Add(string description, string category, decimal soldPrice, int lastQuantitySold)
         {
             return new ProductBase()
             {
@@ -155,6 +155,11 @@ namespace Zeus
         }
 
         //Format for transaction log and display with description
+        IProduct IProduct.Add(string description, string category, decimal soldPrice, int lastQuantitySold)
+        {
+            return Add(description, category, soldPrice, lastQuantitySold);
+        }
+
         public string ToString(bool detail)
         {
             string trimmedDescription = Description;
@@ -191,12 +196,17 @@ namespace Zeus
             return Price - Cost;
         }
 
+        bool IProduct.UpdateProductListFile(string filePath, List<IProduct> products, string listName)
+        {
+            return UpdateProductListFile(filePath, products, listName);
+        }
+
         /// <summary>
         /// Update products list file with new changes
         /// </summary>
         /// <param name="filePath"></param>
         /// <returns></returns>
-        public static bool UpdateProductListFile(string filePath, List<ProductBase> products, string listName)
+        public static bool UpdateProductListFile(string filePath, List<IProduct> products, string listName)
         {
             //Creates or overwrites file
             StreamWriter writer = File.CreateText(filePath);

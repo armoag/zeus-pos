@@ -22,7 +22,7 @@ namespace Zeus
         private string _description;
         private string _category;
         private bool _clear;
-        private static ProductBase _manualProduct;
+        private static IProduct _manualProduct;
         private static ObservableCollection<string> _categoriesList;
         private bool _usdEnabled = false;
         private bool _transactionZEnabled = false;
@@ -180,7 +180,7 @@ namespace Zeus
         /// <summary>
         /// Property for the manually created product
         /// </summary>
-        public ProductBase ManualProduct
+        public IProduct ManualProduct
         {
             get { return _manualProduct; }
             set

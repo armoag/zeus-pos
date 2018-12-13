@@ -12,7 +12,7 @@ namespace Zeus
 {
     public class Utilities
     {
-        public static IEnumerable<ProductBase> MoveListItemUp(IEnumerable<ProductBase> item, int selectedItemIndex)
+        public static IEnumerable<IProduct> MoveListItemUp(IEnumerable<IProduct> item, int selectedItemIndex)
         {
             var updatedList = item.ToList();
             var tempItem = updatedList[selectedItemIndex];
@@ -24,7 +24,7 @@ namespace Zeus
             return updatedList;
         }
 
-        public static IEnumerable<ProductBase> MoveListItemDown(IEnumerable<ProductBase> item, int selectedItemIndex)
+        public static IEnumerable<IProduct> MoveListItemDown(IEnumerable<IProduct> item, int selectedItemIndex)
         {
             var updatedList = item.ToList();
             var tempItem = updatedList[selectedItemIndex];
@@ -36,7 +36,7 @@ namespace Zeus
             return updatedList;
         }
 
-        public static IEnumerable<ProductBase> DeleteListItem(IEnumerable<ProductBase> item, int selectedItemIndex)
+        public static IEnumerable<IProduct> DeleteListItem(IEnumerable<IProduct> item, int selectedItemIndex)
         {
             var updatedList = item.ToList();
             var tempItem = updatedList[selectedItemIndex];
@@ -44,7 +44,7 @@ namespace Zeus
             return updatedList;
         }
 
-        public static IEnumerable<ProductBase> AddListItem(IEnumerable<ProductBase> item, ProductBase newItem, int selectedItemIndex)
+        public static IEnumerable<IProduct> AddListItem(IEnumerable<IProduct> item, IProduct newItem, int selectedItemIndex)
         {
             var updatedList = item.ToList();
             if(updatedList.Count < 20)

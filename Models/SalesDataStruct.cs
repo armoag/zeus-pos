@@ -11,7 +11,7 @@ namespace Zeus
     {
         public User User { get; set; }
         public Customer Customer { get; set; }
-        public ObservableCollection<ProductBase> Products { get; set; }
+        public ObservableCollection<IProduct> Products { get; set; }
         public ReceiptType ReceiptType { get; set; }
         public double PointsObtained { get; set; }
 

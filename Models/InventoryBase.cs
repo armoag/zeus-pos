@@ -13,7 +13,7 @@ using GenericParsing;
 
 namespace Zeus
 {
-    public class InventoryBase
+    public class InventoryBase : IInventory
     {
         #region Fields
 
@@ -46,7 +46,7 @@ namespace Zeus
             LoadCsvToDataTable();
         }
 
-        public static InventoryBase GetInstance(string filePath)
+        public static IInventory GetInstance(string filePath)
         {
             if (_inventory == null)
                 _inventory = new InventoryBase(filePath);
@@ -186,7 +186,7 @@ namespace Zeus
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public virtual ProductBase GetProduct(string code)
+        public IProduct GetProduct(string code)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace Zeus
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
-        public virtual ProductBase GetProductFromDescription(string description)
+        public IProduct GetProductFromDescription(string description)
         {
             try
             {
@@ -283,7 +283,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public virtual bool  UpdateSoldProductToTable(ProductBase product)
+        public bool  UpdateSoldProductToTable(IProduct product)
         {
             for (int index = 0; index < _dictofdata.Rows.Count; index++)
             {
@@ -308,7 +308,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public virtual bool UpdateProductToTable(ProductBase product)
+        public bool UpdateProductToTable(IProduct product)
         {
             for (int index = 0; index < _dictofdata.Rows.Count; index++)
             {
@@ -345,7 +345,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public virtual bool AddNewProductToTable(ProductBase product)
+        public bool AddNewProductToTable(IProduct product)
         {
             _dictofdata.Rows.Add();
             var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
@@ -395,9 +395,9 @@ namespace Zeus
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public virtual List<ProductBase> Search(string input)
+        public List<IProduct> Search(string input)
         {
-            var products = new List<ProductBase>();
+            var products = new List<IProduct>();
 
             //Return empty list if invalid inputs are entered for the search
             if (string.IsNullOrWhiteSpace(input) || input == "x")
@@ -508,9 +508,9 @@ namespace Zeus
         }
 
         //Inventory
-        public static List<ProductBase> GetProductList(string filePath, out string listName)
+        public static List<IProduct> GetProductList(string filePath, out string listName)
         {
-            var productList = new List<ProductBase>();
+            var productList = new List<IProduct>();
 
             if (InventoryBase._inventory != null)
             {

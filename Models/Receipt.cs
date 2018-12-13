@@ -36,13 +36,13 @@ namespace Zeus
         private int _firstReceiptNumber;
         private int _lastReceiptNumber;
         private Pos _pos;
-        private ObservableCollection<ProductBase> _products;
+        private ObservableCollection<IProduct> _products;
 
         private int maxCharPerLine = 35;
         #endregion
 
         #region Properties
-        public ObservableCollection<ProductBase> Products { get; set; }
+        public ObservableCollection<IProduct> Products { get; set; }
         public Pos Pos
         {
             get

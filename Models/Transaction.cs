@@ -22,7 +22,7 @@ namespace Zeus
         private int _internalNumber;
         private int _transactionNumber;
         private int _receiptNumber;
-        private ProductBase _product;
+        private IProduct _product;
         private DateTime _transactionDate;
         private string _customerName;
         private string _userName;
@@ -53,7 +53,7 @@ namespace Zeus
         public int TransactionNumber { get => _transactionNumber; set => _transactionNumber = value; }
         public int InternalNumber { get => _internalNumber; set => _internalNumber = value; }
         public int ReceiptNumber { get; set; }
-        public ProductBase Product { get => _product; set => _product = value; }
+        public IProduct Product { get => _product; set => _product = value; }
         public DateTime TransactionDate { get => _transactionDate; set => _transactionDate = value; }
         public string CustomerName { get => _customerName; set => _customerName = value; }
         public string UserName { get => _userName; set => _userName = value; }
