@@ -19,12 +19,6 @@ namespace Zeus
 
         #endregion
 
-        #region Constructors
-        //Singleton pattern
-        IInventory GetInstance(string filePath);
-
-        #endregion
-
         #region Methods
 
         /// <summary>
@@ -112,7 +106,7 @@ namespace Zeus
         /// Create a backup copy of the inventory file
         /// </summary>
         /// <param name="filePath"></param>
-        void InventoryBackUp(string filePath);
+  //      void InventoryBackUp(string filePath);
 
         /// <summary>
         /// Search and returns a list of products

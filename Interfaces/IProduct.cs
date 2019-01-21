@@ -68,6 +68,10 @@ namespace Zeus
         /// <returns></returns>
         bool UpdateProductListFile(string filePath, List<IProduct> products, string listName);
 
+        //Create new product
+        IProduct CreateNewItem(string description, string category, decimal soldPrice, int lastQuantitySold);
+
+
         #endregion
     }
 }

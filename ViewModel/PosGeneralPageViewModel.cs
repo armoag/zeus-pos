@@ -279,7 +279,10 @@ namespace Zeus
                 {
                     if (UsdEnabled == true)
                     {
-                        ManualProduct = ProductBase.Add(Description, Category, Math.Round(decimal.Parse(Price)*MainWindowViewModel.GetInstance().ExchangeRate,2), Quantity);
+                        IProduct tempProduct = (IProduct)new object();
+                        tempProduct.Description = Description;
+
+                        ManualProduct = tempProduct.CreateNewItem(Description, Category, Math.Round(decimal.Parse(Price)*MainWindowViewModel.GetInstance().ExchangeRate,2), Quantity);
                     }
                     else
                     {

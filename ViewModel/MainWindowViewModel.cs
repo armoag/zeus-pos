@@ -4,13 +4,11 @@ using System.Collections.ObjectModel;
 using System.Globalization;
 using System.IO;
 using System.Linq;
-
 using System.Reflection;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
 using System.Windows.Media.Imaging;
-using Zeus;
 using MySql.Data.MySqlClient;
 using Zeus.WpfBindingUtilities;
 
@@ -1977,7 +1975,6 @@ namespace Zeus
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new object for every product 
             IProduct product = new ProductBase((IProduct) parameter) {LastQuantitySold = 1};
-           // var product = new IProduct((IProduct) parameter) {LastQuantitySold = 1};
             AddProductToCart(product);
         }
 
@@ -4581,7 +4578,7 @@ namespace Zeus
             {
                 case 1:
                     {
-                        items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
+                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageOneTitle = pageTitle;
@@ -4593,7 +4590,7 @@ namespace Zeus
 
                 case 2:
                     {
-                        items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageTwo, out pageTitle);
+                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageTwo, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageTwoTitle = pageTitle;
@@ -4604,7 +4601,7 @@ namespace Zeus
 
                 case 3:
                     {
-                        items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageThree, out pageTitle);
+                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageThree, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageThreeTitle = pageTitle;
@@ -4614,7 +4611,7 @@ namespace Zeus
                     }
                 case 4:
                     {
-                        items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageFour, out pageTitle);
+                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFour, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFourTitle = pageTitle;
@@ -4624,7 +4621,7 @@ namespace Zeus
                     }
                 case 5:
                     {
-                        items = InventoryBase.GetProductList(Constants.DataFolderPath + Constants.ProductPageFive, out pageTitle);
+                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFive, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFiveTitle = pageTitle;

@@ -223,6 +223,17 @@ namespace Zeus
             return true;
         }
 
+        public virtual IProduct CreateNewItem(string description, string category, decimal soldPrice, int lastQuantitySold)
+        {
+            return new ProductBase()
+            {
+                Description = description,
+                Category = category,
+                Price = soldPrice,
+                LastQuantitySold = lastQuantitySold
+            };
+        }
+
         #endregion
 
     }

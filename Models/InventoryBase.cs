@@ -186,7 +186,7 @@ namespace Zeus
         /// </summary>
         /// <param name="code"></param>
         /// <returns></returns>
-        public IProduct GetProduct(string code)
+        public virtual IProduct GetProduct(string code)
         {
             try
             {
@@ -235,7 +235,7 @@ namespace Zeus
         /// </summary>
         /// <param name="description"></param>
         /// <returns></returns>
-        public IProduct GetProductFromDescription(string description)
+        public virtual IProduct GetProductFromDescription(string description)
         {
             try
             {
@@ -283,7 +283,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public bool  UpdateSoldProductToTable(IProduct product)
+        public bool UpdateSoldProductToTable(IProduct product)
         {
             for (int index = 0; index < _dictofdata.Rows.Count; index++)
             {
@@ -308,7 +308,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public bool UpdateProductToTable(IProduct product)
+        public virtual bool UpdateProductToTable(IProduct product)
         {
             for (int index = 0; index < _dictofdata.Rows.Count; index++)
             {
@@ -345,7 +345,7 @@ namespace Zeus
         /// </summary>
         /// <param name="product"></param>
         /// <returns></returns>
-        public bool AddNewProductToTable(IProduct product)
+        public virtual bool AddNewProductToTable(IProduct product)
         {
             _dictofdata.Rows.Add();
             var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
@@ -373,6 +373,7 @@ namespace Zeus
             return true;
         }
         
+        //TODO: Need to remove it frmo inventory for cleaning up
         /// <summary>
         /// Create a backup copy of the inventory file
         /// </summary>
@@ -395,7 +396,7 @@ namespace Zeus
         /// </summary>
         /// <param name="input"></param>
         /// <returns></returns>
-        public List<IProduct> Search(string input)
+        public virtual List<IProduct> Search(string input)
         {
             var products = new List<IProduct>();
 
@@ -408,6 +409,7 @@ namespace Zeus
                 var allProducts = _dictofdata.AsEnumerable();
                 foreach (var row in allProducts)
                 {
+                    
                     var product = new ProductBase()
                     {
                         Id = Int32.Parse(row["NumeroProducto"].ToString()),
@@ -507,8 +509,7 @@ namespace Zeus
             return products;
         }
 
-        //Inventory
-        public static List<IProduct> GetProductList(string filePath, out string listName)
+        public List<IProduct> GetProductList(string filePath, out string listName)
         {
             var productList = new List<IProduct>();
 
@@ -530,6 +531,7 @@ namespace Zeus
                 return productList;
             }
         }
+
         #endregion  
     }
 }
