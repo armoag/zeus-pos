@@ -7,6 +7,8 @@ using GenericParsing;
 using System.Data;
 using System.IO;
 using System.Drawing.Printing;
+using System.Net.NetworkInformation;
+using System.Security.Cryptography;
 
 namespace Zeus
 {
@@ -156,6 +158,44 @@ namespace Zeus
         #endregion
 
         #region File Utilities
+
+        #endregion
+
+        #region System Utilities
+
+        public static void GetMacAddress(string networkDescription, out string macAddress)
+        {
+            IPGlobalProperties computerProperties = IPGlobalProperties.GetIPGlobalProperties();
+            NetworkInterface[] nics = NetworkInterface.GetAllNetworkInterfaces();
+
+            if (nics == null || nics.Length < 1)
+            {
+                Console.WriteLine(" No network interfaces found.");
+                macAddress = "Error";
+                return;
+            }
+
+            foreach (NetworkInterface adapter in nics)
+            {
+                if (adapter.Description == networkDescription)
+                {
+                    IPInterfaceProperties properties = adapter.GetIPProperties(); //  .GetIPInterfaceProperties();
+                    var address = adapter.GetPhysicalAddress();
+                    macAddress = address.ToString();
+                    return;
+                }
+            }
+
+            macAddress = "Error";
+        }
+
+        public static string HashLicense(string macAddress, string license)
+        {
+            var hash = SHA256.Create();
+            
+            hash.ComputeHash(Encoding.ASCII.GetBytes(macAddress));
+            return Encoding.ASCII.GetString(hash.Hash);
+        }
 
         #endregion
     }
