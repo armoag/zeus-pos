@@ -120,7 +120,7 @@ namespace Zeus
             var product = MainWindowViewModel.InventoryInstance.GetProduct(parameter.ToString());
             product.LastQuantitySold += 1;
             //MainWindowViewModel.AddManualProductToCart(product); changed static
-            var main = MainWindowViewModel.GetInstance();
+            var main = MainWindowViewModel.GetInstance(null, null);
             main.AddManualProductToCart(product);
         }
 

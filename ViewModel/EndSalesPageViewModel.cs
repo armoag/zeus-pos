@@ -621,12 +621,12 @@ namespace Zeus
         {
             EndOfSalesData = new EndOfSalesDataStruct()
             {
-                User = MainWindowViewModel.GetInstance().CurrentUser.Name,
+                User = MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
                 Comments = Comments,
                 EndOfSalesReceiptType = EndOfSalesType,
                 ExpensesCash = ExpensesCashTotal,
                 ExpensesTotal = ExpensesTotal,
-                ExchangeRate = MainWindowViewModel.GetInstance().ExchangeRate,
+                ExchangeRate = MainWindowViewModel.GetInstance(null, null).ExchangeRate,
                 InitialCash = RegisterPreviousCash,
                 NewInitialCash = RegisterNewCash,
                 SalesOffset = Delta,
@@ -728,19 +728,19 @@ namespace Zeus
                 case "x":
                     GenerateCurrentSalesReport();
                     //Log
-                    MainWindowViewModel.GetInstance().Log.Write(MainWindowViewModel.GetInstance().CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte X realizado");
-                    MainWindowViewModel.GetInstance().Code = "Corte X realizado!";                    
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte X realizado");
+                    MainWindowViewModel.GetInstance(null, null).Code = "Corte X realizado!";                    
                     break;
                   
                 case "z":
                     GenerateEndOfDaySalesReport();
                     //Log
-                    MainWindowViewModel.GetInstance().Log.Write(MainWindowViewModel.GetInstance().CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte Z realizado");
-                    MainWindowViewModel.GetInstance().Code = "Corte Z realizado!";                                     
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte Z realizado");
+                    MainWindowViewModel.GetInstance(null, null).Code = "Corte Z realizado!";                                     
                     break;
                     
             }
-            MainWindowViewModel.GetInstance().CurrentPage = "\\View\\PosGeneralPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
 
         }
 

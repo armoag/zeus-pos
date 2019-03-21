@@ -196,17 +196,7 @@ namespace Zeus
             return Price - Cost;
         }
 
-        bool IProduct.UpdateProductListFile(string filePath, List<IProduct> products, string listName)
-        {
-            return UpdateProductListFile(filePath, products, listName);
-        }
-
-        /// <summary>
-        /// Update products list file with new changes
-        /// </summary>
-        /// <param name="filePath"></param>
-        /// <returns></returns>
-        public static bool UpdateProductListFile(string filePath, List<IProduct> products, string listName)
+        public void UpdateProductListFile(string filePath, List<IProduct> products, string listName)
         {
             //Creates or overwrites file
             StreamWriter writer = File.CreateText(filePath);
@@ -220,7 +210,7 @@ namespace Zeus
             writer.Close();
             writer.Dispose();
 
-            return true;
+            return;
         }
 
         public virtual IProduct CreateNewItem(string description, string category, decimal soldPrice, int lastQuantitySold)

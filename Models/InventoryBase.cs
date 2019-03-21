@@ -19,9 +19,7 @@ namespace Zeus
 
         public static InventoryBase _inventory = null; 
 
-        const string cantidadLocalCol = "CantidadLocal";
         DataTable _dictofdata;
-
         private string _filePath;
 
         #endregion
@@ -34,6 +32,11 @@ namespace Zeus
             set { _dictofdata = value; }
         }
 
+        public string FilePath
+        {
+            get { return _filePath; }
+            set { _filePath = value; }
+        }
         #endregion
 
         #region Constructors
@@ -52,6 +55,11 @@ namespace Zeus
                 _inventory = new InventoryBase(filePath);
             return _inventory;
         }
+
+        public InventoryBase()
+        {
+
+        }
         #endregion
 
         #region Methods
@@ -61,7 +69,7 @@ namespace Zeus
         /// </summary>
         public void LoadCsvToDataTable()
         {
-            using (var parser = new GenericParserAdapter(_filePath))
+            using (var parser = new GenericParserAdapter(FilePath))
             {
                 parser.ColumnDelimiter = ',';
                 parser.FirstRowHasHeader = true;
@@ -70,7 +78,7 @@ namespace Zeus
                 parser.MaxBufferSize = 4096;
                 parser.MaxRows = 8000;
 
-                _dictofdata = parser.GetDataTable();
+                DictOfData = parser.GetDataTable();
             }
         }
 
@@ -81,16 +89,16 @@ namespace Zeus
         {
             StringBuilder sb = new StringBuilder();
 
-            IEnumerable<string> columnNames = _dictofdata.Columns.Cast<DataColumn>().
+            IEnumerable<string> columnNames = DictOfData.Columns.Cast<DataColumn>().
                                               Select(column => column.ColumnName);
             sb.AppendLine(string.Join(",", columnNames));
 
-            foreach (DataRow row in _dictofdata.Rows)
+            foreach (DataRow row in DictOfData.Rows)
             {
                 IEnumerable<string> fields = row.ItemArray.Select(field => field.ToString());
                 sb.AppendLine(string.Join(",", fields));
             }
-            File.WriteAllText(_filePath, sb.ToString());
+            File.WriteAllText(FilePath, sb.ToString());
         }
 
         /// <summary>
@@ -101,9 +109,9 @@ namespace Zeus
         /// <returns></returns>
         public string QueryDataFromCode(string code, string columnName)
         {
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == code)
                 {
                     return row[columnName].ToString();
@@ -118,9 +126,9 @@ namespace Zeus
         /// <returns></returns>
         public int GetLastItemNumber()
         {
-            if (_dictofdata.Rows.Count == 0)
+            if (DictOfData.Rows.Count == 0)
                 return 0;
-            var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
+            var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
             return Int32.Parse(row["NumeroProducto"].ToString());
         }
 
@@ -132,9 +140,9 @@ namespace Zeus
         /// <param name="newData"></param>
         public void UpdateItem(string code, string columnName, string newData)
         {
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == code)
                 {
                     row[columnName] = newData;
@@ -150,12 +158,12 @@ namespace Zeus
         /// <param name="columnName"></param>
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row[columnName].ToString() == inputSearch)
                 {
-                    _dictofdata.Rows[index].Delete();
+                    DictOfData.Rows[index].Delete();
                     return;
                 }
             }
@@ -168,14 +176,13 @@ namespace Zeus
         /// <param name="unitsSold"></param>
         public void UpdateSoldItemQuantity(string code, int unitsSold)
         {
-
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == code)
                 {
-                    int quantity = Int32.Parse(row[cantidadLocalCol].ToString());
-                    row[cantidadLocalCol] = (quantity - unitsSold).ToString();
+                    int quantity = Int32.Parse(row["CantidadLocal"].ToString());
+                    row["CantidadLocal"] = (quantity - unitsSold).ToString();
                     return;
                 }
             }
@@ -190,9 +197,9 @@ namespace Zeus
         {
             try
             {
-                for (int index = 0; index < _dictofdata.Rows.Count; index++)
+                for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {
-                    var row = _dictofdata.Rows[index];
+                    var row = DictOfData.Rows[index];
                     if (row["Codigo"].ToString() == code)
                     {
                         return new ProductBase()
@@ -285,9 +292,9 @@ namespace Zeus
         /// <returns></returns>
         public bool UpdateSoldProductToTable(IProduct product)
         {
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == product.Code)
                 {
                     row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
@@ -310,9 +317,9 @@ namespace Zeus
         /// <returns></returns>
         public virtual bool UpdateProductToTable(IProduct product)
         {
-            for (int index = 0; index < _dictofdata.Rows.Count; index++)
+            for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
-                var row = _dictofdata.Rows[index];
+                var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == product.Code)
                 {
                     row["NumeroProducto"] = product.Id.ToString();
@@ -347,7 +354,7 @@ namespace Zeus
         /// <returns></returns>
         public virtual bool AddNewProductToTable(IProduct product)
         {
-            _dictofdata.Rows.Add();
+            DictOfData.Rows.Add();
             var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
             row["NumeroProducto"] = product.Id.ToString();
             row["Codigo"] = product.Code;
@@ -406,7 +413,7 @@ namespace Zeus
 
             if (input == "*")
             {
-                var allProducts = _dictofdata.AsEnumerable();
+                var allProducts = DictOfData.AsEnumerable();
                 foreach (var row in allProducts)
                 {
                     
@@ -441,8 +448,8 @@ namespace Zeus
                 return products;
             }
 
-            var descriptionFilter = _dictofdata.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
-            var codeFilter = _dictofdata.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+            var descriptionFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+            var codeFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
 
             foreach (var row in codeFilter)
             {

@@ -105,7 +105,7 @@ namespace Zeus
 
         private void RecordReturn()
         {
-            var data = string.Format("{0},{1},{2:g},{3},{4:s},{5},{6},{7}", ReturnID, MainWindowViewModel.GetInstance().CurrentUser.Name, DateTime.Now, TicketNumber, PurchaseDate, CustomerName, CustomerNumber,
+            var data = string.Format("{0},{1},{2:g},{3},{4:s},{5},{6},{7}", ReturnID, MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, DateTime.Now, TicketNumber, PurchaseDate, CustomerName, CustomerNumber,
                            ReturnReason) + Environment.NewLine; 
             //Append to daily receipt
             File.AppendAllText(Constants.DataFolderPath + Constants.ReturnsFileName, data);
@@ -120,24 +120,24 @@ namespace Zeus
 
         internal void Execute_ReturnSaveChangesCommand(object parameter)
         {
-            if (MainWindowViewModel.GetInstance().CurrentCartProducts.Count > 0)
+            if (MainWindowViewModel.GetInstance(null, null).CurrentCartProducts.Count > 0)
             {
                 //Record Transaction
                 RecordReturn();
                 //Message
-                MainWindowViewModel.GetInstance().Code = "¡Devolución Registrada!";
-                MainWindowViewModel.GetInstance().CodeColor = Constants.ColorCodeSave;
-                MainWindowViewModel.GetInstance().ReturnID = Int32.Parse(ReturnID);
-                MainWindowViewModel.GetInstance().ReturnTransaction = true;
-                MainWindowViewModel.GetInstance().PaymentReceivedMXN = MainWindowViewModel.GetInstance().CalculateCurrentCartTotal();
+                MainWindowViewModel.GetInstance(null, null).Code = "¡Devolución Registrada!";
+                MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeSave;
+                MainWindowViewModel.GetInstance(null, null).ReturnID = Int32.Parse(ReturnID);
+                MainWindowViewModel.GetInstance(null, null).ReturnTransaction = true;
+                MainWindowViewModel.GetInstance(null, null).PaymentReceivedMXN = MainWindowViewModel.GetInstance(null, null).CalculateCurrentCartTotal();
                 //Log
-                MainWindowViewModel.GetInstance().Log.Write(MainWindowViewModel.GetInstance().CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devolucion Registrada Folio: " + ReturnID.ToString() );
-                MainWindowViewModel.GetInstance().CurrentPage = "\\View\\PaymentPage.xaml";
+                MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devolucion Registrada Folio: " + ReturnID.ToString() );
+                MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PaymentPage.xaml";
             }
             else
             {
-                MainWindowViewModel.GetInstance().Code = "¡Agregar Artículos al Carrito!";
-                MainWindowViewModel.GetInstance().CodeColor = Constants.ColorCodeError;
+                MainWindowViewModel.GetInstance(null, null).Code = "¡Agregar Artículos al Carrito!";
+                MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
             }
         }
 

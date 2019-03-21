@@ -332,12 +332,12 @@ namespace Zeus
             _posInstance.UpdateAllData();
             _posInstance.SaveDataTableToCsv();
             //Log
-            MainWindowViewModel.GetInstance().Log.Write(MainWindowViewModel.GetInstance().CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Menu de Sistema Actualizado");
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Menu de Sistema Actualizado");
             //Message
-            MainWindowViewModel.GetInstance().Code = "¡Datos Actualizados!";
-            MainWindowViewModel.GetInstance().CodeColor = Constants.ColorCodeSave;
+            MainWindowViewModel.GetInstance(null, null).Code = "¡Datos Actualizados!";
+            MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeSave;
             //Return
-            MainWindowViewModel.GetInstance().CurrentPage = "\\View\\PosGeneralPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
         }
 
         internal bool CanExecute_SystemSaveChangesCommand(object parameter)

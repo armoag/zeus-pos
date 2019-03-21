@@ -71,6 +71,8 @@
     <Compile Include="Interfaces\IInventory.cs" />
     <Compile Include="Interfaces\IProduct.cs" />
     <Compile Include="Models\BasicEntityInfo.cs" />
+    <Compile Include="Models\Inventories\CarInventory.cs" />
+    <Compile Include="Models\Products\CarPart.cs" />
     <Compile Include="Models\CategoryCatalog.cs" />
     <Compile Include="Models\Customer.cs" />
     <Compile Include="Models\DataBase.cs" />
@@ -100,6 +102,7 @@
     <Compile Include="Utilities\Logger.cs" />
     <Compile Include="Utilities\Notification.cs" />
     <Compile Include="Utilities\Utilities.cs" />
+    <Compile Include="ViewModel\Auto\CarRegistrationViewModel.cs" />
     <Compile Include="ViewModel\BaseViewModel.cs" />
     <Compile Include="ViewModel\EndSalesPageViewModel.cs" />
     <Compile Include="ViewModel\MainWindowViewModel.cs" />

@@ -282,7 +282,7 @@ namespace Zeus
                         IProduct tempProduct = (IProduct)new object();
                         tempProduct.Description = Description;
 
-                        ManualProduct = tempProduct.CreateNewItem(Description, Category, Math.Round(decimal.Parse(Price)*MainWindowViewModel.GetInstance().ExchangeRate,2), Quantity);
+                        ManualProduct = tempProduct.CreateNewItem(Description, Category, Math.Round(decimal.Parse(Price)*MainWindowViewModel.GetInstance(null, null).ExchangeRate,2), Quantity);
                     }
                     else
                     {
@@ -295,7 +295,7 @@ namespace Zeus
                     if (ManualProduct.PriceCurrency == CurrencyTypeEnum.USD)
                     {
                         UsdEnabled = true;
-                        ManualProduct.Price = Math.Round(decimal.Parse(Price) * MainWindowViewModel.GetInstance().ExchangeRate, 2);
+                        ManualProduct.Price = Math.Round(decimal.Parse(Price) * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
                     }
                     else
                     {
@@ -309,7 +309,7 @@ namespace Zeus
                 }
             }
             //MainWindowViewModel.AddManualProductToCart(ManualProduct); Changed from static
-            var main = MainWindowViewModel.GetInstance();
+            var main = MainWindowViewModel.GetInstance(null, null);
 
             main.AddManualProductToCart(ManualProduct);
             Clear = true;

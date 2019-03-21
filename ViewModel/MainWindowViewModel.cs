@@ -5,6 +5,7 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
+using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
@@ -29,6 +30,7 @@ namespace Zeus
         private static bool _systemUnlock = false;
         private static User _currentUser;
         private static Customer _currentCustomer;
+        private static IProduct _productType;
 
         //Products page list related fields
         private static ObservableCollection<string> _products;
@@ -96,7 +98,7 @@ namespace Zeus
 
         #region Constructors
 
-        private MainWindowViewModel()
+        private MainWindowViewModel(object productType, object inventoryType)
         {
             //Testing
             //try
@@ -140,7 +142,15 @@ namespace Zeus
             CurrentCartNumber = 1;
             CurrentCartProducts = _cartOneProducts;
             //Initialize inventory and Pos data files
-            _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
+            if (productType is CarPart part)
+            {
+                _productType = part;
+                _inventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
+            }
+            else
+            {
+                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
+            }
             _posInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
             ExchangeRate = _posInstance.ExchangeRate;
             //Page Titles
@@ -155,10 +165,10 @@ namespace Zeus
             LoginMessage = "¡Bienvenido!";
         }
 
-        public static MainWindowViewModel GetInstance()
+        public static MainWindowViewModel GetInstance(IProduct productType, IInventory inventoryType)
         {
             if (_appInstance == null)
-                _appInstance = new MainWindowViewModel();
+                _appInstance = new MainWindowViewModel(productType, inventoryType);
             return _appInstance;
         }
 
@@ -2326,7 +2336,9 @@ namespace Zeus
 
         internal void Execute_SaveChangesProductListCommand(object parameter)
         {
-            ProductBase.UpdateProductListFile(parameter.ToString(), CurrentPageListProducts.ToList(), CurrentPageListTitle);
+            ///TODO: Check
+            ProductBase product = new ProductBase();
+            product.UpdateProductListFile(parameter.ToString(), CurrentPageListProducts.ToList(), CurrentPageListTitle);
             if (LastSelectedProductsPage == 1)
                 PageOneTitle = CurrentPageListTitle;
             else if (LastSelectedProductsPage == 2)
@@ -2468,68 +2480,163 @@ namespace Zeus
             {
                 case "inventory_details":
                     //Create new productt
-                    var temporalProduct = new ProductBase()
+                    IProduct temporalProduct;
+                    if (_productType is CarPart)
                     {
-                        Id = SelectedInventoryProduct.Id,
-                        Code = SelectedInventoryProduct.Code,
-                        AlternativeCode = SelectedInventoryProduct.AlternativeCode,
-                        AmountSold = SelectedInventoryProduct.AmountSold,
-                        Category = SelectedInventoryProduct.Category,
-                        Cost = SelectedInventoryProduct.Cost,
-                        CostCurrency = SelectedInventoryProduct.CostCurrency,
-                        Description = SelectedInventoryProduct.Description,
-                        Image = SelectedInventoryProduct.Image,
-                        ImageName = SelectedInventoryProduct.ImageName,
-                        InternalQuantity = SelectedInventoryProduct.InternalQuantity,
-                        LastPurchaseDate = SelectedInventoryProduct.LastPurchaseDate,
-                        LastQuantitySold = SelectedInventoryProduct.LastQuantitySold,
-                        LastSaleDate = SelectedInventoryProduct.LastSaleDate,
-                        LocalQuantityAvailable = SelectedInventoryProduct.LocalQuantityAvailable,
-                        MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
-                        Name = SelectedInventoryProduct.Name,
-                        Price = SelectedInventoryProduct.Price,
-                        PriceCurrency = SelectedInventoryProduct.PriceCurrency,
-                        Provider = SelectedInventoryProduct.Provider,
-                        ProviderProductId = SelectedInventoryProduct.ProviderProductId,
-                        QuantitySold = SelectedInventoryProduct.QuantitySold,
-                        TotalQuantityAvailable = SelectedInventoryProduct.TotalQuantityAvailable,
-                        Brand = SelectedInventoryProduct.Brand
-                    };
+                        temporalProduct = new CarPart()
+                        {
+                            Id = SelectedInventoryProduct.Id,
+                            Code = SelectedInventoryProduct.Code,
+                            AlternativeCode = SelectedInventoryProduct.AlternativeCode,
+                            AmountSold = SelectedInventoryProduct.AmountSold,
+                            Category = SelectedInventoryProduct.Category,
+                            Cost = SelectedInventoryProduct.Cost,
+                            CostCurrency = SelectedInventoryProduct.CostCurrency,
+                            Description = SelectedInventoryProduct.Description,
+                            Image = SelectedInventoryProduct.Image,
+                            ImageName = SelectedInventoryProduct.ImageName,
+                            InternalQuantity = SelectedInventoryProduct.InternalQuantity,
+                            LastPurchaseDate = SelectedInventoryProduct.LastPurchaseDate,
+                            LastQuantitySold = SelectedInventoryProduct.LastQuantitySold,
+                            LastSaleDate = SelectedInventoryProduct.LastSaleDate,
+                            LocalQuantityAvailable = SelectedInventoryProduct.LocalQuantityAvailable,
+                            MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                            Name = SelectedInventoryProduct.Name,
+                            Price = SelectedInventoryProduct.Price,
+                            PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                            Provider = SelectedInventoryProduct.Provider,
+                            ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                            QuantitySold = SelectedInventoryProduct.QuantitySold,
+                            TotalQuantityAvailable = SelectedInventoryProduct.TotalQuantityAvailable,
+                            Brand = SelectedInventoryProduct.Brand,
+
+                            Vin = ((CarPart)SelectedInventoryProduct).Vin,
+                            Make = ((CarPart)SelectedInventoryProduct).Make,
+                            Model = ((CarPart)SelectedInventoryProduct).Model,
+                            Year = ((CarPart)SelectedInventoryProduct).Year,
+                            Transmission = ((CarPart)SelectedInventoryProduct).Transmission,
+                            Color = ((CarPart)SelectedInventoryProduct).Color,
+                            Location = ((CarPart)SelectedInventoryProduct).Location,
+                            SpecificLocation = ((CarPart)SelectedInventoryProduct).SpecificLocation,
+                            ImportCost = ((CarPart)SelectedInventoryProduct).ImportCost,
+                            ImportCostCurrency = ((CarPart)SelectedInventoryProduct).ImportCostCurrency
+                        };
+                     }
+                    //Add more products types here
+                    //else if ()
+                    //{
+
+                    //}
+                    else
+                    {
+                        temporalProduct = new ProductBase()
+                        {
+                            Id = SelectedInventoryProduct.Id,
+                            Code = SelectedInventoryProduct.Code,
+                            AlternativeCode = SelectedInventoryProduct.AlternativeCode,
+                            AmountSold = SelectedInventoryProduct.AmountSold,
+                            Category = SelectedInventoryProduct.Category,
+                            Cost = SelectedInventoryProduct.Cost,
+                            CostCurrency = SelectedInventoryProduct.CostCurrency,
+                            Description = SelectedInventoryProduct.Description,
+                            Image = SelectedInventoryProduct.Image,
+                            ImageName = SelectedInventoryProduct.ImageName,
+                            InternalQuantity = SelectedInventoryProduct.InternalQuantity,
+                            LastPurchaseDate = SelectedInventoryProduct.LastPurchaseDate,
+                            LastQuantitySold = SelectedInventoryProduct.LastQuantitySold,
+                            LastSaleDate = SelectedInventoryProduct.LastSaleDate,
+                            LocalQuantityAvailable = SelectedInventoryProduct.LocalQuantityAvailable,
+                            MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                            Name = SelectedInventoryProduct.Name,
+                            Price = SelectedInventoryProduct.Price,
+                            PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                            Provider = SelectedInventoryProduct.Provider,
+                            ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                            QuantitySold = SelectedInventoryProduct.QuantitySold,
+                            TotalQuantityAvailable = SelectedInventoryProduct.TotalQuantityAvailable,
+                            Brand = SelectedInventoryProduct.Brand
+                        };
+                    }
 
                     CurrentPage = "\\View\\InventoryItemPage.xaml";
                     InventoryTemporalItem = temporalProduct;
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Producto:" + " " + SelectedInventoryProduct.Code);
-                    break;
 
+                    break;
                 case "inventory_add_clone":
                     //Create new productt
-                    var temporalClonedProduct = new ProductBase()
+                    IProduct temporalClonedProduct;
+                    if (_productType is CarPart)
                     {
-                        Id = _inventoryInstance.GetLastItemNumber()+1,
-                        Code = "",
-                        AlternativeCode = "NA",
-                        AmountSold = 0,
-                        Category = SelectedInventoryProduct.Category,
-                        Cost = SelectedInventoryProduct.Cost,
-                        CostCurrency = SelectedInventoryProduct.CostCurrency,
-                        Description = SelectedInventoryProduct.Description,
-                        Image = SelectedInventoryProduct.Image,
-                        ImageName = SelectedInventoryProduct.ImageName,
-                        InternalQuantity = 0,
-                        LastPurchaseDate = DateTime.Today,
-                        LastQuantitySold = 0,
-                        LastSaleDate = DateTime.Today,
-                        LocalQuantityAvailable = 0,
-                        MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
-                        Name = SelectedInventoryProduct.Name,
-                        Price = SelectedInventoryProduct.Price,
-                        PriceCurrency = SelectedInventoryProduct.PriceCurrency,
-                        Provider = SelectedInventoryProduct.Provider,
-                        ProviderProductId = SelectedInventoryProduct.ProviderProductId,
-                        QuantitySold = 0,
-                        TotalQuantityAvailable = 0,
-                        Brand = SelectedInventoryProduct.Brand
-                    };
+                        temporalClonedProduct = new CarPart()
+                        {
+                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Code = "",
+                            AlternativeCode = "NA",
+                            AmountSold = 0,
+                            Category = SelectedInventoryProduct.Category,
+                            Cost = SelectedInventoryProduct.Cost,
+                            CostCurrency = SelectedInventoryProduct.CostCurrency,
+                            Description = SelectedInventoryProduct.Description,
+                            Image = SelectedInventoryProduct.Image,
+                            ImageName = SelectedInventoryProduct.ImageName,
+                            InternalQuantity = 0,
+                            LastPurchaseDate = DateTime.Today,
+                            LastQuantitySold = 0,
+                            LastSaleDate = DateTime.Today,
+                            LocalQuantityAvailable = 0,
+                            MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                            Name = SelectedInventoryProduct.Name,
+                            Price = SelectedInventoryProduct.Price,
+                            PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                            Provider = SelectedInventoryProduct.Provider,
+                            ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                            QuantitySold = 0,
+                            TotalQuantityAvailable = 0,
+                            Brand = SelectedInventoryProduct.Brand,
+
+                            Vin = "",
+                            Make = ((CarPart)SelectedInventoryProduct).Make,
+                            Model = ((CarPart)SelectedInventoryProduct).Model,
+                            Year = ((CarPart)SelectedInventoryProduct).Year,
+                            Transmission = ((CarPart)SelectedInventoryProduct).Transmission,
+                            Color = ((CarPart)SelectedInventoryProduct).Color,
+                            Location = ((CarPart)SelectedInventoryProduct).Location,
+                            SpecificLocation = ((CarPart)SelectedInventoryProduct).SpecificLocation,
+                            ImportCost = ((CarPart)SelectedInventoryProduct).ImportCost,
+                            ImportCostCurrency = ((CarPart)SelectedInventoryProduct).ImportCostCurrency
+                        };
+                    }
+                    else
+                    {
+                        temporalClonedProduct = new ProductBase()
+                        {
+                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Code = "",
+                            AlternativeCode = "NA",
+                            AmountSold = 0,
+                            Category = SelectedInventoryProduct.Category,
+                            Cost = SelectedInventoryProduct.Cost,
+                            CostCurrency = SelectedInventoryProduct.CostCurrency,
+                            Description = SelectedInventoryProduct.Description,
+                            Image = SelectedInventoryProduct.Image,
+                            ImageName = SelectedInventoryProduct.ImageName,
+                            InternalQuantity = 0,
+                            LastPurchaseDate = DateTime.Today,
+                            LastQuantitySold = 0,
+                            LastSaleDate = DateTime.Today,
+                            LocalQuantityAvailable = 0,
+                            MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                            Name = SelectedInventoryProduct.Name,
+                            Price = SelectedInventoryProduct.Price,
+                            PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                            Provider = SelectedInventoryProduct.Provider,
+                            ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                            QuantitySold = 0,
+                            TotalQuantityAvailable = 0,
+                            Brand = SelectedInventoryProduct.Brand
+                        };
+                    }
 
                     var clonedCode = SelectedInventoryProduct.Code;
                     SelectedInventoryProduct = null;
@@ -2561,34 +2668,78 @@ namespace Zeus
             switch ((string)parameter)
             {
                 case "inventory_add":
+                    IProduct temporalProduct;
                     SelectedInventoryProduct = null;    //Clear selected item in the inventory
                     //Create new productt
-                    var temporalProduct = new ProductBase()
+                    if (_productType is CarPart)
                     {
-                        Id = _inventoryInstance.GetLastItemNumber() + 1,
-                        Code = "",
-                        AlternativeCode = "",
-                        AmountSold = 0M,
-                        Category = "",
-                        Cost = 0M,
-                        CostCurrency = CurrencyTypeEnum.MXN,
-                        Description = "",
-                        ImageName = "NA.jpg",
-                        InternalQuantity = 0,
-                        LastPurchaseDate = DateTime.Now,
-                        LastQuantitySold = 0,
-                        LastSaleDate = DateTime.Now,
-                        LocalQuantityAvailable = 0,
-                        MinimumStockQuantity = 1,
-                        Name = "",
-                        Price = 0M,
-                        PriceCurrency = CurrencyTypeEnum.MXN,
-                        Provider = "",
-                        ProviderProductId = "",
-                        QuantitySold = 0,
-                        TotalQuantityAvailable = 0,
-                        Brand = ""
-                    };
+                        temporalProduct = new CarPart()
+                        {
+                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Code = "",
+                            AlternativeCode = "",
+                            AmountSold = 0M,
+                            Category = "",
+                            Cost = 0M,
+                            CostCurrency = CurrencyTypeEnum.USD,
+                            Description = "",
+                            ImageName = "NA.jpg",
+                            InternalQuantity = 0,
+                            LastPurchaseDate = DateTime.Now,
+                            LastQuantitySold = 0,
+                            LastSaleDate = DateTime.Now,
+                            LocalQuantityAvailable = 0,
+                            MinimumStockQuantity = 1,
+                            Name = "",
+                            Price = 0M,
+                            PriceCurrency = CurrencyTypeEnum.USD,
+                            Provider = "",
+                            ProviderProductId = "",
+                            QuantitySold = 0,
+                            TotalQuantityAvailable = 0,
+                            Brand = "",
+
+                            Vin = "",
+                            Make = "",
+                            Model = "",
+                            Year = 2000,
+                            Color = "",
+                            Transmission = "Automatica",
+                            ImportCost = 0M,
+                            ImportCostCurrency = CurrencyTypeEnum.USD,
+                            Location = "",
+                            SpecificLocation = ""
+                        };
+                    }
+                    else
+                    {
+                        temporalProduct = new ProductBase()
+                        {
+                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Code = "",
+                            AlternativeCode = "",
+                            AmountSold = 0M,
+                            Category = "",
+                            Cost = 0M,
+                            CostCurrency = CurrencyTypeEnum.MXN,
+                            Description = "",
+                            ImageName = "NA.jpg",
+                            InternalQuantity = 0,
+                            LastPurchaseDate = DateTime.Now,
+                            LastQuantitySold = 0,
+                            LastSaleDate = DateTime.Now,
+                            LocalQuantityAvailable = 0,
+                            MinimumStockQuantity = 1,
+                            Name = "",
+                            Price = 0M,
+                            PriceCurrency = CurrencyTypeEnum.MXN,
+                            Provider = "",
+                            ProviderProductId = "",
+                            QuantitySold = 0,
+                            TotalQuantityAvailable = 0,
+                            Brand = ""
+                        };
+                    }
 
                     CurrentPage = "\\View\\InventoryItemPage.xaml";
                     InventoryTemporalItem = temporalProduct;
