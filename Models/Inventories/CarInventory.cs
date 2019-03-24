@@ -101,6 +101,7 @@ namespace Zeus
                 row["Modelo"] = carPart.Model;
                 row["Anho"] = carPart.Year.ToString();
                 row["Transmision"] = carPart.Transmission;
+                row["Motor"] = carPart.Motor;
                 row["Color"] = carPart.Color;
                 row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
                 row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;
@@ -174,6 +175,7 @@ namespace Zeus
                             Model = row["Modelo"].ToString(),
                             Year = Int32.Parse(row["Anho"].ToString()),
                             Transmission = row["Transmision"].ToString(),
+                            Motor = row["Motor"].ToString(),
                             Color = row["Color"].ToString(),
                             ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
                             ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
@@ -229,6 +231,7 @@ namespace Zeus
                             Model = row["Modelo"].ToString(),
                             Year = Int32.Parse(row["Anho"].ToString()),
                             Transmission = row["Transmision"].ToString(),
+                            Motor = row["Motor"].ToString(),
                             Color = row["Color"].ToString(),
                             ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
                             ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
@@ -353,6 +356,7 @@ namespace Zeus
                         Model = row["Modelo"].ToString(),
                         Year = Int32.Parse(row["Anho"].ToString()),
                         Transmission = row["Transmision"].ToString(),
+                        Motor = row["Motor"].ToString(),
                         Color = row["Color"].ToString(),
                         ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
                         Location = row["Ubicacion"].ToString(),
@@ -398,6 +402,7 @@ namespace Zeus
                     Model = row["Modelo"].ToString(),
                     Year = Int32.Parse(row["Anho"].ToString()),
                     Transmission = row["Transmision"].ToString(),
+                    Motor = row["Motor"].ToString(),
                     Color = row["Color"].ToString(),
                     ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
                     Location = row["Ubicacion"].ToString(),
@@ -438,6 +443,7 @@ namespace Zeus
                     Model = row["Modelo"].ToString(),
                     Year = Int32.Parse(row["Anho"].ToString()),
                     Transmission = row["Transmision"].ToString(),
+                    Motor = row["Motor"].ToString(),
                     Color = row["Color"].ToString(),
                     ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
                     Location = row["Ubicacion"].ToString(),
@@ -503,6 +509,7 @@ namespace Zeus
                         row["Modelo"] = carPart.Model;
                         row["Anho"] = carPart.Year.ToString();
                         row["Transmision"] = carPart.Transmission;
+                        row["Motor"] = carPart.Motor;
                         row["Color"] = carPart.Color;
                         row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
                         row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;

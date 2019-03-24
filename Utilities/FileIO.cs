@@ -104,5 +104,27 @@ namespace Zeus
             File.Copy(fileFullPath, inventoryFileBackUpCopyName);
         }
 
+        public static List<string> GetListFromFile(string filePath)
+        {
+            var list = new List<string>();
+            //Read file
+            try
+            {
+                var lines = File.ReadAllLines(filePath);
+                list = lines.ToList();
+                return list;
+            }
+            catch (Exception e)
+            {
+                var lines = new List<string> {"Generico"};
+                list = lines.ToList();
+                return list;
+            }
+        }
+
+        public static string SelectFolder()
+        {
+            
+        }
     }
 }

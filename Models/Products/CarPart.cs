@@ -50,6 +50,7 @@ namespace Zeus
         private string _color;
         private string _make;
         private string _transmission;
+        private string _motor;
         private int _year;
         private decimal _importCost;
         private CurrencyTypeEnum _importCostCurrency;
@@ -298,6 +299,12 @@ namespace Zeus
             set { _transmission = value; }
         }
 
+        public string Motor
+        {
+            get { return _motor; }
+            set { _motor = value; }
+        }
+
         public int Year
         {
             get { return _year; }
@@ -412,6 +419,89 @@ namespace Zeus
         IProduct IProduct.Add(string description, string category, decimal soldPrice, int lastQuantitySold)
         {
             return Add(description, category, soldPrice, lastQuantitySold);
+        }
+
+        public List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
+        {
+            var list = new List<CarPart>();
+
+            foreach (var part in parts)
+            {
+                var partialVin = car.Vin.Substring(car.Vin.Length - 5);
+                var description = partialVin + " " + car.Model + " " + part.Item1;
+                var category = part.Item2;
+                var quantity = part.Item3;
+                var price = part.Item4;
+                var currency = part.Item5;
+                var index = parts.IndexOf(part) + 1;
+                
+                var newPart = new CarPart()
+                {
+                    Code = partialVin + index,
+                    AlternativeCode = "NA",
+                    ProviderProductId = "NA",
+                    Description = description,
+                    Vin = car.Vin,
+                    Make = car.Make,
+                    Model = car.Model,
+                    Year = car.Year,
+                    Transmission = car.Transmission,
+                    Motor = car.Motor,
+                    Color = car.Color,
+                    Provider = car.Provider,
+                    Category = category,
+                    LastPurchaseDate = car.LastPurchaseDate,
+                    Cost = 0M,
+                    CostCurrency = CurrencyTypeEnum.USD,
+                    ImportCost = 0M,
+                    ImportCostCurrency = CurrencyTypeEnum.USD,
+                    Price = price,
+                    PriceCurrency = currency,
+                    Location = car.Location,
+                    InternalQuantity = 0,
+                    QuantitySold = 0,
+                    AmountSold = 0,
+                    LocalQuantityAvailable = quantity,
+                    TotalQuantityAvailable = quantity,
+                    MinimumStockQuantity = 0,
+                    LastSaleDate = car.LastPurchaseDate,
+                    ImageName = car.ImageName
+                };
+
+                list.Add(newPart);
+            }
+            return list;
+        }
+
+        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> ReadPartsFile()
+        {
+            var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
+            var db = new DataBase(Constants.DataFolderPath + Constants.DefaultPartsListFileName);        
+            db.LoadCsvToDataTable();
+            for (int index = 0; index < db.DataTable.Rows.Count; index++)
+            {
+                var row = db.DataTable.Rows[index];
+                var newPartData = new Tuple<string, string, int, decimal, CurrencyTypeEnum>(row["Descripcion"].ToString(), 
+                    row["Categoria"].ToString(), Int32.Parse(row["Cantidad"].ToString()), decimal.Parse(row["Precio"].ToString()),
+                        row["Moneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN);
+
+                partsList.Add(newPartData);
+            }
+
+            return partsList;
+        }
+
+        public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
+        {
+            File.AppendAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda");
+
+            foreach (var part in parts)
+            {
+                string data = string.Format("{0},{1},{2},{3},{4}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString())
+                              + Environment.NewLine;
+
+                File.AppendAllText(fullFilePath, data);
+            }
         }
     }
 }

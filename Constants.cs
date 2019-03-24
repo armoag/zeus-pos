@@ -85,5 +85,9 @@ namespace Zeus
         public const string LogFileName = "Log.txt";
 
         //Car Reltated files
+        public const string CarBrandListFileName = "Marcas.txt";
+        public const string LocationListFileName = "Locaciones.txt";
+        public const string TransmissiondListFileName = "Transmisiones.txt";
+        public const string DefaultPartsListFileName = "Lista.csv";
     }
 }

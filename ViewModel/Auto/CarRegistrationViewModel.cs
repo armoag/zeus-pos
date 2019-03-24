@@ -19,7 +19,10 @@ namespace Zeus
         private static CarRegistrationViewModel _carRegistrationInstance = null;
 
         private ObservableCollection<CarPart> _carPartsSearchedEntries;
-        private CarPart _selectedCarPart;
+        private CarPart _car;
+        private ObservableCollection<string> _carBrandsList;
+        private ObservableCollection<string> _locationsList;
+        private ObservableCollection<string> _transmissionsList;
         private string _currentPage;
         #endregion
 
@@ -67,6 +70,13 @@ namespace Zeus
             //    Enabled = true,
             //    TotalQuantityAvailable = 1
             //});
+            var carList = FileIO.GetListFromFile(Constants.DataFolderPath + Constants.CarBrandListFileName);
+            var transList = FileIO.GetListFromFile(Constants.DataFolderPath + Constants.TransmissiondListFileName);
+            var locationList = FileIO.GetListFromFile(Constants.DataFolderPath + Constants.LocationListFileName);
+
+            CarBrandsList = new ObservableCollection<string>(carList);
+            TransmissionsList = new ObservableCollection<string>(transList);
+            LocationsList = new ObservableCollection<string>(locationList);
 
             CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
         }
@@ -85,12 +95,42 @@ namespace Zeus
             }
         }
 
-        public CarPart SelectedCarPart
+        public CarPart Car
         {
-            get { return _selectedCarPart; }
+            get { return _car; }
             set
             {
-                _selectedCarPart = value;
+                _car = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> CarBrandsList
+        {
+            get { return _carBrandsList; }
+            set
+            {
+                _carBrandsList = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> LocationsList
+        {
+            get { return _locationsList; }
+            set
+            {
+                _locationsList = value;
+                OnPropertyChanged();
+            }
+        }
+
+        public ObservableCollection<string> TransmissionsList
+        {
+            get { return _transmissionsList; }
+            set
+            {
+                _transmissionsList = value;
                 OnPropertyChanged();
             }
         }
@@ -107,6 +147,18 @@ namespace Zeus
                 OnPropertyChanged();
             }
         }
+
+        private IList<CurrencyTypeEnum> _currencyTypes;
+        public IList<CurrencyTypeEnum> CurrencyTypes
+        {
+            get { return Enum.GetValues(typeof(CurrencyTypeEnum)).Cast<CurrencyTypeEnum>().ToList(); }
+            set
+            {
+                _currencyTypes = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -179,7 +231,7 @@ namespace Zeus
                 case "cancel":
                     MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
                     break;
-                case "search_list":
+                case "part_list":
                     MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationListPage.xaml";
                     break;
                 case "car_main":
