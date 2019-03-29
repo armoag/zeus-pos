@@ -9,6 +9,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using System.Windows.Controls;
 using System.Windows.Input;
+using Microsoft.Win32;
 using Zeus.WpfBindingUtilities;
 
 namespace Zeus
@@ -24,6 +25,7 @@ namespace Zeus
         private ObservableCollection<string> _locationsList;
         private ObservableCollection<string> _transmissionsList;
         private string _currentPage;
+        private IProduct _selectedCarPart;
         #endregion
 
         #region Constructors
@@ -77,6 +79,28 @@ namespace Zeus
             CarBrandsList = new ObservableCollection<string>(carList);
             TransmissionsList = new ObservableCollection<string>(transList);
             LocationsList = new ObservableCollection<string>(locationList);
+
+            //Set default states
+            Car = new CarPart()
+            {
+                CostCurrency = CurrencyTypeEnum.USD,
+                ImportCostCurrency = CurrencyTypeEnum.USD,
+                LastPurchaseDate = DateTime.Now,
+
+                //Temportal Items
+                Vin = "15641",
+                Cost = 10M,
+                ImportCost = 1M,
+                Make = carList[0],
+                Transmission = transList[0],
+                Location = locationList[0],
+                SpecificLocation = "1A",
+                Motor = "2.0",
+                Color = "Blanco",
+                Provider = "SDParts",
+                Year = 2012,
+                Model = "Civic"
+            };
 
             CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
         }
@@ -159,6 +183,16 @@ namespace Zeus
             }
         }
 
+        public IProduct SelectedCarPart
+        {
+            get { return _selectedCarPart; }
+            set
+            {
+                _selectedCarPart = value;
+                OnPropertyChanged();
+            }
+        }
+
         #endregion
 
         #region Methods
@@ -173,13 +207,46 @@ namespace Zeus
 
         internal void Execute_RegisterCarCommand(object parameter)
         {
-            var x = 1;
-            var y = CarPartsSearchedEntries;
+            foreach (var carPart in CarPartsSearchedEntries)
+            {
+                MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
+            }
+            MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
         }
 
         internal bool CanExecute_RegisterCarCommand(object parameter)
         {
             return true;
+        }
+        #endregion
+
+        #region StartCarRegistrationCommand
+        public ICommand StartCarRegistrationCommand { get { return _startCarRegistrationCommand ?? (_startCarRegistrationCommand = new DelegateCommand(Execute_StartCarRegistrationCommand, CanExecute_StartCarRegistrationCommand)); } }
+        private ICommand _startCarRegistrationCommand;
+
+        internal void Execute_StartCarRegistrationCommand(object parameter)
+        {
+            var parts = CarPart.ReadPartsFile(Constants.DataFolderPath + Constants.DefaultPartsListFileName);
+            //var car = new CarPart()
+            //{
+            //    Vin = "10000",
+            //    Make = "Honda",
+            //    Model = "Civic",
+            //    Year = 2010,
+            //    Color = "Azul",
+            //    Transmission = "Std",
+            //    Motor = "1.8T"
+            //};
+            CarPartsSearchedEntries = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts)); ;
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationListPage.xaml";
+        }
+
+        internal bool CanExecute_StartCarRegistrationCommand(object parameter)
+        {
+            return Car.Vin != "" && Car.Make != null && Car.Model != "" && Car.Motor != "" && Car.Cost != 0M &&
+                   Car.Year != 0 && Car.ImportCost != 0M &&
+                   Car.Color != "" && Car.Transmission != null && Car.Provider != "" && Car.Location != null &&
+                   Car.SpecificLocation != "";
         }
         #endregion
 
@@ -191,11 +258,49 @@ namespace Zeus
         {
             if ((string) parameter == "import")
             {
+                var openFileDialog = new OpenFileDialog()
+                {
+                    Filter = ".csv files (*.csv)|*.csv",
+                    Title = "Selecciona archivo de partes de carros",
+                    InitialDirectory = @"C:\Projects\"
+                };
 
+                if (openFileDialog.ShowDialog() == true)
+                {
+                    var fileName = openFileDialog.FileName;
+                    var parts = CarPart.ReadPartsFile(fileName);
+                    //var car = new CarPart()
+                    //{
+                    //    Vin = "10000",
+                    //    Make = "Honda",
+                    //    Model = "Civic",
+                    //    Year = 2010,
+                    //    Color = "Azul",
+                    //    Transmission = "Std",
+                    //    Motor = "1.8T"
+                    //};
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));;
+                }
             }
             else if ((string) parameter == "export")
             {
+                var saveFileDialog = new SaveFileDialog()
+                {
+                    Filter = ".csv files (*.csv)|*.csv",
+                    Title = "Guarda archivo de partes de carro",
+                    InitialDirectory = @"C:\Projects\"
+                };
 
+                if (saveFileDialog.ShowDialog() == true)
+                {
+                    var carParts = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
+                    foreach (var carPart in CarPartsSearchedEntries)
+                    {
+                        carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum>(carPart.Description, carPart.Category,
+                            carPart.TotalQuantityAvailable, carPart.Price, carPart.PriceCurrency));
+                    }
+                    CarPart.WritePartsFile(saveFileDialog.FileName, carParts);
+                }
             }
         }
 
@@ -211,7 +316,8 @@ namespace Zeus
 
         internal void Execute_ViewDetailsPartCommand(object parameter)
         {
-
+            MainWindowViewModel.GetInstance(null, null).InventoryTemporalItem = SelectedCarPart;
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\InventoryItemPage.xaml";
         }
 
         internal bool CanExecute_ViewDetailsPartCommand(object parameter)

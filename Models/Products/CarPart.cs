@@ -421,7 +421,7 @@ namespace Zeus
             return Add(description, category, soldPrice, lastQuantitySold);
         }
 
-        public List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
+        public static List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
         {
             var list = new List<CarPart>();
 
@@ -473,10 +473,10 @@ namespace Zeus
             return list;
         }
 
-        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> ReadPartsFile()
+        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> ReadPartsFile(string fullFilePath)
         {
             var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
-            var db = new DataBase(Constants.DataFolderPath + Constants.DefaultPartsListFileName);        
+            var db = new DataBase(fullFilePath);        
             db.LoadCsvToDataTable();
             for (int index = 0; index < db.DataTable.Rows.Count; index++)
             {
@@ -493,14 +493,14 @@ namespace Zeus
 
         public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
         {
-            File.AppendAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda");
+            File.AppendAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda" + Environment.NewLine);
 
             foreach (var part in parts)
             {
                 string data = string.Format("{0},{1},{2},{3},{4}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString())
                               + Environment.NewLine;
 
-                File.AppendAllText(fullFilePath, data);
+                File.WriteAllText(fullFilePath, data);
             }
         }
     }

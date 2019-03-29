@@ -6,6 +6,8 @@ using System.Text;
 using System.Threading.Tasks;
 using System.IO;
 using System.Threading;
+using System.Windows;
+using Microsoft.Win32;
 
 namespace Zeus
 {
@@ -122,9 +124,21 @@ namespace Zeus
             }
         }
 
-        public static string SelectFolder()
+        public static string SelectFile()
         {
-            
+            string fileName = string.Empty;
+            var dialog = new OpenFileDialog()
+            {
+                FileName = "Selecciona archivo",
+                Filter = ".csv files (*.csv)|*.csv",
+                Title = "Selecciona archivo de partes de carros",
+                InitialDirectory = @"C:\\Projects\\"
+            };
+            if (dialog.ShowDialog() == true)
+            {
+                return dialog.FileName;
+            }
+            return fileName;
         }
     }
 }
