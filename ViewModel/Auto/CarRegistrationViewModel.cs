@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Data;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -20,12 +21,14 @@ namespace Zeus
         private static CarRegistrationViewModel _carRegistrationInstance = null;
 
         private ObservableCollection<CarPart> _carPartsSearchedEntries;
+        private ObservableCollection<CarPart> _carParts;
         private CarPart _car;
         private ObservableCollection<string> _carBrandsList;
         private ObservableCollection<string> _locationsList;
         private ObservableCollection<string> _transmissionsList;
         private string _currentPage;
         private IProduct _selectedCarPart;
+        private string _partsSearchText;
         #endregion
 
         #region Constructors
@@ -119,6 +122,16 @@ namespace Zeus
             }
         }
 
+        public ObservableCollection<CarPart> CarParts
+        {
+            get { return _carParts; }
+            set
+            {
+                _carParts = value;
+                OnPropertyChanged();
+            }
+        }
+
         public CarPart Car
         {
             get { return _car; }
@@ -193,6 +206,12 @@ namespace Zeus
             }
         }
 
+        public string PartsSearchText
+        {
+            get { return _partsSearchText; }
+            set { _partsSearchText = value; }
+        }
+
         #endregion
 
         #region Methods
@@ -207,11 +226,13 @@ namespace Zeus
 
         internal void Execute_RegisterCarCommand(object parameter)
         {
-            foreach (var carPart in CarPartsSearchedEntries)
+            foreach (var carPart in CarParts)
             {
-                MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
+                if(carPart.Valid)
+                    MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
             }
             MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
+            CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
         }
 
         internal bool CanExecute_RegisterCarCommand(object parameter)
@@ -237,7 +258,8 @@ namespace Zeus
             //    Transmission = "Std",
             //    Motor = "1.8T"
             //};
-            CarPartsSearchedEntries = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts)); ;
+            CarParts = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
+            CarPartsSearchedEntries = CarParts;
             MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationListPage.xaml";
         }
 
@@ -279,7 +301,8 @@ namespace Zeus
                     //    Transmission = "Std",
                     //    Motor = "1.8T"
                     //};
-                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
+                    CarParts = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
                 }
             }
             else if ((string) parameter == "export")
@@ -294,7 +317,7 @@ namespace Zeus
                 if (saveFileDialog.ShowDialog() == true)
                 {
                     var carParts = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
-                    foreach (var carPart in CarPartsSearchedEntries)
+                    foreach (var carPart in CarParts)
                     {
                         carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum>(carPart.Description, carPart.Category,
                             carPart.TotalQuantityAvailable, carPart.Price, carPart.PriceCurrency));
@@ -359,14 +382,180 @@ namespace Zeus
 
         internal void Execute_SearchListCommand(object parameter)
         {
+            IEnumerable<CarPart> catFilter;
+            var products = new List<CarPart>();
             //parameter is the button name
             switch ((string)parameter)
             {
+                    
+                case "freesearch":
+                    //var descriptionFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+                    //var codeFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+                    if (PartsSearchText == "*")
+                    {
+                        CarPartsSearchedEntries = CarParts;
+                        break;
+                    }
+
+                    var descriptionFilter = CarParts.AsEnumerable().Where(r => r.Description.ToLower().Contains(PartsSearchText.ToLower()));
+
+                    foreach (var carPart in descriptionFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    var categoryFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains(PartsSearchText.ToLower()));
+
+                    foreach (var carPart in categoryFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+
+                    var priceFilter = CarParts.AsEnumerable().Where(r => r.Price.ToString().Contains(PartsSearchText.ToLower()));
+
+                    foreach (var carPart in priceFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
                 case "a":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Carroceria".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
                     break;
+
                 case "b":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Interior".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
                     break;
+
                 case "c":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Exterior".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "d":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Delantera".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "e":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Trasera".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "f":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Motor".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "g":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Transmision".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "h":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Misc".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
                     break;
             }
         }

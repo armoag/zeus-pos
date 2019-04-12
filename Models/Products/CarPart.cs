@@ -56,7 +56,7 @@ namespace Zeus
         private CurrencyTypeEnum _importCostCurrency;
         private string _location;
         private string _specificLocation;
-
+        private bool _valid;
         #endregion
 
         #region Properties
@@ -335,6 +335,11 @@ namespace Zeus
             set { _specificLocation = value; }
         }
 
+        public bool Valid
+        {
+            get { return _valid; }
+            set { _valid = value; }
+        }
 
         //Methods not in interface
         //Create a basic product with minimal information for manual transactions
@@ -458,6 +463,7 @@ namespace Zeus
                     Price = price,
                     PriceCurrency = currency,
                     Location = car.Location,
+                    SpecificLocation = car.SpecificLocation,
                     InternalQuantity = 0,
                     QuantitySold = 0,
                     AmountSold = 0,
@@ -465,7 +471,8 @@ namespace Zeus
                     TotalQuantityAvailable = quantity,
                     MinimumStockQuantity = 0,
                     LastSaleDate = car.LastPurchaseDate,
-                    ImageName = car.ImageName
+                    ImageName = car.ImageName,
+                    Valid = true
                 };
 
                 list.Add(newPart);
@@ -493,14 +500,14 @@ namespace Zeus
 
         public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
         {
-            File.AppendAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda" + Environment.NewLine);
+            File.WriteAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda" + Environment.NewLine);
 
             foreach (var part in parts)
             {
                 string data = string.Format("{0},{1},{2},{3},{4}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString())
                               + Environment.NewLine;
 
-                File.WriteAllText(fullFilePath, data);
+                File.AppendAllText(fullFilePath, data);
             }
         }
     }
