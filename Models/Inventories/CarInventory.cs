@@ -12,13 +12,14 @@ using System.Threading.Tasks;
 using System.Windows;
 using System.Windows.Media.Imaging;
 using GenericParsing;
+using Shun;
 
 namespace Zeus
 {
     /// <summary>
     /// Class for products to be used in the inventory and point of sale system
     /// </summary>
-    public class CarInventory: IInventory
+    public class CarInventory: IInventory, ISqlDataBase
     {
         private DataTable _dictOfData;
         private string _filePath;
@@ -29,7 +30,12 @@ namespace Zeus
         #endregion
 
         #region Properties
-
+        public string Server { get; set; }
+        public string UserID { get; set; }
+        public string Password { get; set; }
+        public string SqlDataBase { get; set; }
+        public string Table { get; set; }
+        public MySqlDatabase MySqlData { get; set; }
         #endregion
 
         #region Constructors

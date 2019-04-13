@@ -391,7 +391,7 @@ namespace Zeus
                 case "freesearch":
                     //var descriptionFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
                     //var codeFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
-                    if (PartsSearchText == "*")
+                    if (PartsSearchText == "*" || PartsSearchText == " " || PartsSearchText == null)
                     {
                         CarPartsSearchedEntries = CarParts;
                         break;
