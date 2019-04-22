@@ -198,5 +198,14 @@ namespace Zeus
         }
 
         #endregion
+
+        #region MySql Format Utilities
+
+        public static string FormatDateForMySql(DateTime date)
+        {
+            return date.ToString("yyyy-MM-dd H:mm:ss");
+        }
+
+        #endregion
     }
 }

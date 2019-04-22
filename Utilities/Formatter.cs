@@ -65,6 +65,18 @@ namespace Zeus
             return input;
         }
 
+        public static string LeaveOnlyDigits(string input, out bool foundInvalidCharacter)
+        {
+            var initialInput = input;
+            if (input != null)
+            {
+                foundInvalidCharacter = Int32.TryParse(input, out var result);
+                return foundInvalidCharacter ? result.ToString() : "";
+            };
+            foundInvalidCharacter = false;
+            return input;
+        }
+
         public static string RemoveWhiteSpace(string input, out bool foundInvalidCharacter)
         {
             var initialInput = input;

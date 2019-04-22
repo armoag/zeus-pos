@@ -39,7 +39,8 @@ namespace Zeus
                 _carRegistrationInstance = new CarRegistrationViewModel();
             else
             {
-                _carRegistrationInstance.CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
+                _carRegistrationInstance.CurrentPage =
+                    Constants.CarRegistrationMainPage;  //"\\View\\CarRegistrationInfoPage.xaml";
             }
             return _carRegistrationInstance;
         }
@@ -105,7 +106,7 @@ namespace Zeus
                 Model = "Civic"
             };
 
-            CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
+            CurrentPage = Constants.CarRegistrationMainPage; //"\\View\\CarRegistrationInfoPage.xaml";
         }
 
         #endregion
@@ -228,11 +229,14 @@ namespace Zeus
         {
             foreach (var carPart in CarParts)
             {
-                if(carPart.Valid)
+                if (carPart.Valid)
+                {
+                    carPart.Id = MainWindowViewModel.InventoryInstance.GetLastItemNumber() + 1;
                     MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
+                }
             }
             MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
-            CurrentPage = "\\View\\CarRegistrationInfoPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
         }
 
         internal bool CanExecute_RegisterCarCommand(object parameter)
@@ -260,7 +264,7 @@ namespace Zeus
             //};
             CarParts = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
             CarPartsSearchedEntries = CarParts;
-            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationListPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.CarRegistrationListPage;
         }
 
         internal bool CanExecute_StartCarRegistrationCommand(object parameter)
@@ -340,7 +344,7 @@ namespace Zeus
         internal void Execute_ViewDetailsPartCommand(object parameter)
         {
             MainWindowViewModel.GetInstance(null, null).InventoryTemporalItem = SelectedCarPart;
-            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\InventoryItemPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.InventoryItemPage;
         }
 
         internal bool CanExecute_ViewDetailsPartCommand(object parameter)
@@ -358,13 +362,13 @@ namespace Zeus
             switch ((string) parameter)
             {
                 case "cancel":
-                    MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
                     break;
                 case "part_list":
-                    MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationListPage.xaml";
+                    MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.CarRegistrationListPage;
                     break;
                 case "car_main":
-                    MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\CarRegistrationMainPage.xaml";
+                    MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.CarRegistrationMainPage;
                     break;
             }
         }

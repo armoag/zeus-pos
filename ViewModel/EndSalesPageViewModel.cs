@@ -1,6 +1,10 @@
 ﻿using Zeus.WpfBindingUtilities;
 using System;
+using System.Collections.Generic;
 using System.Globalization;
+using System.IO;
+using System.Reflection;
+using System.Threading;
 using System.Windows.Input;
 using Zeus;
 
@@ -440,13 +444,20 @@ namespace Zeus
         public TransactionDataStruct TransactionData { get; set; }
         public TransactionDataStruct TransactionDataReg { get; set; }
         public EndOfSalesDataStruct EndOfSalesData { get; set; }
+
+        public Pos Pos
+        {
+            get { return _pos; }
+            set { _pos = value; }
+        }
+
         #endregion
 
         #region Constructors
 
         public EndSalesPageViewModel()
         {
-            _pos = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
+            Pos = MainWindowViewModel.PosInstance; //Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
             //Calculate sales from transactions
             CalculateInitialCash();
             CalculateExpenses();
@@ -464,7 +475,7 @@ namespace Zeus
         void GenerateEndOfDaySalesReport()
         {
             EndOfSalesType = "Z";
-            _pos.GetNextCorteZNumber();
+            Pos.GetNextCorteZNumber();
             //Calculate sales and print receipts
             if (master)
             {
@@ -472,36 +483,100 @@ namespace Zeus
                 CalculateSales(true);
                 //Record End Of Sales Transaction in db
                 Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.EndOfDaySalesFileName,
-                    _pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
+                    Pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
                     TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
                     TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                    TransactionData.ReturnsCard, _pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 //Print Receipt
                 PrintReceipt(ReceiptType.DailyRegular, false);
 
-                CalculateSales(true, true);
-                //Record End Of Sales Transaction in db
-                Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.MasterEndOfDaySalesFileName,
-                    _pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
-                    TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
-                    TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                    TransactionData.ReturnsCard, _pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
-                //Print Receipt
-                PrintReceipt(ReceiptType.DailyInternal, false);
+                //CalculateSales(true, true);
+                ////Record End Of Sales Transaction in db
+                //Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.MasterEndOfDaySalesFileName,
+                //    Pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
+                //    TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
+                //    TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
+                //    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                ////Print Receipt
+                //PrintReceipt(ReceiptType.DailyInternal, false);
             }
             else
             {
                 CalculateSales(true);
-                CalculateDelta();
-                CollectEndOfSalesReceiptInformation();
+                //CalculateDelta();
+                //CollectEndOfSalesReceiptInformation();
                 //Record End Of Sales Transaction in db
                 Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.EndOfDaySalesFileName,
-                    _pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
+                    Pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
                     TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
                     TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                    TransactionData.ReturnsCard, _pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 //Print Full Detailed Receipt
                 PrintReceipt(ReceiptType.DailyRegular, false);
+            }
+
+            //Email Receipts if option is enabled
+            if (Constants.EmailTransactionsFileAfterEndSalesReport)
+            {
+                try
+                {
+                    //TODO: Make it generic based on POS data later
+                    var toName = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
+                    var toEmailAddress = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailReports;
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                    var subject = "Reporte " + DateTime.Now.ToShortDateString() + " " +
+                                  Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
+                    var body = "Reporte del dia " + DateTime.Now.ToString("g") + "realizado por " +
+                               MainWindowViewModel.GetInstance(null, null).CurrentUser.Name +
+                               " para " + Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                                   .BusinessName + " desde " +
+                               Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                                   .FiscalStreetAddress;
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                    //Files to be emailed
+                    var transactionsFile = Constants.DataFolderPath + Constants.TransactionsXFileName;
+                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseFileName;
+                    var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName;
+
+                    var attachments = new List<string>()
+                    {
+                        transactionsFile,
+                        expensesFile,
+                        paymentsFile
+                    };
+
+                    //Get the current date receipts files
+                    var directory = new DirectoryInfo(Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
+                    var searchString = "*" + DateTime.Now.Day.ToString("00") + DateTime.Now.Month.ToString("00") +
+                                       DateTime.Now.Year.ToString("0000") + "*";
+
+                    var receipts = directory.GetFiles(searchString);
+
+                    foreach (var receipt in receipts)
+                    {
+                        attachments.Add(receipt.FullName);
+                    }
+
+                    var fromEmailAddress = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailSender;
+                    var fromPassword = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailSenderPassword;
+
+                    if (!Notification.SendNotificationMultipleAttachments(toName, toEmailAddress, subject, body,
+                        attachments, fromEmailAddress, fromPassword))
+                    {
+                        MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
+                        MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + MethodBase.GetCurrentMethod().Name, e.ToString());
+                    MainWindowViewModel.GetInstance(null, null).Code = "Error al leer directorio";
+                    MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                }
             }
 
             //BackUp Z Files and Clear
@@ -519,11 +594,8 @@ namespace Zeus
             Transaction.ClearPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsZFileName);
 
             //Update POS Data
- //           _pos.LastReceiptNumber = TransactionData.LastReceiptNumber;
- //           _pos.LastTransactionNumber = TransactionData.LastTransactionNumber;
-  //          _pos.LastCashierAmountMxn = RegisterNewCash;
-    //        _pos.UpdateAllData();
-      //      _pos.SaveDataTableToCsv();
+            Pos.UpdateAllData();
+            Pos.SaveDataTableToCsv();
         }
 
         /// <summary>
@@ -536,15 +608,15 @@ namespace Zeus
 
             if (master)
             {
-                CalculateSales(false, true);
+                CalculateSales(false, Constants.IntFlag);
                 CalculateDelta();
                 CollectEndOfSalesReceiptInformation();
                 //Record End Of Sales Transaction in db
                 Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.CurrentDaySalesFileName,
-                    _pos.LastCorteZNumber + 1, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
+                    Pos.LastCorteZNumber + 1, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
                     TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
                     TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                    TransactionData.ReturnsCard, _pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 //Print Receipt
                 PrintReceipt(ReceiptType.DailyInternal, true);
             }
@@ -555,12 +627,76 @@ namespace Zeus
                 CollectEndOfSalesReceiptInformation();
                 //Record End Of Sales Transaction in db
                 Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.CurrentDaySalesFileName,
-                    _pos.LastCorteZNumber + 1, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
+                    Pos.LastCorteZNumber + 1, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
                     TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
                     TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                    TransactionData.ReturnsCard, _pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
+                    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 //Print Receipt
                 PrintReceipt(ReceiptType.DailyRegular, true);
+            }
+
+            //Email Receipts if option is enabled
+            if (Constants.EmailTransactionsFileAfterEndSalesReport)
+            {
+                try
+                {
+                    //TODO: Make it generic based on POS data later
+                    var toName = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
+                    var toEmailAddress = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailReports;
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                    var subject = "Reporte " + DateTime.Now.ToShortDateString() + " " +
+                                  Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
+                    var body = "Reporte del dia " + DateTime.Now.ToString("g") + "realizado por " +
+                               MainWindowViewModel.GetInstance(null, null).CurrentUser.Name +
+                               " para " + Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                                   .BusinessName + " desde " +
+                               Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                                   .FiscalStreetAddress;
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                    //Files to be emailed
+                    var transactionsFile = Constants.DataFolderPath + Constants.TransactionsXFileName;
+                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseFileName;
+                    var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName;
+
+                    var attachments = new List<string>()
+                    {
+                        transactionsFile,
+                        expensesFile,
+                        paymentsFile
+                    };
+
+                    //Get the current date receipts files
+                    var directory = new DirectoryInfo(Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
+                    var searchString = "*"+ DateTime.Now.Day.ToString("00") + DateTime.Now.Month.ToString("00") +
+                                       DateTime.Now.Year.ToString("0000") + "*";
+
+                    var receipts = directory.GetFiles(searchString);
+
+                    foreach (var receipt in receipts)
+                    {
+                        attachments.Add(receipt.FullName);
+                    }
+
+                    var fromEmailAddress = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailSender;
+                    var fromPassword = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
+                        .EmailSenderPassword;
+
+                    if (!Notification.SendNotificationMultipleAttachments(toName, toEmailAddress, subject, body,
+                        attachments, fromEmailAddress, fromPassword))
+                    {
+                        MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
+                        MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                    }
+                }
+                catch (Exception e)
+                {
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + MethodBase.GetCurrentMethod().Name, e.ToString());
+                    MainWindowViewModel.GetInstance(null, null).Code = "Error al leer directorio";
+                    MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                }
             }
 
             //BackUp X Files
@@ -578,11 +714,11 @@ namespace Zeus
             Transaction.ClearPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName);
 
             //Update POS Data
-            _pos.LastReceiptNumber = TransactionData.LastReceiptNumber;
-            _pos.LastTransactionNumber = TransactionData.LastTransactionNumber;
-            _pos.LastCashierAmountMxn = RegisterNewCash;
-            _pos.UpdateAllData();
-            _pos.SaveDataTableToCsv();
+            Pos.LastReceiptNumber = TransactionData.LastReceiptNumber;
+            Pos.LastTransactionNumber = TransactionData.LastTransactionNumber;
+            Pos.LastCashierAmountMxn = RegisterNewCash;
+            Pos.UpdateAllData();
+            Pos.SaveDataTableToCsv();
         }
 
         /// <summary>
@@ -593,7 +729,7 @@ namespace Zeus
         /// <returns></returns>
         private TransactionDataStruct CalculateSales(bool endDayFlag, bool intFlag = false)
         {
-            Transaction.GetTransactionsData(_pos, endDayFlag, out var transactionData, intFlag);
+            Transaction.GetTransactionsData(Pos, endDayFlag, out var transactionData, intFlag);
             TransactionData = transactionData;
             TotalItemsSold = transactionData.TotalItemsSold;
             FirstReceiptNumber = transactionData.FirstReceiptNumber;
@@ -660,8 +796,8 @@ namespace Zeus
             var expenses = new Expense(Constants.DataFolderPath + Constants.ExpenseXFileName, Constants.DataFolderPath + Constants.ExpenseZFileName, 
                 Constants.DataFolderPath + Constants.ExpenseXFileName);
             expenses.GetTotal(out var expensesMxn, out var expensesUsd, out var expensesCashMxn, out var expensesCashUsd);
-            ExpensesTotal = expensesMxn + expensesUsd * _pos.ExchangeRate;
-            ExpensesCashTotal = expensesCashMxn + expensesCashUsd * _pos.ExchangeRate;
+            ExpensesTotal = expensesMxn + expensesUsd * Pos.ExchangeRate;
+            ExpensesCashTotal = expensesCashMxn + expensesCashUsd * Pos.ExchangeRate;
         }
 
         /// <summary>
@@ -672,7 +808,7 @@ namespace Zeus
             //Total cash available in register
             var cashMxn = MxnPeso20*20 + MxnPeso50*50 + MxnPeso100*100 + MxnPeso200*200 + MxnPeso500*500 + MxnPeso1000*1000 + MxnPesoCoinsTotal;
             var cashUsd = UsdDollar1 + UsdDollar5*5 + UsdDollar10*10 + UsdDollar20*20 + UsdDollar50*50 + UsdDollar100*100 + UsdDollarCoinsTotal;
-            var totalCash = cashMxn + cashUsd * _pos.ExchangeRate;
+            var totalCash = cashMxn + cashUsd * Pos.ExchangeRate;
             //Calculate delta
             Delta = totalCash + ExpensesCashTotal + ReturnsCashTotal - RegisterPreviousCash - CashTotalSales;     
         }
@@ -682,7 +818,7 @@ namespace Zeus
         /// </summary>
         private void CalculateInitialCash()
         {
-            RegisterPreviousCash = _pos.GetRegisterCashAmount();
+            RegisterPreviousCash = Pos.GetRegisterCashAmount();
         }
 
         /// <summary>
@@ -690,7 +826,7 @@ namespace Zeus
         /// </summary>
         private void SaveRegisterCashAmount()
         {
-            _pos.UpdateRegisterCashAmount(RegisterNewCash);
+            Pos.UpdateRegisterCashAmount(RegisterNewCash);
         }
 
         /// <summary>
@@ -700,7 +836,7 @@ namespace Zeus
         /// <param name="fullReceipt"></param>
         private void PrintReceipt(ReceiptType receiptType, bool fullReceipt)
         {
-            var receipt = new Receipt(_pos, receiptType, TransactionData, EndOfSalesData);
+            var receipt = new Receipt(Pos, receiptType, TransactionData, EndOfSalesData);
             if (fullReceipt)
             {
                 receipt.PrintEndOfDaySalesFullReceipt();
@@ -740,7 +876,8 @@ namespace Zeus
                     break;
                     
             }
-            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
+
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
 
         }
 

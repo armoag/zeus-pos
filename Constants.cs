@@ -89,5 +89,48 @@ namespace Zeus
         public const string LocationListFileName = "Locaciones.txt";
         public const string TransmissiondListFileName = "Transmisiones.txt";
         public const string DefaultPartsListFileName = "Lista.csv";
+
+        //Page names
+        public const string AnalysisMainPage = "\\View\\AnalysisMainPage.xaml";
+        public const string CarRegistrationMainPage = "\\View\\CarRegistrationMainPage.xaml";
+        public const string CarRegistrationListPage = "\\View\\CarRegistrationListPage.xaml";
+        public const string CategoryListPage = "\\View\\CategoryListPage.xaml";
+        public const string CustomerDetailPage = "\\View\\CustomerDetailPage.xaml";
+        public const string CustomerMainPage = "\\View\\CustomerMainPage.xaml";
+        public const string EndSalesPage = "\\View\\EndSalesPage.xaml";
+        public const string ExchangeRatePage = "\\View\\ExchangeRatePage.xaml";
+        public const string ExpenseMainPage = "\\View\\ExpenseMainPage.xaml";
+        public const string ExpenseDetailPage = "\\View\\ExpenseDetailPage.xaml";
+        public const string InventoryItemPage = "\\View\\InventoryItemPage.xaml";
+        public const string InventoryMainPage = "\\View\\InventoryMainPage.xaml";
+        public const string LoginPage = "\\View\\LoginPage.xaml";
+        public const string OrderMainPage = "\\View\\OrderMainPage.xaml";
+        public const string OrderPage = "\\View\\OrderPage.xaml";
+        public const string PaymentEndPage = "\\View\\PaymentEndPage.xaml";
+        public const string PaymentPage = "\\View\\PaymentPage.xaml";
+        public const string PaymentPartialPage = "\\View\\PaymentPartialPage.xaml";
+        public const string PosGeneralPage = "\\View\\PosGeneralPage.xaml";
+        public const string PosMenuPage = "\\View\\PosMenuPage.xaml";
+        public const string ProductListControl = "\\View\\ProductListControl.xaml";
+        public const string ProductsListEditPage = "\\View\\ProductsListEditPage.xaml";
+        public const string ProductsPage = "\\View\\ProductsPage.xaml";
+        public const string RemoveInventoryPage = "\\View\\RemoveInventoryPage.xaml";
+        public const string ReturnsPage = "\\View\\ReturnsPage.xaml";
+        public const string SystemPage = "\\View\\SystemPage.xaml";
+        public const string TechSupportPage = "\\View\\TechSupportPage.xaml";
+        public const string TransactionDetailPage = "\\View\\TransactionDetailPage.xaml";
+        public const string TransactionMainPage = "\\View\\TransactionMainPage.xaml";
+        public const string UserDetailPage = "\\View\\UserDetailPage.xaml";
+        public const string UserMainPage = "\\View\\UserMainPage.xaml";
+        public const string VendorDetailPage = "\\View\\VendorDetailPage.xaml";
+        public const string VendorMainPage = "\\View\\VendorMainPage.xaml";
+
+        //Optional Features
+        public const bool EmailTransactionsFileAfterEndSalesReport = true;
+        public const bool IntFlag = true;
+        public const bool LocalCustomers = false;
+        public const bool CloudCustomers = true;
+        public const bool LocalInventory = true;
+        public const bool CloudInventory = true;
     }
 }

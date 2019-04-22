@@ -13,7 +13,7 @@ namespace Zeus
         string Name { get; set; }
         int Id { get; set; }
         string Email { get; set; }
-        string Phone { get; set; }
+        long Phone { get; set; }
         DateTime RegistrationDate { get; set; }
         #endregion
 

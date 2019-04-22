@@ -12,6 +12,7 @@ using System.Windows.Input;
 using System.Windows.Media.Imaging;
 using MySql.Data.MySqlClient;
 using Zeus.WpfBindingUtilities;
+using Shun;
 
 namespace Zeus
 {
@@ -151,8 +152,21 @@ namespace Zeus
             {
                 _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
             }
-            _posInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
-            ExchangeRate = _posInstance.ExchangeRate;
+
+            //Initialize DBs
+            if (true)
+            {
+                var server = "wibsarlicencias.csqn2onotlww.us-east-1.rds.amazonaws.com";
+                var database = "ConteinerTest";
+                var userID = "armoag";
+                var password = "Yadira00";
+                MySqlCustomerDb = new MySqlDatabase(server, database, "Clientes", userID, password);
+                MySqlInventoryDb = new MySqlDatabase(server, database, "Inventario", userID, password);
+            }
+
+
+            PosInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
+            ExchangeRate = PosInstance.ExchangeRate;
             //Page Titles
             GetInitialPagesTitles();
             //Initial Categories
@@ -161,7 +175,7 @@ namespace Zeus
             //Log
             Log.Write("Desconocido", this.ToString() + " " + MethodBase.GetCurrentMethod().Name, "Inicio de programa completado");
             //Set default page
-            CurrentPage = "\\View\\LoginPage.xaml";
+            CurrentPage = Constants.LoginPage;
             LoginMessage = "¡Bienvenido!";
         }
 
@@ -176,6 +190,15 @@ namespace Zeus
 
         #region Properties
 
+        public static MySqlDatabase MySqlCustomerDb { get; set; }
+        public static MySqlDatabase MySqlInventoryDb { get; set; }
+
+        public static Pos PosInstance
+        {
+            get { return _posInstance; }
+            set { _posInstance = value; }
+        }
+
         public Logger Log
         {
             get { return _logInstance; }
@@ -189,7 +212,7 @@ namespace Zeus
                 if (LogoImage != null)
                 {
                     bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(@"C:\Projects\seiya-pos\Resources\Images\" + _posInstance.LogoName);
+                    bitmap.UriSource = new Uri(@"C:\Projects\seiya-pos\Resources\Images\" + PosInstance.LogoName);
                     bitmap.EndInit();
                     _logoImage = bitmap;
                 }
@@ -275,12 +298,12 @@ namespace Zeus
 
         public decimal PointsConvertionRatio
         {
-            get { return _posInstance.PointsPercent / 100; }
+            get { return PosInstance.PointsPercent / 100; }
         }
 
         public decimal DiscountPercent
         {
-            get { return _posInstance.DiscountPercent / 100; }
+            get { return PosInstance.DiscountPercent / 100; }
         }
 
         #region Orders Properties
@@ -455,7 +478,23 @@ namespace Zeus
             get { return _currentPage; }
             set
             {
-                _currentPage = value;
+                if (CurrentUser != null)
+                {
+                    if (AccessManager.ValidateAccess(CurrentUser.Rights, value))
+                    {
+                        _currentPage = value;
+                    }
+                    else
+                    {
+                        Code = "No disponible";
+                        CodeColor = Constants.ColorCodeRegular;
+                        _currentPage = Constants.PosGeneralPage;
+                    }
+                }
+                else
+                {
+                    _currentPage = value;
+                }
                 OnPropertyChanged();
             }
         }
@@ -1428,7 +1467,7 @@ namespace Zeus
         {
             get
             {
-                return _posInstance.ExchangeRate.ToString(CultureInfo.CurrentCulture);
+                return PosInstance.ExchangeRate.ToString(CultureInfo.CurrentCulture);
             }
             set
             {
@@ -1502,7 +1541,7 @@ namespace Zeus
             switch ((string)parameter)
             {
                 case "general":
-                    CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    CurrentPage = Constants.PosGeneralPage;
                     break;
                 case "payment":
                     //Log
@@ -1510,94 +1549,94 @@ namespace Zeus
                     PaymentCustomerSearchInput = "";
                     ClearPaymentInput();
                     CurrentCustomer = null;
-                    CurrentPage = "\\View\\PaymentPage.xaml";
+                    CurrentPage = Constants.PaymentPage;
                     break;
                 case "remove_inventory":
-                    CurrentPage = "\\View\\RemoveInventoryPage.xaml";
+                    CurrentPage = Constants.RemoveInventoryPage;
                     break;
                 case "end_remove_inventory":
                     transactionType = TransactionType.Remover;
                     ProcessInventoryRemoval(transactionType);
-                    CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    CurrentPage = Constants.PosGeneralPage;
                     break;
                 case "product_list_1":
                     LastSelectedProductsPage = 1;
                     ProductObjects = GetPageProductsList(LastSelectedProductsPage, out pageTitleHolder);
                     PageOneTitle = pageTitleHolder;
-                    CurrentPage = "\\View\\ProductsPage.xaml";
+                    CurrentPage = Constants.ProductsPage;
                     break;
                 case "product_list_2":
                     LastSelectedProductsPage = 2;
                     ProductObjects = GetPageProductsList(LastSelectedProductsPage, out pageTitleHolder);
                     PageTwoTitle = pageTitleHolder;
-                    CurrentPage = "\\View\\ProductsPage.xaml";
+                    CurrentPage = Constants.ProductsPage;
                     break;
                 case "product_list_3":
                     LastSelectedProductsPage = 3;
                     ProductObjects = GetPageProductsList(LastSelectedProductsPage, out pageTitleHolder);
                     PageThreeTitle = pageTitleHolder;
-                    CurrentPage = "\\View\\ProductsPage.xaml";
+                    CurrentPage = Constants.ProductsPage;
                     break;
                 case "product_list_4":
                     LastSelectedProductsPage = 4;
                     ProductObjects = GetPageProductsList(LastSelectedProductsPage, out pageTitleHolder);
                     PageFourTitle = pageTitleHolder;
-                    CurrentPage = "\\View\\ProductsPage.xaml";
+                    CurrentPage = Constants.ProductsPage;
                     break;
                 case "product_list_5":
                     LastSelectedProductsPage = 5;
                     ProductObjects = GetPageProductsList(LastSelectedProductsPage, out pageTitleHolder);
                     PageFiveTitle = pageTitleHolder;
-                    CurrentPage = "\\View\\ProductsPage.xaml";
+                    CurrentPage = Constants.ProductsPage;
                     break;
                 case "menu":
-                    CurrentPage = "\\View\\PosMenuPage.xaml";
+                    CurrentPage = Constants.PosMenuPage;
                     break;
                 case "inventory":
                 case "inventory_cancel":
-                    CurrentPage = "\\View\\InventoryMainPage.xaml";
+                    CurrentPage = Constants.InventoryMainPage;
                     SelectedInventoryProduct = null;
                     break;
                 case "sales_report":
-                    CurrentPage = "\\View\\EndSalesPage.xaml";
+                    CurrentPage = Constants.EndSalesPage;
                     break;
                 case "product_list":
                     GetPageProductsList(LastSelectedProductsPage, out var currentProductListTitle);
-                    CurrentPage = "\\View\\ProductsListEditPage.xaml";
+                    CurrentPage = Constants.ProductsListEditPage;
                     break;
                 case "inventory_add":
-                    CurrentPage = "\\View\\InventoryItemPage.xaml";
+                    CurrentPage = Constants.InventoryItemPage;
                     SelectedInventoryProduct = null;
                     break;
                 case "inventory_details":
-                    CurrentPage = "\\View\\InventoryItemPage.xaml";
+                    CurrentPage = Constants.InventoryItemPage;
                     break;
                 case "system":
-                    CurrentPage = "\\View\\SystemPage.xaml";
+                    CurrentPage = Constants.SystemPage;
                     break;
                 case "customers":
-                    CurrentPage = "\\View\\CustomerMainPage.xaml";
+                    CurrentPage = Constants.CustomerMainPage;
                     break;
                 case "vendors":
-                    CurrentPage = "\\View\\VendorMainPage.xaml";
+                    CurrentPage = Constants.VendorMainPage;
                     break;
                 case "users":
-                    CurrentPage = "\\View\\UserMainPage.xaml";
+                    CurrentPage = Constants.UserMainPage;
                     break;
                 case "orders":
-                    CurrentPage = "\\View\\OrderMainPage.xaml";
+                    CurrentPage = Constants.OrderMainPage;
                     break;
                 case "exchange_rate":
-                    CurrentPage = "\\View\\ExchangeRatePage.xaml";
+                    CurrentPage = Constants.ExchangeRatePage;
                     break;
                 case "calculator":
-                    CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    CurrentPage = Constants.PosGeneralPage;
                     System.Diagnostics.Process.Start("Calc.exe");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inicio de Calculadora");
                     break;
                 case "users_guide":
-                    CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    CurrentPage = Constants.PosGeneralPage;
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Guia de Usuario Inicio");
                     System.Diagnostics.Process.Start(@"C:\Projects\seiya-pos\Resources\UsersGuide\GuiaUsuario.pdf");
@@ -1607,30 +1646,30 @@ namespace Zeus
                 case "categories_edit":
                     CurrentCategoryList = new ObservableCollection<string>(CategoryCatalog.GetList(Constants.DataFolderPath + Constants.CategoryListFileName));
                     NewCategoryItem = "";
-                    CurrentPage = "\\View\\CategoryListPage.xaml";
+                    CurrentPage = Constants.CategoryListPage;
                     break;
                 case "support":
-                    CurrentPage = "\\View\\TechSupportPage.xaml";
+                    CurrentPage = Constants.TechSupportPage;
                     break;
                 case "more_options":
                     CurrentPage = "";
                     break;
                 case "expenses":
-                    CurrentPage = "\\View\\ExpenseMainPage.xaml";
+                    CurrentPage = Constants.ExpenseMainPage;
                     break;
                 case "returns":
-                    CurrentPage = "\\View\\ReturnsPage.xaml";
+                    CurrentPage = Constants.ReturnsPage;
                     break;
                 case "analysis":
-                    CurrentPage = "\\View\\AnalysisMainPage.xaml";
+                    CurrentPage = Constants.AnalysisMainPage;
                     break;
                 case "transactions":
-                    CurrentPage = "\\View\\TransactionMainPage.xaml";
+                    CurrentPage = Constants.TransactionMainPage;
                     break;
                 case "login":
                     CurrentUser = null;
                     SystemUnlock = false;
-                    CurrentPage = "\\View\\LoginPage.xaml";
+                    CurrentPage = Constants.LoginPage;
                     break;
                 case "Efectivo":
                     if (PaymentTotalMXN != 0M && (PaymentTotalMXN <= (PaymentReceivedMXN + PaymentReceivedUSD * _exchangeRate)))
@@ -1639,7 +1678,7 @@ namespace Zeus
                         transactionType = PaymentTotalMXN <= 150 ? TransactionType.Regular : TransactionType.Interno;
                         PaymentProcessStart(parameter.ToString(), transactionType);
                         SystemUnlock = false;
-                        CurrentPage = "\\View\\PaymentEndPage.xaml";
+                        CurrentPage = Constants.PaymentEndPage;
                         //Log
                         Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Terminado en Efectivo");
                     }
@@ -1655,12 +1694,12 @@ namespace Zeus
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Terminado en Tarjeta");
                     SystemUnlock = false;
-                    CurrentPage = "\\View\\PaymentEndPage.xaml";
+                    CurrentPage = Constants.PaymentEndPage;
                     break;
                 case "partial_start":
                     PaymentCustomerSearchInput = "";
                     ClearPaymentInput();
-                    CurrentPage = "\\View\\PaymentPartialPage.xaml";
+                    CurrentPage = Constants.PaymentPartialPage;
                     break;
 
                 case "Parcial":
@@ -1671,7 +1710,7 @@ namespace Zeus
                         //Log
                         Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Terminado en Parcial");
                         SystemUnlock = false;
-                        CurrentPage = "\\View\\PaymentEndPage.xaml";
+                        CurrentPage = Constants.PaymentEndPage;
                     }
                     else
                     {
@@ -1688,7 +1727,7 @@ namespace Zeus
                         //Log
                         Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Terminado en Cheque");
                         SystemUnlock = false;
-                        CurrentPage = "\\View\\PaymentEndPage.xaml";
+                        CurrentPage = Constants.PaymentEndPage;
                     }
                     else
                     {
@@ -1701,7 +1740,7 @@ namespace Zeus
                     Code = "Transaccion Exitosa";
                     CodeColor = Constants.ColorCodeSave;
                     SystemUnlock = true;
-                    CurrentPage = "\\View\\PosGeneralPage.xaml";
+                    CurrentPage = Constants.PosGeneralPage;
                     break;
                 case "save_transactions":
                     //Log
@@ -1711,7 +1750,7 @@ namespace Zeus
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
                 case "others":
-                    CurrentPage = "\\View\\CarRegistrationMainPage.xaml";
+                    CurrentPage = Constants.CarRegistrationMainPage;
                     break;
                
             }
@@ -1734,7 +1773,7 @@ namespace Zeus
             if ((string) parameter != "login") return;
             CurrentUser = null;
             SystemUnlock = false;
-            CurrentPage = "\\View\\LoginPage.xaml";
+            CurrentPage = Constants.LoginPage;
         }
 
         internal bool CanExecute_LoginPageCommand(object parameter)
@@ -1796,7 +1835,7 @@ namespace Zeus
 
         internal void Execute_ClickCommand(object parameter)
         {
-            CurrentPage = "\\View\\PosGeneralPage.xaml";
+            CurrentPage = Constants.PosGeneralPage;
         }
         internal bool CanExecute_ClickCommand(object parameter)
 
@@ -2134,7 +2173,7 @@ namespace Zeus
             PaymentPointsReceived = Convert.ToDouble(PaymentTotalMXN * PointsConvertionRatio);
 
             CurrentCartProducts.Clear();
-            CurrentPage = "\\View\\PaymentEndPage.xaml";
+            CurrentPage = Constants.PaymentEndPage;
         }
         internal bool CanExecute_PaymentCashProcessCommand(object parameter)
         {
@@ -2172,8 +2211,8 @@ namespace Zeus
 
             CurrentCartProducts.Clear();
             PaymentTotalMXN = 0;
-            CurrentPage = "\\View\\PaymentEndPage.xaml";
-            
+            CurrentPage = Constants.PaymentEndPage;
+
         }
         internal bool CanExecute_PaymentProcessCommand(object parameter)
         {
@@ -2197,7 +2236,7 @@ namespace Zeus
             PaymentChangeUSD = 0;
             PaymentPointsReceived = 0;
             CurrentCustomer = null;
-            CurrentPage = "\\View\\PosGeneralPage.xaml";
+            CurrentPage = Constants.PaymentEndPage;
         }
         internal bool CanExecute_PaymentEndCommand(object parameter)
         {
@@ -2214,7 +2253,7 @@ namespace Zeus
         internal void Execute_PaymentCustomerSearchCommand(object parameter)
         {
             //Inventory search method that returns a list of products for the datagrid
-            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName).Search(PaymentCustomerSearchInput.ToString()));
+            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(PaymentCustomerSearchInput.ToString()));
             if(CustomersSearchedEntries.Count > 0)
                 CurrentCustomer = CustomersSearchedEntries.First();
             PaymentCustomerSearchInput = "";
@@ -2558,7 +2597,7 @@ namespace Zeus
                         };
                     }
 
-                    CurrentPage = "\\View\\InventoryItemPage.xaml";
+                    CurrentPage = Constants.InventoryItemPage;
                     InventoryTemporalItem = temporalProduct;
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Producto:" + " " + SelectedInventoryProduct.Code);
 
@@ -2640,7 +2679,7 @@ namespace Zeus
 
                     var clonedCode = SelectedInventoryProduct.Code;
                     SelectedInventoryProduct = null;
-                    CurrentPage = "\\View\\InventoryItemPage.xaml";
+                    CurrentPage = Constants.InventoryItemPage;
                     InventoryTemporalItem = temporalClonedProduct;
 
                     //Log
@@ -2741,7 +2780,7 @@ namespace Zeus
                         };
                     }
 
-                    CurrentPage = "\\View\\InventoryItemPage.xaml";
+                    CurrentPage = Constants.InventoryItemPage;
                     InventoryTemporalItem = temporalProduct;
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Nuevo Producto Iniciado");
@@ -2862,13 +2901,13 @@ namespace Zeus
             {
                 _inventoryInstance.UpdateProductToTable(InventoryTemporalItem);
                 _inventoryInstance.SaveDataTableToCsv();
-                CurrentPage = "\\View\\InventoryMainPage.xaml";
+                CurrentPage = Constants.InventoryMainPage;
             }
             else
             {
                 _inventoryInstance.AddNewProductToTable(InventoryTemporalItem);
                 _inventoryInstance.SaveDataTableToCsv();
-                CurrentPage = "\\View\\InventoryMainPage.xaml";
+                CurrentPage = Constants.InventoryMainPage;
             }
 
             Code = "Producto Guardado";
@@ -2897,7 +2936,7 @@ namespace Zeus
             {
                 _inventoryInstance.DeleteItemInDataTable(SelectedInventoryProduct.Code, "Codigo");
                 _inventoryInstance.SaveDataTableToCsv();
-                CurrentPage = "\\View\\InventoryMainPage.xaml";
+                CurrentPage = Constants.InventoryMainPage;
 
                 Code = "Producto Eliminado";
                 CodeColor = Constants.ColorCodeError;
@@ -2943,7 +2982,7 @@ namespace Zeus
                         LastLogin = SelectedUser.LastLogin
                     };
 
-                    CurrentPage = "\\View\\UserDetailPage.xaml";
+                    CurrentPage = Constants.UserDetailPage;
                     UserTemporalItem = temporalProduct;
                     break;
             }
@@ -2975,7 +3014,7 @@ namespace Zeus
                     {
                         Name = "",
                         Email = "",
-                        Phone = "",
+                        Phone = 0,
                         RegistrationDate = DateTime.Now,
                         Rights = UserAccessLevelEnum.Basico,
                         UserName = "",
@@ -2984,7 +3023,7 @@ namespace Zeus
                     };
                     temporalProduct.Id = temporalProduct.GetLastItemNumber() + 1;
 
-                    CurrentPage = "\\View\\UserDetailPage.xaml";
+                    CurrentPage = Constants.UserDetailPage;
                     UserTemporalItem = temporalProduct;
                     break;
             }
@@ -3041,7 +3080,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuario Guardado:" + " " + UserTemporalItem.UserName);
             UsersSearchedEntries = null;
-            CurrentPage = "\\View\\UserMainPage.xaml";
+            CurrentPage = Constants.UserMainPage;
         }
 
         internal bool CanExecute_UserSaveChangesCommand(object parameter)
@@ -3067,7 +3106,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuario Eliminado:" + " " + SelectedUser.UserName);
             UsersSearchedEntries = null;
-            CurrentPage = "\\View\\UserMainPage.xaml";
+            CurrentPage = Constants.UserMainPage;
             Code = "Usuario Eliminado";
             CodeColor = Constants.ColorCodeError;
         }
@@ -3093,7 +3132,7 @@ namespace Zeus
             switch ((string)parameter)
             {
                 case "customer_details":
-                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName)
+                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb)
                     {
                         Id = SelectedCustomer.Id,
                         Name = SelectedCustomer.Name,
@@ -3107,7 +3146,7 @@ namespace Zeus
                     };
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Cliente:" + " " + SelectedCustomer.Name);
-                    CurrentPage = "\\View\\CustomerDetailPage.xaml";
+                    CurrentPage = Constants.CustomerDetailPage;
                     CustomerTemporalItem = temporalCustomer;
                     break;
             }
@@ -3133,11 +3172,11 @@ namespace Zeus
                 case "customer_add":
                     SelectedCustomer = null;    //Clear selected item in the user list
                     //Create new productt
-                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName)
+                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb)
                     {
                         Name = "",
                         Email = "",
-                        Phone = "",
+                        Phone = 0,
                         RegistrationDate = DateTime.Now,
                         Rfc = "",
                         PointsAvailable = 0,
@@ -3149,7 +3188,7 @@ namespace Zeus
                     temporalCustomer.Id = temporalCustomer.GetLastItemNumber() + 1;
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Nuevo Cliente Iniciado:");
-                    CurrentPage = "\\View\\CustomerDetailPage.xaml";
+                    CurrentPage = Constants.CustomerDetailPage;
                     CustomerTemporalItem = temporalCustomer;
                     break;
             }
@@ -3170,7 +3209,7 @@ namespace Zeus
         internal void Execute_CustomerStartSearchCommand(object parameter)
         {
             //Inventory search method that returns a list of products for the datagrid
-            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName).Search(CustomersSearchText));
+            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(CustomersSearchText));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda de Cliente:" + " " + CustomersSearchText);
             CustomersSearchText = "";
@@ -3201,7 +3240,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuario Guardado:" + " " + CustomerTemporalItem.Name);
             CustomersSearchedEntries = null;
-            CurrentPage = "\\View\\CustomerMainPage.xaml";
+            CurrentPage = Constants.CustomerMainPage;
             Code = "Cliente Guardado";
             CodeColor = Constants.ColorCodeSave;
         }
@@ -3228,7 +3267,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Cliente Eliminado:" + " " + SelectedCustomer.Name);
             CustomersSearchedEntries = null;
-            CurrentPage = "\\View\\CustomerMainPage.xaml";
+            CurrentPage = Constants.CustomerMainPage;
             Code = "Cliente Eliminado";
             CodeColor = Constants.ColorCodeError;
         }
@@ -3268,7 +3307,7 @@ namespace Zeus
                         PaymentType = SelectedExpense.PaymentType,
                         CurrencyType = SelectedExpense.CurrencyType
                     };
-                    CurrentPage = "\\View\\ExpenseDetailPage.xaml";
+                    CurrentPage = Constants.ExpenseDetailPage;
                     ExpenseTemporalItem = temporalExpense;
                     break;
             }
@@ -3310,7 +3349,7 @@ namespace Zeus
                     };
                     temporalExpense.Id = temporalExpense.GetLastItemNumber() + 1;
 
-                    CurrentPage = "\\View\\ExpenseDetailPage.xaml";
+                    CurrentPage = Constants.ExpenseDetailPage;
                     ExpenseTemporalItem = temporalExpense;
                     break;
             }
@@ -3366,7 +3405,7 @@ namespace Zeus
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gasto Guardado Ticket: " + ExpenseTemporalItem.TicketNumber);
             Code = "Gasto Guardado";
             ExpensesSearchedEntries = null;
-            CurrentPage = "\\View\\ExpenseMainPage.xaml";
+            CurrentPage = Constants.ExpenseMainPage;
             CodeColor = Constants.ColorCodeSave;
         }
 
@@ -3391,8 +3430,8 @@ namespace Zeus
             }
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gasto Eliminado Ticket: " + SelectedExpense.TicketNumber);
-            ExpensesSearchedEntries = null;          
-            CurrentPage = "\\View\\ExpenseMainPage.xaml";
+            ExpensesSearchedEntries = null;
+            CurrentPage = Constants.ExpenseMainPage;
             Code = "Gasto Eliminado";
             CodeColor = Constants.ColorCodeError;
         }
@@ -3432,7 +3471,7 @@ namespace Zeus
                         BankAccount = SelectedVendor.BankAccount
                     };
 
-                    CurrentPage = "\\View\\VendorDetailPage.xaml";
+                    CurrentPage = Constants.VendorDetailPage;
                     VendorTemporalItem = temporalVendor;
                     break;
             }
@@ -3464,7 +3503,7 @@ namespace Zeus
                     {
                         Name = "",
                         Email = "",
-                        Phone = "",
+                        Phone = 0,
                         RegistrationDate = DateTime.Now,
                         Rfc = "",
                         BusinessName = "",
@@ -3473,7 +3512,7 @@ namespace Zeus
                     };
                     temporalVendor.Id = temporalVendor.GetLastItemNumber() + 1;
 
-                    CurrentPage = "\\View\\VendorDetailPage.xaml";
+                    CurrentPage = Constants.VendorDetailPage;
                     VendorTemporalItem = temporalVendor;
                     break;
             }
@@ -3524,7 +3563,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedor Eliminado:" + " " + SelectedVendor.Name);
             VendorsSearchedEntries = null;
-            CurrentPage = "\\View\\VendorMainPage.xaml";
+            CurrentPage = Constants.VendorMainPage;
             Code = "Proveedor Eliminado";
             CodeColor = Constants.ColorCodeError;
         }
@@ -3558,7 +3597,7 @@ namespace Zeus
             Code = "Proveedor Guardado";
             CodeColor = Constants.ColorCodeSave;
 
-            CurrentPage = "\\View\\VendorMainPage.xaml";
+            CurrentPage = Constants.VendorMainPage;
         }
 
         internal bool CanExecute_VendorSaveChangesCommand(object parameter)
@@ -3599,7 +3638,7 @@ namespace Zeus
                         RegistrationDate = SelectedOrder.RegistrationDate
                     };
 
-                    CurrentPage = "\\View\\OrderPage.xaml";
+                    CurrentPage = Constants.OrderPage;
                     OrderTemporalItem = temporalOrder;
                     break;
             }
@@ -3643,7 +3682,7 @@ namespace Zeus
                         RegistrationDate = DateTime.Now
                     };
                     temporalOrder.Id = temporalOrder.GetLastItemNumber() + 1;
-                    CurrentPage = "\\View\\OrderPage.xaml";
+                    CurrentPage = Constants.OrderPage;
                     OrderTemporalItem = temporalOrder;
                     break;
             }
@@ -3709,19 +3748,19 @@ namespace Zeus
         {
             //TODO: Make it generic based on POS data later
             var toName = "Estrella de Regalos";
-            var toEmailAddress = _posInstance.EmailOrders; //"armoag+movvfdhrzrdgpqmw5qcg@boards.trello.com";
+            var toEmailAddress = PosInstance.EmailOrders; //"armoag+movvfdhrzrdgpqmw5qcg@boards.trello.com";
             var subject = OrderTemporalItem.Customer + " " + OrderTemporalItem.OrderTicketNumber;
             Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
             var body = OrderTemporalItem.Description + Environment.NewLine +
                        OrderTemporalItem.DueDate.ToString("G", CultureInfo.CreateSpecificCulture("mx"));
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             var attachmentFilePath = Constants.DataFolderPath + Constants.ImagesFolderPath + OrderTemporalItem.ImageName;
-            var fromEmailAddress = _posInstance.EmailSender; //"lluviasantafe@gmail.com";
-            var fromPassword = _posInstance.EmailSenderPassword; //"Yadira00";
+            var fromEmailAddress = PosInstance.EmailSender; //"lluviasantafe@gmail.com";
+            var fromPassword = PosInstance.EmailSenderPassword; //"Yadira00";
             Notification.SendNotification(toName, toEmailAddress, subject, body, attachmentFilePath, fromEmailAddress, fromPassword);
             ProgressBarValue = 90;
             OrdersSearchedEntries = null;
-            CurrentPage = "\\View\\OrderMainPage.xaml";
+            CurrentPage = Constants.OrderMainPage;
             Code = "¡Pedido Enviado!";
             CodeColor = Constants.ColorCodeSave;
             ProgressMessage = "";
@@ -3750,7 +3789,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedido Eliminado:" + " " + SelectedOrder.OrderTicketNumber);
             OrdersSearchedEntries = null;
-            CurrentPage = "\\View\\OrderMainPage.xaml";
+            CurrentPage = Constants.OrderMainPage;
             Code = "Pedido Eliminado";
             CodeColor = Constants.ColorCodeError;
         }
@@ -3949,7 +3988,7 @@ namespace Zeus
                     };
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Transaccion: " + SelectedTransaction.TransactionNumber);
-                    CurrentPage = "\\View\\TransactionDetailPage.xaml";
+                    CurrentPage = Constants.TransactionDetailPage;
                     TransactionTemporalItem = temporalTransaction;
                     break;
             }
@@ -4004,7 +4043,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transaccion Guardada: " + SelectedTransaction.TransactionNumber);
             TransactionsSearchedEntries = null;
-            CurrentPage = "\\View\\TransactionMainPage.xaml";
+            CurrentPage = Constants.TransactionMainPage;
         }
 
         internal bool CanExecute_TransactionSaveChangesCommand(object parameter)
@@ -4029,7 +4068,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transaccion Eliminada: " + SelectedTransaction.TransactionNumber);
             TransactionsSearchedEntries = null;
-            CurrentPage = "\\View\\TransactionMainPage.xaml";
+            CurrentPage = Constants.TransactionMainPage;
             Code = "Transaccion Eliminada";
             CodeColor = Constants.ColorCodeError;
         }
@@ -4074,16 +4113,16 @@ namespace Zeus
 
         internal void Execute_ExchangeRateSaveCommand(object parameter)
         {
-            _posInstance.UpdateExchangeRate(ExchangeRate);
-            _posInstance.UpdateAllData();
-            _posInstance.SaveDataTableToCsv();
-            ExchangeRateString = _posInstance.ExchangeRate.ToString();
+            PosInstance.UpdateExchangeRate(ExchangeRate);
+            PosInstance.UpdateAllData();
+            PosInstance.SaveDataTableToCsv();
+            ExchangeRateString = PosInstance.ExchangeRate.ToString();
             Code = "Tipo de Cambio Actualizado";
             CodeColor = Constants.ColorCodeSave;
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Tipo de Cambio Actualizado:" + " " + ExchangeRateString);
-            CurrentPage = "\\View\\PosGeneralPage.xaml";
-            
+            CurrentPage = Constants.PosGeneralPage;
+
         }
         internal bool CanExecute_ExchangeRateSaveCommand(object parameter)
         {
@@ -4112,7 +4151,7 @@ namespace Zeus
                 CurrentUser = userFound;
                 //Log
                 Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Sesion Iniciada Usuario: " + CurrentUser.UserName);
-                CurrentPage = "\\View\\PosGeneralPage.xaml";
+                CurrentPage = Constants.PosGeneralPage;
                 LoginMessage = "¡Bienvenido!";
                 LoginUserNameText = "";
                 LoginPasswordText = "";
@@ -4139,6 +4178,7 @@ namespace Zeus
         #region ExportDataBaseCommand
 
         public ICommand ExportDataBaseCommand { get { return _exportDataBaseCommand ?? (_exportDataBaseCommand = new DelegateCommand(Execute_ExportDataBaseCommand, CanExecute_ExportDataBaseCommand)); } }
+
         private ICommand _exportDataBaseCommand;
 
         internal void Execute_ExportDataBaseCommand(object parameter)
@@ -4246,7 +4286,8 @@ namespace Zeus
                 {
                     PosGeneralPageViewModel.GetInstance().UsdEnabled = false;
                 }
-                CurrentPage = "\\View\\PosGeneralPage.xaml";
+
+                CurrentPage = Constants.PosGeneralPage;
             }
         }
 
@@ -4266,7 +4307,7 @@ namespace Zeus
             else
             {
                 PosGeneralPageViewModel.GetInstance().ManualProduct = product;
-                CurrentPage = "\\View\\PosGeneralPage.xaml";
+                CurrentPage = Constants.PosGeneralPage;
             }
         }
 
@@ -4395,8 +4436,8 @@ namespace Zeus
                 Constants.TransactionsHistoryFileName, true);
 
             //General transaction information
-            var transactionNumber = _posInstance.GetNextTransactionNumber();
-            var internalNumber = _posInstance.GetNextInternalNumber();
+            var transactionNumber = PosInstance.GetNextTransactionNumber();
+            var internalNumber = PosInstance.GetNextInternalNumber();
             var user = CurrentUser.Name;
             var fiscalReceipt = "No";
             var saleType = transactionType;
@@ -4457,7 +4498,7 @@ namespace Zeus
                 Constants.TransactionsHistoryFileName, true);
 
             //General transaction information
-            var transactionNumber = _posInstance.GetNextTransactionNumber();
+            var transactionNumber = PosInstance.GetNextTransactionNumber();
  //           var internalNumber = _posInstance.GetNextInternalNumber();
             var user = CurrentUser.Name;
             var fiscalReceipt = "No";
@@ -4479,7 +4520,7 @@ namespace Zeus
             }
 
             //Get next receipt number, if applicable
-            var receiptNumber = saleType == TransactionType.Interno ?_posInstance.LastReceiptNumber : _posInstance.GetNextReceiptNumber();
+            var receiptNumber = saleType == TransactionType.Interno ?PosInstance.LastReceiptNumber : PosInstance.GetNextReceiptNumber();
 
             //Record each item in the transactions db
             foreach (var product in CurrentCartProducts)
@@ -4522,7 +4563,7 @@ namespace Zeus
             _inventoryInstance.SaveDataTableToCsv();
 
             //Save pos data
-            _posInstance.SaveDataTableToCsv();
+            PosInstance.SaveDataTableToCsv();
 
             if (CurrentCustomer != null)
             {
@@ -4636,7 +4677,7 @@ namespace Zeus
                 Products = CurrentCartProducts      
             };
 
-            var receipt = new Receipt(_posInstance, transaction, salesData);
+            var receipt = new Receipt(PosInstance, transaction, salesData);
             receipt.PrintSalesReceipt();
 
             return true;

@@ -132,7 +132,7 @@ namespace Zeus
                 MainWindowViewModel.GetInstance(null, null).PaymentReceivedMXN = MainWindowViewModel.GetInstance(null, null).CalculateCurrentCartTotal();
                 //Log
                 MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devolucion Registrada Folio: " + ReturnID.ToString() );
-                MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PaymentPage.xaml";
+                MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PaymentPage;
             }
             else
             {

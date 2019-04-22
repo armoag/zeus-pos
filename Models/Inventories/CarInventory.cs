@@ -19,47 +19,24 @@ namespace Zeus
     /// <summary>
     /// Class for products to be used in the inventory and point of sale system
     /// </summary>
-    public class CarInventory: IInventory, ISqlDataBase
+    public class CarInventory: IInventory, ISqLDataBase
     {
+
+        #region Fields
         private DataTable _dictOfData;
         private string _filePath;
-
         public static IInventory _inventory = null;
-        #region Fields
-
         #endregion
 
         #region Properties
+
+        #region ISqlDatabase Properties
         public string Server { get; set; }
-        public string UserID { get; set; }
+        public string UserId { get; set; }
         public string Password { get; set; }
         public string SqlDataBase { get; set; }
         public string Table { get; set; }
         public MySqlDatabase MySqlData { get; set; }
-        #endregion
-
-        #region Constructors
-
-        //Singleton pattern
-        protected CarInventory(string filePath)
-        {
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
-            //Read inventory CSV format
-            FilePath = filePath;
-            LoadCsvToDataTable();
-        }
-
-        public static IInventory GetInstance(string filePath)
-        {
-            if (_inventory == null)
-                _inventory = new CarInventory(filePath);
-            return _inventory;
-        }
-
-        #endregion
-
-        #region Methods
-
         #endregion
 
         public DataTable DictOfData
@@ -74,6 +51,30 @@ namespace Zeus
             set { _filePath = value; }
         }
 
+        #endregion
+
+        #region Constructors
+        //Singleton pattern
+        protected CarInventory(string filePath, MySqlDatabase mySqlDb)
+        {
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+            //Read inventory CSV format
+            FilePath = filePath;
+            LoadCsvToDataTable();
+            if (mySqlDb != null)
+            {
+                MySqlData = mySqlDb;
+            }
+        }
+        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb)
+        {
+            if (_inventory == null)
+                _inventory = new CarInventory(filePath, mySqlDb);
+            return _inventory;
+        }
+        #endregion
+
+        #region Methods
         public bool AddNewProductToTable(IProduct product)
         {
             if (product is CarPart carPart)
@@ -125,6 +126,13 @@ namespace Zeus
 
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
+            if (MySqlData != null && Constants.CloudInventory)
+            {
+                MySqlData.Delete(columnName, inputSearch);
+            }
+
+            if (!Constants.LocalInventory) return;
+
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
                 var row = DictOfData.Rows[index];
@@ -138,6 +146,7 @@ namespace Zeus
 
         public int GetLastItemNumber()
         {
+            ///TODO: need to implement for DB
             if (DictOfData.Rows.Count == 0)
                 return 0;
             var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
@@ -148,6 +157,63 @@ namespace Zeus
         {
             try
             {
+                if (MySqlData != null && Constants.CloudInventory)
+                {
+                    MySqlData.Read("Codigo", code, out var foundData);
+                    if (foundData.Count < 1)
+                    {
+                        return new ProductBase() { Description = "", Category = "", Cost = 0M };
+                    }
+                    else
+                    {
+                        var data = foundData.First().Item2;
+                        return new CarPart()
+                        {
+                            Id = Int32.Parse(foundData.First().Item2.First().Item2),
+                            Code = row["Codigo"].ToString(),
+                            AlternativeCode = row["CodigoAlterno"].ToString(),
+                            ProviderProductId = row["ProveedorProductoId"].ToString(),
+                            Description = row["Descripcion"].ToString(),
+                            Provider = row["Proveedor"].ToString(),
+                            Category = row["Categoria"].ToString(),
+                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                            Cost = Decimal.Parse(row["Costo"].ToString()),
+                            CostCurrency =
+                                row["CostoMoneda"].ToString().ToUpper() == "USD"
+                                    ? CurrencyTypeEnum.USD
+                                    : CurrencyTypeEnum.MXN,
+                            Price = decimal.Parse(row["Precio"].ToString()),
+                            PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                                ? CurrencyTypeEnum.USD
+                                : CurrencyTypeEnum.MXN,
+                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                            ImageName = row["Imagen"].ToString(),
+
+                            Vin = row["VIN"].ToString(),
+                            Make = row["Marca"].ToString(),
+                            Model = row["Modelo"].ToString(),
+                            Year = Int32.Parse(row["Anho"].ToString()),
+                            Transmission = row["Transmision"].ToString(),
+                            Motor = row["Motor"].ToString(),
+                            Color = row["Color"].ToString(),
+                            ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                            ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                                ? CurrencyTypeEnum.USD
+                                : CurrencyTypeEnum.MXN,
+                            Location = row["Ubicacion"].ToString(),
+                            SpecificLocation = row["Pasillo"].ToString()
+                        };
+                    }
+                }
+
+                if (!Constants.LocalInventory) return;
+
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {
                     var row = DictOfData.Rows[index];
@@ -194,7 +260,6 @@ namespace Zeus
             catch (Exception e)
             {
                 MessageBox.Show("Error en el Codigo", "Error");
-
             }
 
             return new ProductBase() { Description = "", Category = "", Cost = 0M };
@@ -564,4 +629,5 @@ namespace Zeus
             return true;
         }
     }
+    #endregion
 }

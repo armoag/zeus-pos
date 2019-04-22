@@ -10,6 +10,7 @@ namespace Zeus
     {
         Administrador,
         Avanzado,
+        Intermedio,
         Basico,
         Desconocido
     }

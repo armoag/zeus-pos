@@ -64,8 +64,66 @@ namespace Zeus
             }
             catch (Exception e)
             {
-                var exception = e;
-                var errorMessage = e.Message;
+                return false;
+            }
+        }
+
+        /// <summary>
+        /// Smpt email notification 
+        /// </summary>
+        /// <param name="toName"></param>
+        /// <param name="toEmailAddress"></param>
+        /// <param name="subject"></param>
+        /// <param name="body"></param>
+        /// <param name="fromPassword"></param>
+        /// <param name="fromName"></param>
+        /// <param name="attachmentFilePaths"></param>
+        /// <param name="fromEmailAddress"></param>
+        /// <returns></returns>
+        public static bool SendNotificationMultipleAttachments(string toName, string toEmailAddress, string subject, string body,
+            List<string> attachmentFilePaths, string fromEmailAddress, string fromPassword, string fromName = "Wibsar POS")
+        {
+            if (string.IsNullOrEmpty(toEmailAddress) || string.IsNullOrEmpty(toName) || string.IsNullOrEmpty(subject) || string.IsNullOrEmpty(body))
+            {
+                throw new ArgumentException();
+            }
+
+            try
+            {
+                var fromAddress = new MailAddress(fromEmailAddress, fromName);
+                var toAddress = new MailAddress(toEmailAddress, toName);
+
+                using (var smtp = new SmtpClient
+                {
+                    Host = "smtp.gmail.com",
+                    Port = 587,
+                    EnableSsl = true,
+                    DeliveryMethod = SmtpDeliveryMethod.Network,
+                    UseDefaultCredentials = false,
+                    Credentials = new NetworkCredential(fromAddress.Address, fromPassword)
+                })
+                {
+                    using (var message = new MailMessage(fromAddress, toAddress)
+                    {
+                        Subject = subject,
+                        Body = body
+                    })
+                    {
+                        foreach (var filePath in attachmentFilePaths)
+                        {
+                            if (File.Exists(filePath))
+                            {
+                                Attachment data = new Attachment(filePath);
+                                message.Attachments.Add(data);
+                            }
+                        }
+                        smtp.Send(message);
+                    }
+                }
+                return true;
+            }
+            catch (Exception e)
+            {
                 return false;
             }
         }

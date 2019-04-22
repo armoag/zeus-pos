@@ -337,7 +337,7 @@ namespace Zeus
             MainWindowViewModel.GetInstance(null, null).Code = "¡Datos Actualizados!";
             MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeSave;
             //Return
-            MainWindowViewModel.GetInstance(null, null).CurrentPage = "\\View\\PosGeneralPage.xaml";
+            MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
         }
 
         internal bool CanExecute_SystemSaveChangesCommand(object parameter)

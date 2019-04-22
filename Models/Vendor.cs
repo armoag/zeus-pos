@@ -16,7 +16,7 @@ namespace Zeus
         private string _name;
         private int _id;
         private string _email;
-        private string _phone;
+        private long _phone;
         private DateTime _registrationDate;
 
         private string _rfc;
@@ -42,7 +42,7 @@ namespace Zeus
         public string Name { get => _name; set => _name = value; }
         public int Id { get => _id; set => _id = value; }
         public string Email { get => _email; set => _email = value; }
-        public string Phone { get => _phone; set => _phone = value; }
+        public long Phone { get => _phone; set => _phone = value; }
         public DateTime RegistrationDate { get => _registrationDate; set => _registrationDate = value; }
         public string Rfc { get => _rfc; set => _rfc = value; }
         public string BusinessName { get => _businessName; set => _businessName = value; }
@@ -61,7 +61,7 @@ namespace Zeus
             LoadCsvToDataTable();
         }
 
-        public Vendor(string dbPath, string name, string email, string phone, int id, string rfc, string businessName,
+        public Vendor(string dbPath, string name, string email, long phone, int id, string rfc, string businessName,
             string bank, string bankAccount) : base(dbPath)
         {
             //TODO: Check if path exists
@@ -80,13 +80,13 @@ namespace Zeus
 
         #region Methods
 
-        public static void RegisterVendor(string filePath, string name, string email, string phone, string id, string rfc,
+        public static void RegisterVendor(string filePath, string name, string email, long phone, string id, string rfc,
             string businessName, string bank, string bankAccount)
         {
             //TODO: Check if username already exists
             //TODO: Implement feature
             string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", id, name,
-                email, phone, DateTime.Now.ToString(), rfc, businessName, bank, bankAccount)
+                email, phone.ToString(), DateTime.Now.ToString(), rfc, businessName, bank, bankAccount)
                 + Environment.NewLine;
 
             File.AppendAllText(filePath, data);
@@ -95,7 +95,7 @@ namespace Zeus
         public void Register()
         {
             string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8}", Id, Name,
-                Email, Phone, DateTime.Now.ToString(), Rfc, BusinessName, Bank, BankAccount)
+                Email, Phone.ToString(), DateTime.Now.ToString(), Rfc, BusinessName, Bank, BankAccount)
                 + Environment.NewLine;
 
             File.AppendAllText(DbPath, data);
@@ -109,7 +109,7 @@ namespace Zeus
             base.RemoveEntryInDataTable(this.Id.ToString(), "Id");
         }
 
-        public void FullUpdate(string name, string email, string phone, string id, string rfc,
+        public void FullUpdate(string name, string email, long phone, string id, string rfc,
             string businessName, string bank, string bankAccount)
         {
             //TODO: Check if exists, and update if valid
@@ -169,7 +169,7 @@ namespace Zeus
                         Id = Int32.Parse(row["Id"].ToString()),
                         Name = row["Nombre"].ToString(),
                         Email = row["Email"].ToString(),
-                        Phone = row["Telefono"].ToString(),
+                        Phone = long.Parse(row["Telefono"].ToString()),
                         RegistrationDate = Convert.ToDateTime(row["FechaRegistro"].ToString()),
                         Rfc = row["RFC"].ToString(),
                         BusinessName = row["NombreProveedor"].ToString(),
@@ -199,7 +199,7 @@ namespace Zeus
                 {
                     row["Nombre"] = vendor.Name;
                     row["Email"] = vendor.Email;
-                    row["Telefono"] = vendor.Phone;
+                    row["Telefono"] = vendor.Phone.ToString();
                     row["FechaRegistro"] = vendor.RegistrationDate;
                     row["RFC"] = vendor.Rfc;
                     row["NombreProveedor"] = vendor.BusinessName;
@@ -222,7 +222,7 @@ namespace Zeus
             row["Id"] = vendor.GetLastItemNumber() + 1;
             row["Nombre"] = vendor.Name;
             row["Email"] = vendor.Email;
-            row["Telefono"] = vendor.Phone;
+            row["Telefono"] = vendor.Phone.ToString();
             row["FechaRegistro"] = vendor.RegistrationDate;
             row["RFC"] = vendor.Rfc;
             row["NombreProveedor"] = vendor.BusinessName;

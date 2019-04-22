@@ -70,6 +70,7 @@
     <Compile Include="Interfaces\IDataBase.cs" />
     <Compile Include="Interfaces\IInventory.cs" />
     <Compile Include="Interfaces\IProduct.cs" />
+    <Compile Include="Models\AccessManager.cs" />
     <Compile Include="Models\BasicEntityInfo.cs" />
     <Compile Include="Models\Inventories\CarInventory.cs" />
     <Compile Include="Models\Products\CarPart.cs" />
@@ -79,7 +80,6 @@
     <Compile Include="Models\EndOfSalesDataStruct.cs" />
     <Compile Include="Models\Expense.cs" />
     <Compile Include="Models\InventoryBase.cs" />
-    <Compile Include="Models\MySqlDataBase.cs" />
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\Pos.cs" />
     <Compile Include="Models\ProductBase.cs" />
@@ -115,6 +115,12 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="packages.config" />
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="..\shun-pos\Shun.csproj">
+      <Project>{8d4b1d4b-1276-4116-ade0-2363baee5fbd}</Project>
+      <Name>Shun</Name>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(MSBuildToolsPath)\Microsoft.CSharp.targets" />
 </Project>
