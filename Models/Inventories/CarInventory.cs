@@ -155,9 +155,9 @@ namespace Zeus
                         new Tuple<string, string>(DbColumns[22], carPart.SpecificLocation),
                         new Tuple<string, string>(DbColumns[23], carPart.InternalQuantity.ToString()),
                         new Tuple<string, string>(DbColumns[24], carPart.QuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[25], carPart.LocalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[26], carPart.TotalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[27], carPart.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[25], carPart.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[26], carPart.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[27], carPart.TotalQuantityAvailable.ToString()),
                         new Tuple<string, string>(DbColumns[28], carPart.MinimumStockQuantity.ToString()),
                         new Tuple<string, string>(DbColumns[29], carPart.LastSaleDateString),
                         new Tuple<string, string>(DbColumns[30], carPart.ImageName)
