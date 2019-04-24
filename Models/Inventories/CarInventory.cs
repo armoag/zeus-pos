@@ -26,6 +26,41 @@ namespace Zeus
         private DataTable _dictOfData;
         private string _filePath;
         public static IInventory _inventory = null;
+
+        public List<string> _dbColumns = new List<string>()
+        {
+            "Id",
+            "Codigo",
+            "CodigoAlterno",
+            "ProveedorProductoId",
+            "Descripcion",
+            "VIN",
+            "Marca",
+            "Modelo",
+            "Anho",
+            "Transmision",
+            "Motor",
+            "Color",
+            "Proveedor",
+            "Categoria",
+            "UltimoPedidoFecha",
+            "Costo",
+            "CostoMoneda",
+            "CostoImportacion",
+            "CostoImportacionMoneda",
+            "Precio",
+            "PrecioMoneda",
+            "Ubicacion",
+            "Pasillo",
+            "CantidadInternoHistorial",
+            "CantidadVendidoHistorial",
+            "VendidoHistorial",
+            "CantidadLocal",
+            "CantidadDisponibleTotal",
+            "CantidadMinima",
+            "UltimaTransaccionFecha",
+            "Imagen"
+    };
         #endregion
 
         #region Properties
@@ -38,6 +73,12 @@ namespace Zeus
         public string Table { get; set; }
         public MySqlDatabase MySqlData { get; set; }
         #endregion
+
+        public List<string> DbColumns
+        {
+            get { return _dbColumns; }
+            set { _dbColumns = value; }
+        }
 
         public DataTable DictOfData
         {
@@ -75,46 +116,96 @@ namespace Zeus
         #endregion
 
         #region Methods
+        /// <summary>
+        /// Add new product to inventory datatable
+        /// </summary>
+        /// <param name="product"></param>
+        /// <returns></returns>
         public bool AddNewProductToTable(IProduct product)
         {
+            long id = 0;
             if (product is CarPart carPart)
-            {
-                DictOfData.Rows.Add();
-                var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-                row["NumeroProducto"] = carPart.Id.ToString();
-                row["Codigo"] = carPart.Code;
-                row["CodigoAlterno"] = carPart.AlternativeCode;
-                row["ProveedorProductoId"] = carPart.ProviderProductId;
-                row["Descripcion"] = carPart.Description;
-                row["Proveedor"] = carPart.Provider;
-                row["Categoria"] = carPart.Category;
-                row["Costo"] = carPart.Cost.ToString(CultureInfo.InvariantCulture);
-                row["CostoMoneda"] = carPart.CostCurrency;
-                row["Precio"] = carPart.Price.ToString();
-                row["PrecioMoneda"] = carPart.PriceCurrency;
-                row["CantidadInternoHistorial"] = carPart.InternalQuantity.ToString();
-                row["CantidadVendidoHistorial"] = carPart.QuantitySold.ToString();
-                row["CantidadLocal"] = carPart.LocalQuantityAvailable.ToString();
-                row["CantidadDisponibleTotal"] = carPart.TotalQuantityAvailable.ToString();
-                row["VendidoHistorial"] = carPart.AmountSold.ToString();
-                row["CantidadMinima"] = carPart.MinimumStockQuantity.ToString();
-                row["UltimoPedidoFecha"] = carPart.LastPurchaseDate.ToString();
-                row["UltimaTransaccionFecha"] = carPart.LastSaleDate.ToString();
-                row["Imagen"] = carPart.ImageName;
+            {              
+                //Add product to inventory database
+                if (MySqlData != null)
+                {
+                    var productColValPairs = new List<Tuple<string, string>>()
+                    {
+                        new Tuple<string, string>(DbColumns[1], carPart.Code),
+                        new Tuple<string, string>(DbColumns[2], carPart.AlternativeCode),
+                        new Tuple<string, string>(DbColumns[3], carPart.ProviderProductId),
+                        new Tuple<string, string>(DbColumns[4], carPart.Description),
+                        new Tuple<string, string>(DbColumns[5], carPart.Vin),
+                        new Tuple<string, string>(DbColumns[6], carPart.Make),
+                        new Tuple<string, string>(DbColumns[7], carPart.Model),
+                        new Tuple<string, string>(DbColumns[8], carPart.Year.ToString()),
+                        new Tuple<string, string>(DbColumns[9], carPart.Transmission),
+                        new Tuple<string, string>(DbColumns[10], carPart.Motor),
+                        new Tuple<string, string>(DbColumns[11], carPart.Color),
+                        new Tuple<string, string>(DbColumns[12], carPart.Provider),
+                        new Tuple<string, string>(DbColumns[13], carPart.Category),
+                        new Tuple<string, string>(DbColumns[14], carPart.LastPurchaseDateString),
+                        new Tuple<string, string>(DbColumns[15], carPart.Cost.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[16], carPart.CostCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[17], carPart.ImportCost.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[18], carPart.ImportCostCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[19], carPart.Price.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[20], carPart.PriceCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[21], carPart.Location),
+                        new Tuple<string, string>(DbColumns[22], carPart.SpecificLocation),
+                        new Tuple<string, string>(DbColumns[23], carPart.InternalQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[24], carPart.QuantitySold.ToString()),
+                        new Tuple<string, string>(DbColumns[25], carPart.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[26], carPart.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[27], carPart.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[28], carPart.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[29], carPart.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[30], carPart.ImageName)
+                    };
+                    MySqlData.Insert(productColValPairs);
+                    //Get Id for local database
+                    MySqlData.Read("Codigo", carPart.Code, out var readData);
+                    id = long.Parse(readData[0].Item2[0].Item2);
+                }
+                //Add product to datatable 
+                if (Constants.LocalInventory)
+                {
+                    if (id != 0) carPart.Id = Int32.Parse(id.ToString());
 
-                //specific data
-                row["VIN"] = carPart.Vin;
-                row["Marca"] = carPart.Make;
-                row["Modelo"] = carPart.Model;
-                row["Anho"] = carPart.Year.ToString();
-                row["Transmision"] = carPart.Transmission;
-                row["Motor"] = carPart.Motor;
-                row["Color"] = carPart.Color;
-                row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
-                row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;
-                row["Ubicacion"] = carPart.Location;
-                row["Pasillo"] = carPart.SpecificLocation;
-                
+                    DictOfData.Rows.Add();
+                    var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
+                    row["Id"] = carPart.Id.ToString();
+                    row["Codigo"] = carPart.Code;
+                    row["CodigoAlterno"] = carPart.AlternativeCode;
+                    row["ProveedorProductoId"] = carPart.ProviderProductId;
+                    row["Descripcion"] = carPart.Description;
+                    row["VIN"] = carPart.Vin;
+                    row["Marca"] = carPart.Make;
+                    row["Modelo"] = carPart.Model;
+                    row["Anho"] = carPart.Year.ToString();
+                    row["Transmision"] = carPart.Transmission;
+                    row["Motor"] = carPart.Motor;
+                    row["Color"] = carPart.Color;
+                    row["Proveedor"] = carPart.Provider;
+                    row["Categoria"] = carPart.Category;
+                    row["Costo"] = carPart.Cost.ToString(CultureInfo.InvariantCulture);
+                    row["CostoMoneda"] = carPart.CostCurrency;
+                    row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
+                    row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;
+                    row["Precio"] = carPart.Price.ToString();
+                    row["PrecioMoneda"] = carPart.PriceCurrency;
+                    row["Ubicacion"] = carPart.Location;
+                    row["Pasillo"] = carPart.SpecificLocation;
+                    row["CantidadInternoHistorial"] = carPart.InternalQuantity.ToString();
+                    row["CantidadVendidoHistorial"] = carPart.QuantitySold.ToString();
+                    row["CantidadLocal"] = carPart.LocalQuantityAvailable.ToString();
+                    row["CantidadDisponibleTotal"] = carPart.TotalQuantityAvailable.ToString();
+                    row["VendidoHistorial"] = carPart.AmountSold.ToString();
+                    row["CantidadMinima"] = carPart.MinimumStockQuantity.ToString();
+                    row["UltimoPedidoFecha"] = carPart.LastPurchaseDate.ToString();
+                    row["UltimaTransaccionFecha"] = carPart.LastSaleDate.ToString();
+                    row["Imagen"] = carPart.ImageName;
+                }
                 return true;
             }
             else
@@ -150,7 +241,7 @@ namespace Zeus
             if (DictOfData.Rows.Count == 0)
                 return 0;
             var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-            return Int32.Parse(row["NumeroProducto"].ToString());
+            return Int32.Parse(row["Id"].ToString());
         }
 
         public IProduct GetProduct(string code)
@@ -169,91 +260,90 @@ namespace Zeus
                         var data = foundData.First().Item2;
                         return new CarPart()
                         {
-                            Id = Int32.Parse(foundData.First().Item2.First().Item2),
-                            Code = row["Codigo"].ToString(),
-                            AlternativeCode = row["CodigoAlterno"].ToString(),
-                            ProviderProductId = row["ProveedorProductoId"].ToString(),
-                            Description = row["Descripcion"].ToString(),
-                            Provider = row["Proveedor"].ToString(),
-                            Category = row["Categoria"].ToString(),
-                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                            Cost = Decimal.Parse(row["Costo"].ToString()),
-                            CostCurrency =
-                                row["CostoMoneda"].ToString().ToUpper() == "USD"
+                            Id = Int32.Parse(foundData.First().Item2[0].Item2),
+                            Code = foundData.First().Item2[1].Item2,
+                            AlternativeCode = foundData.First().Item2[2].Item2,
+                            ProviderProductId = foundData.First().Item2[3].Item2,
+                            Description = foundData.First().Item2[4].Item2,
+                            Vin = foundData.First().Item2[5].Item2,
+                            Make = foundData.First().Item2[6].Item2,
+                            Model = foundData.First().Item2[7].Item2,
+                            Year = Int32.Parse(foundData.First().Item2[8].Item2),
+                            Transmission = foundData.First().Item2[9].Item2,
+                            Motor = foundData.First().Item2[10].Item2,
+                            Color = foundData.First().Item2[11].Item2,
+                            Provider = foundData.First().Item2[12].Item2,
+                            Category = foundData.First().Item2[13].Item2,
+                            LastPurchaseDate = Convert.ToDateTime(foundData.First().Item2[14].Item2),
+                            Cost = Decimal.Parse(foundData.First().Item2[15].Item2),
+                            CostCurrency = foundData.First().Item2[16].Item2 == "USD"
                                     ? CurrencyTypeEnum.USD
                                     : CurrencyTypeEnum.MXN,
-                            Price = decimal.Parse(row["Precio"].ToString()),
-                            PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                            ImportCost = decimal.Parse(foundData.First().Item2[17].Item2),
+                            ImportCostCurrency = foundData.First().Item2[18].Item2 == "USD"
                                 ? CurrencyTypeEnum.USD
                                 : CurrencyTypeEnum.MXN,
-                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                            ImageName = row["Imagen"].ToString(),
-
-                            Vin = row["VIN"].ToString(),
-                            Make = row["Marca"].ToString(),
-                            Model = row["Modelo"].ToString(),
-                            Year = Int32.Parse(row["Anho"].ToString()),
-                            Transmission = row["Transmision"].ToString(),
-                            Motor = row["Motor"].ToString(),
-                            Color = row["Color"].ToString(),
-                            ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
-                            ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                            Price = decimal.Parse(foundData.First().Item2[19].Item2),
+                            PriceCurrency = foundData.First().Item2[20].Item2 == "USD"
                                 ? CurrencyTypeEnum.USD
                                 : CurrencyTypeEnum.MXN,
-                            Location = row["Ubicacion"].ToString(),
-                            SpecificLocation = row["Pasillo"].ToString()
+                            Location = foundData.First().Item2[21].Item2,
+                            SpecificLocation = foundData.First().Item2[22].Item2,
+                            InternalQuantity = Int32.Parse(foundData.First().Item2[23].Item2),
+                            QuantitySold = Int32.Parse(foundData.First().Item2[24].Item2),
+                            AmountSold = decimal.Parse(foundData.First().Item2[25].Item2),
+                            LocalQuantityAvailable = Int32.Parse(foundData.First().Item2[26].Item2),
+                            TotalQuantityAvailable = Int32.Parse(foundData.First().Item2[27].Item2),
+                            MinimumStockQuantity = Int32.Parse(foundData.First().Item2[28].Item2),
+                            LastSaleDate = Convert.ToDateTime(foundData.First().Item2[29].Item2),
+                            ImageName = foundData.First().Item2[30].Item2
                         };
                     }
                 }
 
-                if (!Constants.LocalInventory) return;
-
-                for (int index = 0; index < DictOfData.Rows.Count; index++)
+                if (Constants.LocalInventory)
                 {
-                    var row = DictOfData.Rows[index];
-                    if (row["Codigo"].ToString() == code)
+                    for (int index = 0; index < DictOfData.Rows.Count; index++)
                     {
-                        return new CarPart()
+                        var row = DictOfData.Rows[index];
+                        if (row["Codigo"].ToString() == code)
                         {
-                            Id = Int32.Parse(row["NumeroProducto"].ToString()),
-                            Code = row["Codigo"].ToString(),
-                            AlternativeCode = row["CodigoAlterno"].ToString(),
-                            ProviderProductId = row["ProveedorProductoId"].ToString(),
-                            Description = row["Descripcion"].ToString(),
-                            Provider = row["Proveedor"].ToString(),
-                            Category = row["Categoria"].ToString(),
-                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                            Cost = Decimal.Parse(row["Costo"].ToString()),
-                            CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-                            Price = decimal.Parse(row["Precio"].ToString()),
-                            PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                            ImageName = row["Imagen"].ToString(),
+                            return new CarPart()
+                            {
+                                Id = Int32.Parse(row["Id"].ToString()),
+                                Code = row["Codigo"].ToString(),
+                                AlternativeCode = row["CodigoAlterno"].ToString(),
+                                ProviderProductId = row["ProveedorProductoId"].ToString(),
+                                Description = row["Descripcion"].ToString(),
+                                Provider = row["Proveedor"].ToString(),
+                                Category = row["Categoria"].ToString(),
+                                LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                                Cost = Decimal.Parse(row["Costo"].ToString()),
+                                CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
+                                Price = decimal.Parse(row["Precio"].ToString()),
+                                PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
+                                InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                                QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                                AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                                LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                                TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                                MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                                LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                                ImageName = row["Imagen"].ToString(),
 
-                            Vin = row["VIN"].ToString(),
-                            Make = row["Marca"].ToString(),
-                            Model = row["Modelo"].ToString(),
-                            Year = Int32.Parse(row["Anho"].ToString()),
-                            Transmission = row["Transmision"].ToString(),
-                            Motor = row["Motor"].ToString(),
-                            Color = row["Color"].ToString(),
-                            ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
-                            ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-                            Location = row["Ubicacion"].ToString(),
-                            SpecificLocation = row["Pasillo"].ToString()
-                        };
+                                Vin = row["VIN"].ToString(),
+                                Make = row["Marca"].ToString(),
+                                Model = row["Modelo"].ToString(),
+                                Year = Int32.Parse(row["Anho"].ToString()),
+                                Transmission = row["Transmision"].ToString(),
+                                Motor = row["Motor"].ToString(),
+                                Color = row["Color"].ToString(),
+                                ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                                ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
+                                Location = row["Ubicacion"].ToString(),
+                                SpecificLocation = row["Pasillo"].ToString()
+                            };
+                        }
                     }
                 }
             }
@@ -267,6 +357,7 @@ namespace Zeus
 
         public IProduct GetProductFromDescription(string description)
         {
+            ///TODO:Repricate
             try
             {
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
@@ -276,7 +367,7 @@ namespace Zeus
                     {
                         return new CarPart()
                         {
-                            Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                            Id = Int32.Parse(row["Id"].ToString()),
                             Code = row["Codigo"].ToString(),
                             AlternativeCode = row["CodigoAlterno"].ToString(),
                             ProviderProductId = row["ProveedorProductoId"].ToString(),
@@ -396,15 +487,68 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(input) || input == "x")
                 return products;
 
-            if (input == "*")
+            if (MySqlData != null && Constants.CloudInventory)
             {
-                var allProducts = DictOfData.AsEnumerable();
-                foreach (var row in allProducts)
+                var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
+                if (input == "*")
                 {
+                    var allProducts = allFields;
+                    foreach (var row in allProducts)
+                    {
 
+                        var product = new CarPart()
+                        {
+                            Id = Int32.Parse(row["Id"].ToString()),
+                            Code = row["Codigo"].ToString(),
+                            AlternativeCode = row["CodigoAlterno"].ToString(),
+                            ProviderProductId = row["ProveedorProductoId"].ToString(),
+                            Description = row["Descripcion"].ToString(),
+                            Provider = row["Proveedor"].ToString(),
+                            Category = row["Categoria"].ToString(),
+                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                            Cost = Decimal.Parse(row["Costo"].ToString()),
+                            Price = decimal.Parse(row["Precio"].ToString()),
+                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                            ImageName = row["Imagen"].ToString(),
+                            Vin = row["VIN"].ToString(),
+                            Make = row["Marca"].ToString(),
+                            Model = row["Modelo"].ToString(),
+                            Year = Int32.Parse(row["Anho"].ToString()),
+                            Transmission = row["Transmision"].ToString(),
+                            Motor = row["Motor"].ToString(),
+                            Color = row["Color"].ToString(),
+                            ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                            Location = row["Ubicacion"].ToString(),
+                            SpecificLocation = row["Pasillo"].ToString()
+                        };
+
+                        product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        products.Add(product);
+                    }
+                }
+
+                var descriptionFilter = allFields.Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+                var codeFilter = allFields.Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+
+                foreach (var row in codeFilter)
+                {
                     var product = new CarPart()
                     {
-                        Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                        Id = Int32.Parse(row["Id"].ToString()),
                         Code = row["Codigo"].ToString(),
                         AlternativeCode = row["CodigoAlterno"].ToString(),
                         ProviderProductId = row["ProveedorProductoId"].ToString(),
@@ -434,107 +578,231 @@ namespace Zeus
                         SpecificLocation = row["Pasillo"].ToString()
                     };
 
-                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                    product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+
                     products.Add(product);
+                }
+
+                foreach (var row in descriptionFilter)
+                {
+                    var product = new CarPart()
+                    {
+                        Id = Int32.Parse(row["Id"].ToString()),
+                        Code = row["Codigo"].ToString(),
+                        AlternativeCode = row["CodigoAlterno"].ToString(),
+                        ProviderProductId = row["ProveedorProductoId"].ToString(),
+                        Description = row["Descripcion"].ToString(),
+                        Provider = row["Proveedor"].ToString(),
+                        Category = row["Categoria"].ToString(),
+                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                        Cost = Decimal.Parse(row["Costo"].ToString()),
+                        Price = decimal.Parse(row["Precio"].ToString()),
+                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                        ImageName = row["Imagen"].ToString(),
+                        Vin = row["VIN"].ToString(),
+                        Make = row["Marca"].ToString(),
+                        Model = row["Modelo"].ToString(),
+                        Year = Int32.Parse(row["Anho"].ToString()),
+                        Transmission = row["Transmision"].ToString(),
+                        Motor = row["Motor"].ToString(),
+                        Color = row["Color"].ToString(),
+                        ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                        Location = row["Ubicacion"].ToString(),
+                        SpecificLocation = row["Pasillo"].ToString()
+                    };
+
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+
+                    //Add if it does not exist already
+                    if (!products.Exists(x => x.Code == product.Code))
+                        products.Add(product);
                 }
 
                 return products;
             }
-
-            var descriptionFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
-            var codeFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
-
-            foreach (var row in codeFilter)
+            else
             {
-                var product = new CarPart()
+                if (input == "*")
                 {
-                    Id = Int32.Parse(row["NumeroProducto"].ToString()),
-                    Code = row["Codigo"].ToString(),
-                    AlternativeCode = row["CodigoAlterno"].ToString(),
-                    ProviderProductId = row["ProveedorProductoId"].ToString(),
-                    Description = row["Descripcion"].ToString(),
-                    Provider = row["Proveedor"].ToString(),
-                    Category = row["Categoria"].ToString(),
-                    LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                    Cost = Decimal.Parse(row["Costo"].ToString()),
-                    Price = decimal.Parse(row["Precio"].ToString()),
-                    InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                    QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                    AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                    LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                    TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                    MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                    LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                    ImageName = row["Imagen"].ToString(),
-                    Vin = row["VIN"].ToString(),
-                    Make = row["Marca"].ToString(),
-                    Model = row["Modelo"].ToString(),
-                    Year = Int32.Parse(row["Anho"].ToString()),
-                    Transmission = row["Transmision"].ToString(),
-                    Motor = row["Motor"].ToString(),
-                    Color = row["Color"].ToString(),
-                    ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
-                    Location = row["Ubicacion"].ToString(),
-                    SpecificLocation = row["Pasillo"].ToString()
-                };
+                    var allProducts = DictOfData.AsEnumerable();
+                    foreach (var row in allProducts)
+                    {
 
-                product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+                        var product = new CarPart()
+                        {
+                            Id = Int32.Parse(row["Id"].ToString()),
+                            Code = row["Codigo"].ToString(),
+                            AlternativeCode = row["CodigoAlterno"].ToString(),
+                            ProviderProductId = row["ProveedorProductoId"].ToString(),
+                            Description = row["Descripcion"].ToString(),
+                            Provider = row["Proveedor"].ToString(),
+                            Category = row["Categoria"].ToString(),
+                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                            Cost = Decimal.Parse(row["Costo"].ToString()),
+                            Price = decimal.Parse(row["Precio"].ToString()),
+                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                            ImageName = row["Imagen"].ToString(),
+                            Vin = row["VIN"].ToString(),
+                            Make = row["Marca"].ToString(),
+                            Model = row["Modelo"].ToString(),
+                            Year = Int32.Parse(row["Anho"].ToString()),
+                            Transmission = row["Transmision"].ToString(),
+                            Motor = row["Motor"].ToString(),
+                            Color = row["Color"].ToString(),
+                            ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                            Location = row["Ubicacion"].ToString(),
+                            SpecificLocation = row["Pasillo"].ToString()
+                        };
 
-                products.Add(product);
-            }
+                        product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        products.Add(product);
+                    }
+                }
 
-            foreach (var row in descriptionFilter)
-            {
-                var product = new CarPart()
+                var descriptionFilter = DictOfData.AsEnumerable()
+                    .Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+                var codeFilter = DictOfData.AsEnumerable()
+                    .Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+
+                foreach (var row in codeFilter)
                 {
-                    Id = Int32.Parse(row["NumeroProducto"].ToString()),
-                    Code = row["Codigo"].ToString(),
-                    AlternativeCode = row["CodigoAlterno"].ToString(),
-                    ProviderProductId = row["ProveedorProductoId"].ToString(),
-                    Description = row["Descripcion"].ToString(),
-                    Provider = row["Proveedor"].ToString(),
-                    Category = row["Categoria"].ToString(),
-                    LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                    Cost = Decimal.Parse(row["Costo"].ToString()),
-                    Price = decimal.Parse(row["Precio"].ToString()),
-                    InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                    QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                    AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                    LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                    TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                    MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                    LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                    ImageName = row["Imagen"].ToString(),
-                    Vin = row["VIN"].ToString(),
-                    Make = row["Marca"].ToString(),
-                    Model = row["Modelo"].ToString(),
-                    Year = Int32.Parse(row["Anho"].ToString()),
-                    Transmission = row["Transmision"].ToString(),
-                    Motor = row["Motor"].ToString(),
-                    Color = row["Color"].ToString(),
-                    ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
-                    Location = row["Ubicacion"].ToString(),
-                    SpecificLocation = row["Pasillo"].ToString()
-                };
+                    var product = new CarPart()
+                    {
+                        Id = Int32.Parse(row["Id"].ToString()),
+                        Code = row["Codigo"].ToString(),
+                        AlternativeCode = row["CodigoAlterno"].ToString(),
+                        ProviderProductId = row["ProveedorProductoId"].ToString(),
+                        Description = row["Descripcion"].ToString(),
+                        Provider = row["Proveedor"].ToString(),
+                        Category = row["Categoria"].ToString(),
+                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                        Cost = Decimal.Parse(row["Costo"].ToString()),
+                        Price = decimal.Parse(row["Precio"].ToString()),
+                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                        ImageName = row["Imagen"].ToString(),
+                        Vin = row["VIN"].ToString(),
+                        Make = row["Marca"].ToString(),
+                        Model = row["Modelo"].ToString(),
+                        Year = Int32.Parse(row["Anho"].ToString()),
+                        Transmission = row["Transmision"].ToString(),
+                        Motor = row["Motor"].ToString(),
+                        Color = row["Color"].ToString(),
+                        ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                        Location = row["Ubicacion"].ToString(),
+                        SpecificLocation = row["Pasillo"].ToString()
+                    };
 
-                product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
 
-                //Add if it does not exist already
-                if (!products.Exists(x => x.Code == product.Code))
                     products.Add(product);
-            }
+                }
 
-            return products;
+                foreach (var row in descriptionFilter)
+                {
+                    var product = new CarPart()
+                    {
+                        Id = Int32.Parse(row["Id"].ToString()),
+                        Code = row["Codigo"].ToString(),
+                        AlternativeCode = row["CodigoAlterno"].ToString(),
+                        ProviderProductId = row["ProveedorProductoId"].ToString(),
+                        Description = row["Descripcion"].ToString(),
+                        Provider = row["Proveedor"].ToString(),
+                        Category = row["Categoria"].ToString(),
+                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                        Cost = Decimal.Parse(row["Costo"].ToString()),
+                        Price = decimal.Parse(row["Precio"].ToString()),
+                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                        ImageName = row["Imagen"].ToString(),
+                        Vin = row["VIN"].ToString(),
+                        Make = row["Marca"].ToString(),
+                        Model = row["Modelo"].ToString(),
+                        Year = Int32.Parse(row["Anho"].ToString()),
+                        Transmission = row["Transmision"].ToString(),
+                        Motor = row["Motor"].ToString(),
+                        Color = row["Color"].ToString(),
+                        ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
+                        Location = row["Ubicacion"].ToString(),
+                        SpecificLocation = row["Pasillo"].ToString()
+                    };
+
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+
+                    //Add if it does not exist already
+                    if (!products.Exists(x => x.Code == product.Code))
+                        products.Add(product);
+                }
+
+                return products;
+            }
         }
 
         public void UpdateItem(string code, string columnName, string newData)
         {
+            ///TODO: Depricate Soon
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
                 var row = DictOfData.Rows[index];
@@ -555,7 +823,7 @@ namespace Zeus
                     var row = DictOfData.Rows[index];
                     if (row["Codigo"].ToString() == carPart.Code)
                     {
-                        row["NumeroProducto"] = carPart.Id.ToString();
+                        row["Id"] = carPart.Id.ToString();
                         row["CodigoAlterno"] = carPart.AlternativeCode;
                         row["ProveedorProductoId"] = carPart.ProviderProductId;
                         row["Descripcion"] = carPart.Description;
@@ -611,6 +879,7 @@ namespace Zeus
 
         public bool UpdateSoldProductToTable(IProduct product)
         {
+            ///TODO: Depricate Soon
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
                 var row = DictOfData.Rows[index];

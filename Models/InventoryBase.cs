@@ -10,10 +10,11 @@ using System.Threading.Tasks;
 using System.Windows;
 using Zeus;
 using GenericParsing;
+using Shun;
 
 namespace Zeus
 {
-    public class InventoryBase : IInventory
+    public class InventoryBase : IInventory, ISqLDataBase
     {
         #region Fields
 
@@ -25,6 +26,50 @@ namespace Zeus
         #endregion
 
         #region Properties
+
+        public List<string> _dbColumns = new List<string>()
+        {
+            "Id",
+            "Codigo",
+            "CodigoAlterno",
+            "ProveedorProductoId",
+            "Descripcion",
+            "Proveedor",
+            "Categoria",
+            "UltimoPedidoFecha",
+            "Costo",
+            "CostoMoneda",
+            "Precio",
+            "PrecioMoneda",
+            "Ubicacion",
+            "Pasillo",
+            "CantidadInternoHistorial",
+            "CantidadVendidoHistorial",
+            "VendidoHistorial",
+            "CantidadLocal",
+            "CantidadDisponibleTotal",
+            "CantidadMinima",
+            "UltimaTransaccionFecha",
+            "Imagen"
+        };
+        #endregion
+
+        #region Properties
+
+        #region ISqlDatabase Properties
+        public string Server { get; set; }
+        public string UserId { get; set; }
+        public string Password { get; set; }
+        public string SqlDataBase { get; set; }
+        public string Table { get; set; }
+        public MySqlDatabase MySqlData { get; set; }
+        #endregion
+
+        public List<string> DbColumns
+        {
+            get { return _dbColumns; }
+            set { _dbColumns = value; }
+        }
 
         public DataTable DictOfData
         {
@@ -129,7 +174,7 @@ namespace Zeus
             if (DictOfData.Rows.Count == 0)
                 return 0;
             var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-            return Int32.Parse(row["NumeroProducto"].ToString());
+            return Int32.Parse(row["Id"].ToString());
         }
 
         /// <summary>
@@ -140,6 +185,7 @@ namespace Zeus
         /// <param name="newData"></param>
         public void UpdateItem(string code, string columnName, string newData)
         {
+            ///TODO: Depricate Soon
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
                 var row = DictOfData.Rows[index];
@@ -204,7 +250,7 @@ namespace Zeus
                     {
                         return new ProductBase()
                         {
-                            Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                            Id = Int32.Parse(row["Id"].ToString()),
                             Code = row["Codigo"].ToString(),
                             AlternativeCode = row["CodigoAlterno"].ToString(),
                             ProviderProductId = row["ProveedorProductoId"].ToString(),
@@ -244,6 +290,7 @@ namespace Zeus
         /// <returns></returns>
         public virtual IProduct GetProductFromDescription(string description)
         {
+            ///TODO: Deprecate Method.  Not in use
             try
             {
                 for (int index = 0; index < _dictofdata.Rows.Count; index++)
@@ -253,7 +300,7 @@ namespace Zeus
                     {
                         return new ProductBase()
                         {
-                            Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                            Id = Int32.Parse(row["Id"].ToString()),
                             Code = row["Codigo"].ToString(),
                             AlternativeCode = row["CodigoAlterno"].ToString(),
                             ProviderProductId = row["ProveedorProductoId"].ToString(),
@@ -322,7 +369,7 @@ namespace Zeus
                 var row = DictOfData.Rows[index];
                 if (row["Codigo"].ToString() == product.Code)
                 {
-                    row["NumeroProducto"] = product.Id.ToString();
+                    row["Id"] = product.Id.ToString();
                     row["CodigoAlterno"] = product.AlternativeCode;
                     row["ProveedorProductoId"] = product.ProviderProductId;
                     row["Descripcion"] = product.Description;
@@ -356,7 +403,7 @@ namespace Zeus
         {
             DictOfData.Rows.Add();
             var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
-            row["NumeroProducto"] = product.Id.ToString();
+            row["Id"] = product.Id.ToString();
             row["Codigo"] = product.Code;
             row["CodigoAlterno"] = product.AlternativeCode;
             row["ProveedorProductoId"] = product.ProviderProductId;
@@ -409,42 +456,87 @@ namespace Zeus
 
             //Return empty list if invalid inputs are entered for the search
             if (string.IsNullOrWhiteSpace(input) || input == "x")
-                return products;            
+                return products;
 
-            if (input == "*")
+            var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
+
+            if (MySqlData != null && Constants.CloudInventory)
             {
-                var allProducts = DictOfData.AsEnumerable();
-                foreach (var row in allProducts)
+                if (input == "*")
                 {
-                    
-                    var product = new ProductBase()
+                    var allProducts = DictOfData.AsEnumerable();
+                    foreach (var row in allProducts)
                     {
-                        Id = Int32.Parse(row["NumeroProducto"].ToString()),
-                        Code = row["Codigo"].ToString(),
-                        AlternativeCode = row["CodigoAlterno"].ToString(),
-                        ProviderProductId = row["ProveedorProductoId"].ToString(),
-                        Description = row["Descripcion"].ToString(),
-                        Provider = row["Proveedor"].ToString(),
-                        Category = row["Categoria"].ToString(),
-                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                        Cost = Decimal.Parse(row["Costo"].ToString()),
-                        Price = decimal.Parse(row["Precio"].ToString()),
-                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                        ImageName = row["Imagen"].ToString()
-                    };
 
-                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
-                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+                        var product = new ProductBase()
+                        {
+                            Id = Int32.Parse(row["Id"].ToString()),
+                            Code = row["Codigo"].ToString(),
+                            AlternativeCode = row["CodigoAlterno"].ToString(),
+                            ProviderProductId = row["ProveedorProductoId"].ToString(),
+                            Description = row["Descripcion"].ToString(),
+                            Provider = row["Proveedor"].ToString(),
+                            Category = row["Categoria"].ToString(),
+                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                            Cost = Decimal.Parse(row["Costo"].ToString()),
+                            Price = decimal.Parse(row["Precio"].ToString()),
+                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                            ImageName = row["Imagen"].ToString()
+                        };
 
-                    products.Add(product);
+                        product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+                        product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                            ? CurrencyTypeEnum.USD
+                            : CurrencyTypeEnum.MXN;
+
+                        products.Add(product);
+                    }
                 }
+            }
+            else
+            {
+                if (input == "*")
+                {
+                    var allProducts = DictOfData.AsEnumerable();
+                    foreach (var row in allProducts)
+                    {
 
+                        var product = new ProductBase()
+                        {
+                            Id = Int32.Parse(row["Id"].ToString()),
+                            Code = row["Codigo"].ToString(),
+                            AlternativeCode = row["CodigoAlterno"].ToString(),
+                            ProviderProductId = row["ProveedorProductoId"].ToString(),
+                            Description = row["Descripcion"].ToString(),
+                            Provider = row["Proveedor"].ToString(),
+                            Category = row["Categoria"].ToString(),
+                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                            Cost = Decimal.Parse(row["Costo"].ToString()),
+                            Price = decimal.Parse(row["Precio"].ToString()),
+                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                            ImageName = row["Imagen"].ToString()
+                        };
+
+                        product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+                        product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN;
+
+                        products.Add(product);
+                    }
+                }
                 return products;
             }
 
@@ -455,7 +547,7 @@ namespace Zeus
             {
                 var product = new ProductBase()
                 {
-                    Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                    Id = Int32.Parse(row["Id"].ToString()),
                     Code = row["Codigo"].ToString(),
                     AlternativeCode = row["CodigoAlterno"].ToString(),
                     ProviderProductId = row["ProveedorProductoId"].ToString(),
@@ -485,7 +577,7 @@ namespace Zeus
             {
                 var product = new ProductBase()
                 {
-                    Id = Int32.Parse(row["NumeroProducto"].ToString()),
+                    Id = Int32.Parse(row["Id"].ToString()),
                     Code = row["Codigo"].ToString(),
                     AlternativeCode = row["CodigoAlterno"].ToString(),
                     ProviderProductId = row["ProveedorProductoId"].ToString(),

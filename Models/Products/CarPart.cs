@@ -193,7 +193,7 @@ namespace Zeus
 
         public string LastPurchaseDateString
         {
-            get { return _lastPurchaseDateString; }
+            get { return Utilities.FormatDateForMySql(_lastPurchaseDate); }
         }
 
         public int LastQuantitySold
@@ -210,7 +210,7 @@ namespace Zeus
 
         public string LastSaleDateString
         {
-            get { return _lastSaleDateString; }
+            get { return Utilities.FormatDateForMySql(_lastSaleDate); }
         }
 
         public int LocalQuantityAvailable

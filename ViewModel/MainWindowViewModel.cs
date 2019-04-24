@@ -101,40 +101,8 @@ namespace Zeus
 
         private MainWindowViewModel(object productType, object inventoryType)
         {
-            //Testing
-            //try
-            //{
-            //    var conn = new MySqlConnection(@"Server=wibsarlicencias.csqn2onotlww.us-east-1.rds.amazonaws.com;Database=Licenses;Uid=armoag;Pwd=Yadira00;");
-            //    conn.Open();
-
-            //    string sql = @"SELECT LicenseKey, CurrentUser FROM Licenses WHERE idLicenses=2";
-
-            //    var cmd = new MySqlCommand(sql, conn);
-
-            //    MySqlDataReader reader = cmd.ExecuteReader();
-            //    if (reader.Read())
-            //    {
-            //        var license = reader["LicenseKey"].ToString();
-            //        var currentUser = reader["CurrentUser"].ToString();
-            //    }
-
-            //    sql = @"SELECT LicenseKey, CurrentUser FROM Licenses WHERE idLicenses=1";
-
-            //    var cmd2 = new MySqlCommand(sql, conn);
-            //    //         MySqlDataReader reader = cmd.ExecuteReader();
-            //    if (reader.Read())
-            //    {
-            //        var license = reader["LicenseKey"].ToString();
-            //        var currentUser = reader["CurrentUser"].ToString();
-            //    }
-
-            //    conn.Close();
-            //}
-            //catch (Exception e)
-            //{
-            //    var x = 1;
-            //}
-
+            //Check license
+            ///TODO: Check for license status
 
             //Log
             Log = Logger.GetInstance(Constants.DataFolderPath + Constants.LogFileName);
@@ -142,16 +110,6 @@ namespace Zeus
             //Initialize current cart and list number
             CurrentCartNumber = 1;
             CurrentCartProducts = _cartOneProducts;
-            //Initialize inventory and Pos data files
-            if (productType is CarPart part)
-            {
-                _productType = part;
-                _inventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
-            }
-            else
-            {
-                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
-            }
 
             //Initialize DBs
             if (true)
@@ -164,6 +122,16 @@ namespace Zeus
                 MySqlInventoryDb = new MySqlDatabase(server, database, "Inventario", userID, password);
             }
 
+            //Initialize inventory and Pos data files
+            if (productType is CarPart part)
+            {
+                _productType = part;
+                _inventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+            }
+            else
+            {
+                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
+            }
 
             PosInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
             ExchangeRate = PosInstance.ExchangeRate;
