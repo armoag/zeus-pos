@@ -41,8 +41,6 @@ namespace Zeus
             "CostoMoneda",
             "Precio",
             "PrecioMoneda",
-            "Ubicacion",
-            "Pasillo",
             "CantidadInternoHistorial",
             "CantidadVendidoHistorial",
             "VendidoHistorial",
@@ -243,6 +241,49 @@ namespace Zeus
         {
             try
             {
+                if (MySqlData != null && Constants.CloudInventory)
+                {
+                    MySqlData.Read("Codigo", code, out var foundData);
+                    if (foundData.Count < 1)
+                    {
+                        return new ProductBase() { Description = "", Category = "", Cost = 0M };
+                    }
+                    else
+                    {
+                        var data = foundData.First().Item2;
+                        return new ProductBase()
+                        {
+                            Id = Int32.Parse(foundData.First().Item2[0].Item2),
+                            Code = foundData.First().Item2[1].Item2,
+                            AlternativeCode = foundData.First().Item2[2].Item2,
+                            ProviderProductId = foundData.First().Item2[3].Item2,
+                            Description = foundData.First().Item2[4].Item2,
+                            Provider = foundData.First().Item2[5].Item2,
+                            Category = foundData.First().Item2[6].Item2,
+                            LastPurchaseDate = Convert.ToDateTime(foundData.First().Item2[7].Item2),
+                            Cost = Decimal.Parse(foundData.First().Item2[8].Item2),
+                            CostCurrency = foundData.First().Item2[9].Item2 == "USD"
+                                    ? CurrencyTypeEnum.USD
+                                    : CurrencyTypeEnum.MXN,
+                            Price = decimal.Parse(foundData.First().Item2[10].Item2),
+                            PriceCurrency = foundData.First().Item2[11].Item2 == "USD"
+                                ? CurrencyTypeEnum.USD
+                                : CurrencyTypeEnum.MXN,
+                            InternalQuantity = Int32.Parse(foundData.First().Item2[12].Item2),
+                            QuantitySold = Int32.Parse(foundData.First().Item2[13].Item2),
+                            AmountSold = decimal.Parse(foundData.First().Item2[14].Item2),
+                            LocalQuantityAvailable = Int32.Parse(foundData.First().Item2[15].Item2),
+                            TotalQuantityAvailable = Int32.Parse(foundData.First().Item2[16].Item2),
+                            MinimumStockQuantity = Int32.Parse(foundData.First().Item2[17].Item2),
+                            LastSaleDate = Convert.ToDateTime(foundData.First().Item2[18].Item2),
+                            ImageName = foundData.First().Item2[19].Item2
+                        };
+                    }
+                }
+
+                if (Constants.LocalInventory)
+
+
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {
                     var row = DictOfData.Rows[index];
