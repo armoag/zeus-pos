@@ -20,16 +20,16 @@ namespace Zeus
         void DeleteItemInDataTable(string inputSearch, string columnName);
         int GetLastItemNumber();
         IProduct GetProduct(string code);
-        IProduct GetProductFromDescription(string description);
+   //     IProduct GetProductFromDescription(string description);
         List<IProduct> GetProductList(string filePath, out string listName);
         void LoadCsvToDataTable();
-        string QueryDataFromCode(string code, string columnName);
+   //     string QueryDataFromCode(string code, string columnName);
         void SaveDataTableToCsv();
         List<IProduct> Search(string input);
-        void UpdateItem(string code, string columnName, string newData);
+    //    void UpdateItem(string code, string columnName, string newData);
         bool UpdateProductToTable(IProduct product);
-        void UpdateSoldItemQuantity(string code, int unitsSold);
-        bool UpdateSoldProductToTable(IProduct product);
+     //   void UpdateSoldItemQuantity(string code, int unitsSold);
+     //   bool UpdateSoldProductToTable(IProduct product);
         //      #region Properties
 
         //      DataTable DictOfData { get; set; }

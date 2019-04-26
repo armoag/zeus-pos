@@ -84,18 +84,22 @@ namespace Zeus
 
         #region Constructors
         //Singleton pattern
-        protected InventoryBase(string filePath)
+        protected InventoryBase(string filePath, MySqlDatabase mySqlDb)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             //Read inventory CSV format
             _filePath = filePath;
             LoadCsvToDataTable();
+            if (mySqlDb != null)
+            {
+                MySqlData = mySqlDb;
+            }
         }
 
-        public static IInventory GetInstance(string filePath)
+        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb)
         {
             if (_inventory == null)
-                _inventory = new InventoryBase(filePath);
+                _inventory = new InventoryBase(filePath, mySqlDb);
             return _inventory;
         }
 
@@ -144,24 +148,24 @@ namespace Zeus
             File.WriteAllText(FilePath, sb.ToString());
         }
 
-        /// <summary>
-        /// Query any item data from the code
-        /// </summary>
-        /// <param name="code">Code to find item</param>
-        /// <param name="columnName">Column header to retrive the data</param>
-        /// <returns></returns>
-        public string QueryDataFromCode(string code, string columnName)
-        {
-            for (int index = 0; index < DictOfData.Rows.Count; index++)
-            {
-                var row = DictOfData.Rows[index];
-                if (row["Codigo"].ToString() == code)
-                {
-                    return row[columnName].ToString();
-                }
-            }
-            return string.Format("No se encontro el codigo {0}", code);
-        }
+        ///// <summary>
+        ///// Query any item data from the code
+        ///// </summary>
+        ///// <param name="code">Code to find item</param>
+        ///// <param name="columnName">Column header to retrive the data</param>
+        ///// <returns></returns>
+        //public string QueryDataFromCode(string code, string columnName)
+        //{
+        //    for (int index = 0; index < DictOfData.Rows.Count; index++)
+        //    {
+        //        var row = DictOfData.Rows[index];
+        //        if (row["Codigo"].ToString() == code)
+        //        {
+        //            return row[columnName].ToString();
+        //        }
+        //    }
+        //    return string.Format("No se encontro el codigo {0}", code);
+        //}
         
         /// <summary>
         /// Get the last item number in the inventory
@@ -169,31 +173,32 @@ namespace Zeus
         /// <returns></returns>
         public int GetLastItemNumber()
         {
+            ///TODO: Check if need to be repricated
             if (DictOfData.Rows.Count == 0)
                 return 0;
             var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
             return Int32.Parse(row["Id"].ToString());
         }
 
-        /// <summary>
-        /// Add new data to a specific item column name based on the code
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="columnName"></param>
-        /// <param name="newData"></param>
-        public void UpdateItem(string code, string columnName, string newData)
-        {
-            ///TODO: Depricate Soon
-            for (int index = 0; index < DictOfData.Rows.Count; index++)
-            {
-                var row = DictOfData.Rows[index];
-                if (row["Codigo"].ToString() == code)
-                {
-                    row[columnName] = newData;
-                    return;
-                }
-            }
-        }
+        ///// <summary>
+        ///// Add new data to a specific item column name based on the code
+        ///// </summary>
+        ///// <param name="code"></param>
+        ///// <param name="columnName"></param>
+        ///// <param name="newData"></param>
+        //public void UpdateItem(string code, string columnName, string newData)
+        //{
+        //    ///TODO: Depricate Soon
+        //    for (int index = 0; index < DictOfData.Rows.Count; index++)
+        //    {
+        //        var row = DictOfData.Rows[index];
+        //        if (row["Codigo"].ToString() == code)
+        //        {
+        //            row[columnName] = newData;
+        //            return;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Removes a full entry in the inventory
@@ -202,6 +207,13 @@ namespace Zeus
         /// <param name="columnName"></param>
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
+            if (MySqlData != null && Constants.CloudInventory)
+            {
+                MySqlData.Delete(columnName, inputSearch);
+            }
+
+            if (!Constants.LocalInventory) return;
+
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
                 var row = DictOfData.Rows[index];
@@ -213,24 +225,24 @@ namespace Zeus
             }
         }
 
-        /// <summary>
-        /// Update the number of items sold
-        /// </summary>
-        /// <param name="code"></param>
-        /// <param name="unitsSold"></param>
-        public void UpdateSoldItemQuantity(string code, int unitsSold)
-        {
-            for (int index = 0; index < DictOfData.Rows.Count; index++)
-            {
-                var row = DictOfData.Rows[index];
-                if (row["Codigo"].ToString() == code)
-                {
-                    int quantity = Int32.Parse(row["CantidadLocal"].ToString());
-                    row["CantidadLocal"] = (quantity - unitsSold).ToString();
-                    return;
-                }
-            }
-        }
+        ///// <summary>
+        ///// Update the number of items sold
+        ///// </summary>
+        ///// <param name="code"></param>
+        ///// <param name="unitsSold"></param>
+        //public void UpdateSoldItemQuantity(string code, int unitsSold)
+        //{
+        //    for (int index = 0; index < DictOfData.Rows.Count; index++)
+        //    {
+        //        var row = DictOfData.Rows[index];
+        //        if (row["Codigo"].ToString() == code)
+        //        {
+        //            int quantity = Int32.Parse(row["CantidadLocal"].ToString());
+        //            row["CantidadLocal"] = (quantity - unitsSold).ToString();
+        //            return;
+        //        }
+        //    }
+        //}
 
         /// <summary>
         /// Get product based on a code
@@ -324,79 +336,79 @@ namespace Zeus
             return new ProductBase() { Description = "", Category = "", Cost = 0M };
         }
 
-        /// <summary>
-        /// Get product based on the description
-        /// </summary>
-        /// <param name="description"></param>
-        /// <returns></returns>
-        public virtual IProduct GetProductFromDescription(string description)
-        {
-            ///TODO: Deprecate Method.  Not in use
-            try
-            {
-                for (int index = 0; index < _dictofdata.Rows.Count; index++)
-                {
-                    var row = _dictofdata.Rows[index];
-                    if (row["Descripcion"].ToString() == description)
-                    {
-                        return new ProductBase()
-                        {
-                            Id = Int32.Parse(row["Id"].ToString()),
-                            Code = row["Codigo"].ToString(),
-                            AlternativeCode = row["CodigoAlterno"].ToString(),
-                            ProviderProductId = row["ProveedorProductoId"].ToString(),
-                            Description = row["Descripcion"].ToString(),
-                            Provider = row["Proveedor"].ToString(),
-                            Category = row["Categoria"].ToString(),
-                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-                            Cost = Decimal.Parse(row["Costo"].ToString()),
-                            CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-                            Price = decimal.Parse(row["Precio"].ToString()),
-                            PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-                            InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-                            QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-                            AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-                            LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-                            TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-                            MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-                            ImageName = row["Imagen"].ToString()
-                        };
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                MessageBox.Show("Error en el Codigo", "Error");
-            }
+        ///// <summary>
+        ///// Get product based on the description
+        ///// </summary>
+        ///// <param name="description"></param>
+        ///// <returns></returns>
+        //public virtual IProduct GetProductFromDescription(string description)
+        //{
+        //    ///TODO: Deprecate Method.  Not in use
+        //    try
+        //    {
+        //        for (int index = 0; index < _dictofdata.Rows.Count; index++)
+        //        {
+        //            var row = _dictofdata.Rows[index];
+        //            if (row["Descripcion"].ToString() == description)
+        //            {
+        //                return new ProductBase()
+        //                {
+        //                    Id = Int32.Parse(row["Id"].ToString()),
+        //                    Code = row["Codigo"].ToString(),
+        //                    AlternativeCode = row["CodigoAlterno"].ToString(),
+        //                    ProviderProductId = row["ProveedorProductoId"].ToString(),
+        //                    Description = row["Descripcion"].ToString(),
+        //                    Provider = row["Proveedor"].ToString(),
+        //                    Category = row["Categoria"].ToString(),
+        //                    LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+        //                    Cost = Decimal.Parse(row["Costo"].ToString()),
+        //                    CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
+        //                    Price = decimal.Parse(row["Precio"].ToString()),
+        //                    PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
+        //                    InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+        //                    QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+        //                    AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+        //                    LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+        //                    TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+        //                    MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+        //                    LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+        //                    ImageName = row["Imagen"].ToString()
+        //                };
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        MessageBox.Show("Error en el Codigo", "Error");
+        //    }
 
-            return new ProductBase() { Description = "", Category = "", Cost = 0M };
-        }
+        //    return new ProductBase() { Description = "", Category = "", Cost = 0M };
+        //}
 
-        /// <summary>
-        /// Update the sold product
-        /// </summary>
-        /// <param name="product"></param>
-        /// <returns></returns>
-        public bool UpdateSoldProductToTable(IProduct product)
-        {
-            for (int index = 0; index < DictOfData.Rows.Count; index++)
-            {
-                var row = DictOfData.Rows[index];
-                if (row["Codigo"].ToString() == product.Code)
-                {
-                    row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
-                    row["Precio"] = product.Price.ToString();
-                    row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
-                    row["VendidoHistorial"] = product.AmountSold.ToString();
-                    row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
-                    row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
-                    row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
-                }
-            }
+        ///// <summary>
+        ///// Update the sold product
+        ///// </summary>
+        ///// <param name="product"></param>
+        ///// <returns></returns>
+        //public bool UpdateSoldProductToTable(IProduct product)
+        //{
+        //    for (int index = 0; index < DictOfData.Rows.Count; index++)
+        //    {
+        //        var row = DictOfData.Rows[index];
+        //        if (row["Codigo"].ToString() == product.Code)
+        //        {
+        //            row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
+        //            row["Precio"] = product.Price.ToString();
+        //            row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
+        //            row["VendidoHistorial"] = product.AmountSold.ToString();
+        //            row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
+        //            row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
+        //            row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
+        //        }
+        //    }
 
-            return true;
-        }
+        //    return true;
+        //}
 
         /// <summary>
         /// Update product in the datatable
@@ -405,33 +417,65 @@ namespace Zeus
         /// <returns></returns>
         public virtual bool UpdateProductToTable(IProduct product)
         {
-            for (int index = 0; index < DictOfData.Rows.Count; index++)
+            if (product is ProductBase productBase)
             {
-                var row = DictOfData.Rows[index];
-                if (row["Codigo"].ToString() == product.Code)
+                if (MySqlData != null)
                 {
-                    row["Id"] = product.Id.ToString();
-                    row["CodigoAlterno"] = product.AlternativeCode;
-                    row["ProveedorProductoId"] = product.ProviderProductId;
-                    row["Descripcion"] = product.Description;
-                    row["Proveedor"] = product.Provider;
-                    row["Categoria"] = product.Category;
-                    row["Costo"] = product.Cost.ToString(CultureInfo.InvariantCulture);
-                    row["CostoMoneda"] = product.CostCurrency;
-                    row["Precio"] = product.Price.ToString();
-                    row["PrecioMoneda"] = product.PriceCurrency.ToString();
-                    row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
-                    row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
-                    row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
-                    row["VendidoHistorial"] = product.AmountSold.ToString();
-                    row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
-                    row["CantidadMinima"] = product.MinimumStockQuantity.ToString();
-                    row["UltimoPedidoFecha"] = product.LastPurchaseDate.ToString();
-                    row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
-                    row["Imagen"] = product.ImageName;
+                    var data = new List<Tuple<string, string>>()
+                    {
+
+                        new Tuple<string, string>(DbColumns[1], productBase.Code),
+                        new Tuple<string, string>(DbColumns[2], productBase.AlternativeCode),
+                        new Tuple<string, string>(DbColumns[3], productBase.ProviderProductId),
+                        new Tuple<string, string>(DbColumns[4], productBase.Code),
+                        new Tuple<string, string>(DbColumns[5], productBase.Description),
+                        new Tuple<string, string>(DbColumns[6], productBase.Provider),
+                        new Tuple<string, string>(DbColumns[7], productBase.Category),
+                        new Tuple<string, string>(DbColumns[8], productBase.LastPurchaseDateString),
+                        new Tuple<string, string>(DbColumns[9], productBase.Cost.ToString()),
+                        new Tuple<string, string>(DbColumns[10], productBase.CostCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[11], productBase.Price.ToString()),
+                        new Tuple<string, string>(DbColumns[12], productBase.PriceCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[13], productBase.InternalQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[14], productBase.AmountSold.ToString()),
+                        new Tuple<string, string>(DbColumns[15], productBase.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[16], productBase.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[17], productBase.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[18], productBase.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[19], productBase.ImageName)
+                    };
+                    MySqlData.Update("Codigo", product.Code, data);
+                }
+
+                if (!Constants.CloudInventory) return false;
+
+                for (int index = 0; index < DictOfData.Rows.Count; index++)
+                {
+                    var row = DictOfData.Rows[index];
+                    if (row["Codigo"].ToString() == product.Code)
+                    {
+                        row["Id"] = product.Id.ToString();
+                        row["CodigoAlterno"] = product.AlternativeCode;
+                        row["ProveedorProductoId"] = product.ProviderProductId;
+                        row["Descripcion"] = product.Description;
+                        row["Proveedor"] = product.Provider;
+                        row["Categoria"] = product.Category;
+                        row["Costo"] = product.Cost.ToString(CultureInfo.InvariantCulture);
+                        row["CostoMoneda"] = product.CostCurrency;
+                        row["Precio"] = product.Price.ToString();
+                        row["PrecioMoneda"] = product.PriceCurrency.ToString();
+                        row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
+                        row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
+                        row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
+                        row["VendidoHistorial"] = product.AmountSold.ToString();
+                        row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
+                        row["CantidadMinima"] = product.MinimumStockQuantity.ToString();
+                        row["UltimoPedidoFecha"] = product.LastPurchaseDate.ToString();
+                        row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
+                        row["Imagen"] = product.ImageName;
+                    }
                 }
             }
-
             return true;
         }
 
@@ -442,48 +486,71 @@ namespace Zeus
         /// <returns></returns>
         public virtual bool AddNewProductToTable(IProduct product)
         {
-            DictOfData.Rows.Add();
-            var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
-            row["Id"] = product.Id.ToString();
-            row["Codigo"] = product.Code;
-            row["CodigoAlterno"] = product.AlternativeCode;
-            row["ProveedorProductoId"] = product.ProviderProductId;
-            row["Descripcion"] = product.Description;
-            row["Proveedor"] = product.Provider;
-            row["Categoria"] = product.Category;
-            row["Costo"] = product.Cost.ToString(CultureInfo.InvariantCulture);
-            row["CostoMoneda"] = product.CostCurrency;
-            row["Precio"] = product.Price.ToString();
-            row["PrecioMoneda"] = product.PriceCurrency;
-            row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
-            row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
-            row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
-            row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
-            row["VendidoHistorial"] = product.AmountSold.ToString();
-            row["CantidadMinima"] = product.MinimumStockQuantity.ToString();
-            row["UltimoPedidoFecha"] = product.LastPurchaseDate.ToString();
-            row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
-            row["Imagen"] = product.ImageName;
+            long id = 0;
+            if (product is ProductBase)
+            {
+                //Add product to inventory database
+                if (MySqlData != null)
+                {
+                    var productColValPairs = new List<Tuple<string, string>>()
+                    {
+                        new Tuple<string, string>(DbColumns[1], product.Code),
+                        new Tuple<string, string>(DbColumns[2], product.AlternativeCode),
+                        new Tuple<string, string>(DbColumns[3], product.ProviderProductId),
+                        new Tuple<string, string>(DbColumns[4], product.Description),
+                        new Tuple<string, string>(DbColumns[5], product.Category),
+                        new Tuple<string, string>(DbColumns[6], product.LastPurchaseDateString),
+                        new Tuple<string, string>(DbColumns[7], product.Cost.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[8], product.CostCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[9], product.Price.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[10], product.PriceCurrency.ToString()),
+                        new Tuple<string, string>(DbColumns[11], product.InternalQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[12], product.QuantitySold.ToString()),
+                        new Tuple<string, string>(DbColumns[13], product.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[14], product.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[15], product.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[16], product.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[17], product.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[18], product.ImageName)
+                    };
+                    MySqlData.Insert(productColValPairs);
+                    //Get Id for local database
+                    MySqlData.Read("Codigo", product.Code, out var readData);
+                    id = long.Parse(readData[0].Item2[0].Item2);
+                }
 
-            return true;
-        }
-        
-        //TODO: Need to remove it frmo inventory for cleaning up
-        /// <summary>
-        /// Create a backup copy of the inventory file
-        /// </summary>
-        /// <param name="filePath"></param>
-        public static void InventoryBackUp(string filePath)
-        {
-            //Set date format
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
-            var currentTime = DateTime.Now;
-            //Load inventory csv file and create a backup copy
-            var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath + "Inventario" + 
-                                                 currentTime.Day.ToString("00") + currentTime.Month.ToString("00") + currentTime.Year.ToString("0000") +
-                                                 currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") + currentTime.Second.ToString("00") + ".csv";
-
-            File.Copy(filePath, inventoryFileBackUpCopyName);
+                //Add product to datatable 
+                if (Constants.LocalInventory)
+                {
+                    DictOfData.Rows.Add();
+                    var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
+                    row["Id"] = product.Id.ToString();
+                    row["Codigo"] = product.Code;
+                    row["CodigoAlterno"] = product.AlternativeCode;
+                    row["ProveedorProductoId"] = product.ProviderProductId;
+                    row["Descripcion"] = product.Description;
+                    row["Proveedor"] = product.Provider;
+                    row["Categoria"] = product.Category;
+                    row["Costo"] = product.Cost.ToString(CultureInfo.InvariantCulture);
+                    row["CostoMoneda"] = product.CostCurrency;
+                    row["Precio"] = product.Price.ToString();
+                    row["PrecioMoneda"] = product.PriceCurrency;
+                    row["CantidadInternoHistorial"] = product.InternalQuantity.ToString();
+                    row["CantidadVendidoHistorial"] = product.QuantitySold.ToString();
+                    row["CantidadLocal"] = product.LocalQuantityAvailable.ToString();
+                    row["CantidadDisponibleTotal"] = product.TotalQuantityAvailable.ToString();
+                    row["VendidoHistorial"] = product.AmountSold.ToString();
+                    row["CantidadMinima"] = product.MinimumStockQuantity.ToString();
+                    row["UltimoPedidoFecha"] = product.LastPurchaseDate.ToString();
+                    row["UltimaTransaccionFecha"] = product.LastSaleDate.ToString();
+                    row["Imagen"] = product.ImageName;
+                }
+                return true;
+            }
+            else
+            {
+                return false;
+            }
         }
 
         /// <summary>
@@ -499,13 +566,12 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(input) || input == "x")
                 return products;
 
-            var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
-
             if (MySqlData != null && Constants.CloudInventory)
             {
+                var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
                 if (input == "*")
                 {
-                    var allProducts = DictOfData.AsEnumerable();
+                    var allProducts = allFields;
                     foreach (var row in allProducts)
                     {
 
@@ -541,6 +607,79 @@ namespace Zeus
                         products.Add(product);
                     }
                 }
+
+                var descriptionFilter = allFields.Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+                var codeFilter = allFields.Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+
+                foreach (var row in codeFilter)
+                {
+                    var product = new ProductBase()
+                    {
+                        Id = Int32.Parse(row["Id"].ToString()),
+                        Code = row["Codigo"].ToString(),
+                        AlternativeCode = row["CodigoAlterno"].ToString(),
+                        ProviderProductId = row["ProveedorProductoId"].ToString(),
+                        Description = row["Descripcion"].ToString(),
+                        Provider = row["Proveedor"].ToString(),
+                        Category = row["Categoria"].ToString(),
+                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                        Cost = Decimal.Parse(row["Costo"].ToString()),
+                        Price = decimal.Parse(row["Precio"].ToString()),
+                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                        ImageName = row["Imagen"].ToString()
+                    };
+
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+
+                    products.Add(product);
+                }
+
+                foreach (var row in descriptionFilter)
+                {
+                    var product = new ProductBase()
+                    {
+                        Id = Int32.Parse(row["Id"].ToString()),
+                        Code = row["Codigo"].ToString(),
+                        AlternativeCode = row["CodigoAlterno"].ToString(),
+                        ProviderProductId = row["ProveedorProductoId"].ToString(),
+                        Description = row["Descripcion"].ToString(),
+                        Provider = row["Proveedor"].ToString(),
+                        Category = row["Categoria"].ToString(),
+                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+                        Cost = Decimal.Parse(row["Costo"].ToString()),
+                        Price = decimal.Parse(row["Precio"].ToString()),
+                        InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
+                        QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
+                        AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
+                        LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
+                        TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
+                        MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
+                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+                        ImageName = row["Imagen"].ToString()
+                    };
+
+                    product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+                    product.PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD"
+                        ? CurrencyTypeEnum.USD
+                        : CurrencyTypeEnum.MXN;
+
+                    //Add if it does not exist already
+                    if (!products.Exists(x => x.Code == product.Code))
+                        products.Add(product);
+                }
             }
             else
             {
@@ -549,7 +688,6 @@ namespace Zeus
                     var allProducts = DictOfData.AsEnumerable();
                     foreach (var row in allProducts)
                     {
-
                         var product = new ProductBase()
                         {
                             Id = Int32.Parse(row["Id"].ToString()),
@@ -581,10 +719,10 @@ namespace Zeus
                 return products;
             }
 
-            var descriptionFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
-            var codeFilter = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
+            var descriptionFilterLocal = DictOfData.AsEnumerable().Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
+            var codeFilterLocal = DictOfData.AsEnumerable().Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
 
-            foreach (var row in codeFilter)
+            foreach (var row in codeFilterLocal)
             {
                 var product = new ProductBase()
                 {
@@ -614,7 +752,7 @@ namespace Zeus
                 products.Add(product);
             }
 
-            foreach(var row in descriptionFilter)
+            foreach(var row in descriptionFilterLocal)
             {
                 var product = new ProductBase()
                 {

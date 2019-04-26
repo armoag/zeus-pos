@@ -130,7 +130,8 @@ namespace Zeus
             }
             else
             {
-                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName);
+                //TODO:set different inventory file name depending on the type of program
+                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
             }
 
             PosInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
