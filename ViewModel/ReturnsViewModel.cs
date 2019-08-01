@@ -11,6 +11,9 @@ using Zeus.WpfBindingUtilities;
 
 namespace Zeus
 {
+    /// <summary>
+    /// Class to access data for item returns
+    /// </summary>
     public class ReturnsViewModel : ObservableObject
     {
         #region Fields

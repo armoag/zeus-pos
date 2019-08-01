@@ -6,7 +6,6 @@ using System.IO;
 using System.Reflection;
 using System.Threading;
 using System.Windows.Input;
-using Zeus;
 
 namespace Zeus
 {
@@ -50,6 +49,8 @@ namespace Zeus
         #endregion
 
         #region Observable Properties
+
+        #region Sale Information Observable Properties
 
         public decimal TotalSales
         {
@@ -233,7 +234,9 @@ namespace Zeus
             }
         }
 
-        #region Bills and Coins Properties
+        #endregion
+
+        #region Bills and Coins Observable Properties
 
         public int MxnPeso20
         {
@@ -489,16 +492,6 @@ namespace Zeus
                     TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
                 //Print Receipt
                 PrintReceipt(ReceiptType.DailyRegular, false);
-
-                //CalculateSales(true, true);
-                ////Record End Of Sales Transaction in db
-                //Transaction.RecordEndOfDaySalesTransaction(Constants.DataFolderPath + Constants.MasterEndOfDaySalesFileName,
-                //    Pos.LastCorteZNumber, TransactionData.FirstReceiptNumber, TransactionData.LastReceiptNumber, TransactionData.TotalItemsSold,
-                //    TransactionData.PointsTotal, TransactionData.CashTotal, TransactionData.CardTotal, TransactionData.CheckTotal,
-                //    TransactionData.BankTotal, TransactionData.OtherTotal, TransactionData.TotalAmountSold, TransactionData.ReturnsCash,
-                //    TransactionData.ReturnsCard, Pos.ExchangeRate, DateTime.Now.ToString(CultureInfo.CurrentCulture));
-                ////Print Receipt
-                //PrintReceipt(ReceiptType.DailyInternal, false);
             }
             else
             {

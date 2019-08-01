@@ -70,9 +70,12 @@
     <Compile Include="Interfaces\IDataBase.cs" />
     <Compile Include="Interfaces\IInventory.cs" />
     <Compile Include="Interfaces\IProduct.cs" />
+    <Compile Include="Interfaces\ISystemConfiguration.cs" />
     <Compile Include="Models\AccessManager.cs" />
     <Compile Include="Models\BasicEntityInfo.cs" />
+    <Compile Include="Models\Inventories\RetailInventory.cs" />
     <Compile Include="Models\Inventories\CarInventory.cs" />
+    <Compile Include="Models\Products\RetailItem.cs" />
     <Compile Include="Models\Products\CarPart.cs" />
     <Compile Include="Models\CategoryCatalog.cs" />
     <Compile Include="Models\Customer.cs" />

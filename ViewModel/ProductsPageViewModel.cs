@@ -119,7 +119,6 @@ namespace Zeus
             //TODO: Check to make sure the item is found, otherwise show error message
             var product = MainWindowViewModel.InventoryInstance.GetProduct(parameter.ToString());
             product.LastQuantitySold += 1;
-            //MainWindowViewModel.AddManualProductToCart(product); changed static
             var main = MainWindowViewModel.GetInstance(null, null);
             main.AddManualProductToCart(product);
         }

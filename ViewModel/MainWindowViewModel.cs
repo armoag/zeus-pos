@@ -19,12 +19,13 @@ namespace Zeus
     public class MainWindowViewModel : ObservableObject
     {
         #region Fields
+
         //Main instances
         private static IInventory _inventoryInstance = null;
         private static MainWindowViewModel _appInstance = null;
         private static PosGeneralPageViewModel _posGeneralInstance = null;
         private static Pos _posInstance = null;
-        private static User _userInstance = null;
+  //    private static User _userInstance = null; REMOVE
         private static Expense _expenseInstance = null;
         private static Logger _logInstance = null;
         private static UserAccessLevelEnum _accessLevelGranted;
@@ -50,9 +51,8 @@ namespace Zeus
 
         //Navegation related fields
         private string _currentPage;
-
         private string _code;
-        private string _checkoutTotal;// = "2";
+        private string _checkoutTotal;
 
         //Carts related fields
         private ObservableCollection<IProduct> _cartProducts;
@@ -99,7 +99,7 @@ namespace Zeus
 
         #region Constructors
 
-        private MainWindowViewModel(object productType, object inventoryType)
+        private MainWindowViewModel(object productType, object systemConfiguration)
         {
             //Check license
             ///TODO: Check for license status
@@ -112,26 +112,27 @@ namespace Zeus
             CurrentCartProducts = _cartOneProducts;
 
             //Initialize DBs
-            if (true)
+            if (systemConfiguration is ISystemConfiguration config)
             {
-                var server = "wibsarlicencias.csqn2onotlww.us-east-1.rds.amazonaws.com";
-                var database = "ConteinerTest";
-                var userID = "armoag";
-                var password = "Yadira00";
-                MySqlCustomerDb = new MySqlDatabase(server, database, "Clientes", userID, password);
-                MySqlInventoryDb = new MySqlDatabase(server, database, "Inventario", userID, password);
+                MySqlCustomerDb = new MySqlDatabase(config.Server, config.DataBaseName, config.CustomerTableName, config.UserID, config.Password);
+                MySqlInventoryDb = new MySqlDatabase(config.Server, config.DataBaseName, config.InventoryTableName, config.UserID, config.Password);
             }
 
             //Initialize inventory and Pos data files
             if (productType is CarPart part)
             {
                 _productType = part;
-                _inventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+                InventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+            }
+            else if (productType is RetailItem item)
+            {
+                _productType = item;
+                InventoryInstance = RetailInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
             }
             else
             {
                 //TODO:set different inventory file name depending on the type of program
-                _inventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+                InventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
             }
 
             PosInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
@@ -148,10 +149,10 @@ namespace Zeus
             LoginMessage = "¡Bienvenido!";
         }
 
-        public static MainWindowViewModel GetInstance(IProduct productType, IInventory inventoryType)
+        public static MainWindowViewModel GetInstance(IProduct productType, ISystemConfiguration systemConfiguration)
         {
             if (_appInstance == null)
-                _appInstance = new MainWindowViewModel(productType, inventoryType);
+                _appInstance = new MainWindowViewModel(productType, systemConfiguration);
             return _appInstance;
         }
 
@@ -209,6 +210,7 @@ namespace Zeus
         public static IInventory InventoryInstance
         {
             get { return _inventoryInstance; }
+            set { _inventoryInstance = value; }
         }
 
         //Holds last selected products page
@@ -282,6 +284,8 @@ namespace Zeus
         #endregion
 
         #region Observable Properties
+
+        #region Main Page Related Observable Properties
 
         private BitmapImage _logoImage;
         public BitmapImage LogoImage
@@ -487,6 +491,9 @@ namespace Zeus
                 OnPropertyChanged();
             }
         }
+        #endregion
+
+        #region Checkout Related Observable Properties
 
         public string CheckoutTotal
         {
@@ -785,8 +792,10 @@ namespace Zeus
                 OnPropertyChanged();
             }
         }
+        
+        #endregion
 
-        #region Enum Related Properties
+        #region Enum Related Obvervable Properties
 
         private IList<PaymentTypeEnum> _paymentTypes;
         public IList<PaymentTypeEnum> PaymentTypes
@@ -844,7 +853,7 @@ namespace Zeus
         }
         #endregion
 
-        #region Products Page Titles
+        #region Products Page Titles Obvervable Properties
 
         public string PageOneTitle
         {
@@ -922,7 +931,7 @@ namespace Zeus
         }
         #endregion
 
-        #region Inventory Related Properties
+        #region Inventory Related Obvervable Properties
 
         private BitmapImage _productImage;
         public BitmapImage ProductImage
@@ -1446,7 +1455,7 @@ namespace Zeus
         }
         #endregion
 
-        #region Login Related Properties
+        #region Login Related Obvervable Properties
 
         private string _loginUserNameText;
         public string LoginUserNameText
@@ -1719,9 +1728,8 @@ namespace Zeus
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
                 case "others":
-                    CurrentPage = Constants.CarRegistrationMainPage;
+                    CurrentPage = Constants.PosGeneralPage;
                     break;
-               
             }
         }
 
@@ -1821,7 +1829,8 @@ namespace Zeus
 
         internal void Execute_SearchCodeCommand(object parameter)
         {
-            var product = _inventoryInstance.GetProduct((string)parameter + "x");
+            ///TODO: Check if X needs to be removed from code
+            var product = InventoryInstance.GetProduct((string)parameter + "x");
             if (product.Code != null)
             {
                 product.LastQuantitySold = 1;
@@ -1833,9 +1842,6 @@ namespace Zeus
                 Code = "Código Inválido";
                 CodeColor = Constants.ColorCodeError;
             }
-
-            //TODO: Turn red if it is not found
-
         }
         internal bool CanExecute_SearchCodeCommand(object parameter)
         {
@@ -2313,7 +2319,7 @@ namespace Zeus
 
         internal void Execute_AddListItemCommand(object parameter)
         {
-            var productFound = _inventoryInstance.GetProduct(((TextBox) parameter).Text);
+            var productFound = InventoryInstance.GetProduct(((TextBox) parameter).Text);
             if (productFound.Code != null && (CurrentPageListProducts.Count < Constants.MaxNumberListItems))
             {
                 CurrentPageListProducts.Add(productFound);
@@ -2578,7 +2584,7 @@ namespace Zeus
                     {
                         temporalClonedProduct = new CarPart()
                         {
-                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "NA",
                             AmountSold = 0,
@@ -2619,7 +2625,7 @@ namespace Zeus
                     {
                         temporalClonedProduct = new ProductBase()
                         {
-                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "NA",
                             AmountSold = 0,
@@ -2683,7 +2689,7 @@ namespace Zeus
                     {
                         temporalProduct = new CarPart()
                         {
-                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "",
                             AmountSold = 0M,
@@ -2723,7 +2729,7 @@ namespace Zeus
                     {
                         temporalProduct = new ProductBase()
                         {
-                            Id = _inventoryInstance.GetLastItemNumber() + 1,
+                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "",
                             AmountSold = 0M,
@@ -2795,7 +2801,7 @@ namespace Zeus
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
             //Inventory search method that returns a list of products for the datagrid
-            InventorySearchedProducts = new ObservableCollection<IProduct>(_inventoryInstance.Search(InventorySearchText));
+            InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Inventario:" + " " + InventorySearchText);
             InventorySearchText = "";
@@ -2868,14 +2874,14 @@ namespace Zeus
             //Check if code was updated
             if(SelectedInventoryProduct != null)
             {
-                _inventoryInstance.UpdateProductToTable(InventoryTemporalItem);
-                _inventoryInstance.SaveDataTableToCsv();
+                InventoryInstance.UpdateProductToTable(InventoryTemporalItem);
+                InventoryInstance.SaveDataTableToCsv();
                 CurrentPage = Constants.InventoryMainPage;
             }
             else
             {
-                _inventoryInstance.AddNewProductToTable(InventoryTemporalItem);
-                _inventoryInstance.SaveDataTableToCsv();
+                InventoryInstance.AddNewProductToTable(InventoryTemporalItem);
+                InventoryInstance.SaveDataTableToCsv();
                 CurrentPage = Constants.InventoryMainPage;
             }
 
@@ -2903,8 +2909,8 @@ namespace Zeus
             //Check if code was updated
             if (SelectedInventoryProduct != null)
             {
-                _inventoryInstance.DeleteItemInDataTable(SelectedInventoryProduct.Code, "Codigo");
-                _inventoryInstance.SaveDataTableToCsv();
+                InventoryInstance.DeleteItemInDataTable(SelectedInventoryProduct.Code, "Codigo");
+                InventoryInstance.SaveDataTableToCsv();
                 CurrentPage = Constants.InventoryMainPage;
 
                 Code = "Producto Eliminado";
@@ -4443,7 +4449,7 @@ namespace Zeus
             }
 
             //Save inventory
-            _inventoryInstance.SaveDataTableToCsv();
+            InventoryInstance.SaveDataTableToCsv();
 
             return true;
         }
@@ -4529,7 +4535,7 @@ namespace Zeus
             transaction.ChangeDue = transaction.AmountPaid - transaction.TotalDue;
 
             //Save inventory
-            _inventoryInstance.SaveDataTableToCsv();
+            InventoryInstance.SaveDataTableToCsv();
 
             //Save pos data
             PosInstance.SaveDataTableToCsv();
@@ -4554,7 +4560,7 @@ namespace Zeus
                 CurrentCustomer.LastVisitDate = DateTime.Now;
                 CurrentCustomer.UpdateUserToTable();
                 CurrentCustomer.SaveDataTableToCsv();
-                _inventoryInstance.LoadCsvToDataTable();
+                InventoryInstance.LoadCsvToDataTable();
             }
 
             return true;
@@ -4571,7 +4577,7 @@ namespace Zeus
         {
             if (product.Id == 0) return false;
 
-            var invProduct = _inventoryInstance.GetProduct(product.Code);
+            var invProduct = InventoryInstance.GetProduct(product.Code);
 
             if (transactionType == TransactionType.Regular || transactionType == TransactionType.Interno || 
                 transactionType == TransactionType.Remover)
@@ -4605,7 +4611,7 @@ namespace Zeus
                     invProduct.AmountSold = invProduct.AmountSold + product.LastAmountSold;
                 }
 
-                _inventoryInstance.UpdateProductToTable(invProduct);
+                InventoryInstance.UpdateProductToTable(invProduct);
             }
             else
             {
@@ -4624,7 +4630,7 @@ namespace Zeus
                 invProduct.QuantitySold = invProduct.QuantitySold + product.LastQuantitySold;
                 invProduct.AmountSold = invProduct.AmountSold + product.LastAmountSold;
 
-                _inventoryInstance.UpdateProductToTable(invProduct);
+                InventoryInstance.UpdateProductToTable(invProduct);
             }
 
             return true;
@@ -4739,7 +4745,7 @@ namespace Zeus
             {
                 case 1:
                     {
-                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
+                        items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageOneTitle = pageTitle;
@@ -4751,7 +4757,7 @@ namespace Zeus
 
                 case 2:
                     {
-                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageTwo, out pageTitle);
+                        items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageTwo, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageTwoTitle = pageTitle;
@@ -4762,7 +4768,7 @@ namespace Zeus
 
                 case 3:
                     {
-                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageThree, out pageTitle);
+                        items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageThree, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageThreeTitle = pageTitle;
@@ -4772,7 +4778,7 @@ namespace Zeus
                     }
                 case 4:
                     {
-                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFour, out pageTitle);
+                        items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFour, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFourTitle = pageTitle;
@@ -4782,7 +4788,7 @@ namespace Zeus
                     }
                 case 5:
                     {
-                        items = _inventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFive, out pageTitle);
+                        items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageFive, out pageTitle);
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageFiveTitle = pageTitle;

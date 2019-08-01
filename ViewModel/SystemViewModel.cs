@@ -12,6 +12,9 @@ using System.Windows.Input;
 
 namespace Zeus
 {
+    /// <summary>
+    /// View model to access data regarding POS detailed information
+    /// </summary>
     public class SystemViewModel : ObservableObject
     {
         #region Fields
@@ -46,7 +49,10 @@ namespace Zeus
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
 
+            //Initialize POS information
+            //TODO: Update this file to XML in the future
             _posInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
+
             PrinterName = _posInstance.PrinterName;
             FiscalNumber = _posInstance.FiscalNumber;
             FiscalName = _posInstance.FiscalName;
@@ -303,7 +309,7 @@ namespace Zeus
         #endregion
 
         #region Commands
-
+        
         #region  SystemSaveChangesCommand
         public ICommand SystemSaveChangesCommand { get { return _systemSaveChangesCommand ?? (_systemSaveChangesCommand = new DelegateCommand(Execute_SystemSaveChangesCommand, CanExecute_SystemSaveChangesCommand)); } }
         private ICommand _systemSaveChangesCommand;
@@ -357,7 +363,7 @@ namespace Zeus
         }
         internal bool CanExecute_SystemSaveLogoCommand(object parameter)
         {
-            return true; // SelectedInventoryProduct.Image != null;
+            return true;
         }
         #endregion
 
@@ -365,8 +371,13 @@ namespace Zeus
 
         #region Methods
 
+        /// <summary>
+        /// Display a file diagalog to allow the user to select .jpg file to use as a logo
+        /// </summary>
+        /// <returns></returns>
         public string SelectImage()
         {
+            ///TODO: Program does not load the file property without restarting the program
             //Open dialog and select jpg image
             var dialog = new Microsoft.Win32.OpenFileDialog { DefaultExt = ".jpg" };
             //Display dialog
