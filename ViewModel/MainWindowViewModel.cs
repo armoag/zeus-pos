@@ -25,7 +25,8 @@ namespace Zeus
         private static MainWindowViewModel _appInstance = null;
         private static PosGeneralPageViewModel _posGeneralInstance = null;
         private static Pos _posInstance = null;
-  //    private static User _userInstance = null; REMOVE
+        private static ISystemConfiguration _systemConfig = null;
+        //    private static User _userInstance = null; REMOVE
         private static Expense _expenseInstance = null;
         private static Logger _logInstance = null;
         private static UserAccessLevelEnum _accessLevelGranted;
@@ -111,28 +112,42 @@ namespace Zeus
             CurrentCartNumber = 1;
             CurrentCartProducts = _cartOneProducts;
 
-            //Initialize DBs
+            //System configuration
             if (systemConfiguration is ISystemConfiguration config)
             {
-                MySqlCustomerDb = new MySqlDatabase(config.Server, config.DataBaseName, config.CustomerTableName, config.UserID, config.Password);
-                MySqlInventoryDb = new MySqlDatabase(config.Server, config.DataBaseName, config.InventoryTableName, config.UserID, config.Password);
+                SystemConfig = config;
+            }
+            //Initialize DBs
+            if (SystemConfig.CloudInventory)
+            {
+                MySqlInventoryDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.InventoryTableName,
+                    SystemConfig.UserID, SystemConfig.Password);
+            }
+
+            if (SystemConfig.CloudCustomers)
+            {
+                MySqlCustomerDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.CustomerTableName,
+                    SystemConfig.UserID, SystemConfig.Password);
             }
 
             //Initialize inventory and Pos data files
             if (productType is CarPart part)
             {
                 _productType = part;
-                InventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+                InventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb, 
+                    SystemConfig);
             }
             else if (productType is RetailItem item)
             {
                 _productType = item;
-                InventoryInstance = RetailInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+                InventoryInstance = RetailInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb,
+                    SystemConfig);
             }
             else
             {
                 //TODO:set different inventory file name depending on the type of program
-                InventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb);
+                InventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb,
+                    SystemConfig);
             }
 
             PosInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
@@ -167,6 +182,12 @@ namespace Zeus
         {
             get { return _posInstance; }
             set { _posInstance = value; }
+        }
+
+        public static ISystemConfiguration SystemConfig
+        {
+            get { return _systemConfig; }
+            set { _systemConfig = value; }
         }
 
         public Logger Log
@@ -3760,9 +3781,9 @@ namespace Zeus
             {
                 SelectedOrder.Delete();
                 SelectedOrder.SaveDataTableToCsv();
+                //Log
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedido Eliminado:" + " " + SelectedOrder.OrderTicketNumber);
             }
-            //Log
-            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedido Eliminado:" + " " + SelectedOrder.OrderTicketNumber);
             OrdersSearchedEntries = null;
             CurrentPage = Constants.OrderMainPage;
             Code = "Pedido Eliminado";

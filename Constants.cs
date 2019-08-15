@@ -125,12 +125,12 @@ namespace Zeus
         public const string VendorDetailPage = "\\View\\VendorDetailPage.xaml";
         public const string VendorMainPage = "\\View\\VendorMainPage.xaml";
 
-        //Optional Features
-        public const bool EmailTransactionsFileAfterEndSalesReport = true;
-        public const bool IntFlag = true;
-        public const bool LocalCustomers = false;
-        public const bool CloudCustomers = true;
-        public const bool LocalInventory = true;
-        public const bool CloudInventory = true;
+        ////Optional Features
+        //public const bool EmailTransactionsFileAfterEndSalesReport = true;
+        //public const bool IntFlag = true;
+        //public const bool LocalCustomers = false;
+        //public const bool CloudCustomers = true;
+        //public const bool LocalInventory = true;
+        //public const bool CloudInventory = true;
     }
 }

@@ -26,7 +26,7 @@ namespace Zeus
         private DataTable _dictOfData;
         private string _filePath;
         public static IInventory _inventory = null;
-
+        public static ISystemConfiguration _systemConfig = null;
         public List<string> _dbColumns = new List<string>()
         {
             "Id",
@@ -66,6 +66,7 @@ namespace Zeus
         #region Properties
 
         #region ISqlDatabase Properties
+
         public string Server { get; set; }
         public string UserId { get; set; }
         public string Password { get; set; }
@@ -73,6 +74,15 @@ namespace Zeus
         public string Table { get; set; }
         public MySqlDatabase MySqlData { get; set; }
         #endregion
+
+        /// <summary>
+        /// Contains system configuration to customize the funcionality
+        /// </summary>
+        public ISystemConfiguration SystemConfig
+        {
+            get { return _systemConfig; }
+            set { _systemConfig = value; }
+        }
 
         public List<string> DbColumns
         {
@@ -96,21 +106,22 @@ namespace Zeus
 
         #region Constructors
         //Singleton pattern
-        protected CarInventory(string filePath, MySqlDatabase mySqlDb)
+        protected CarInventory(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             //Read inventory CSV format
             FilePath = filePath;
+            SystemConfig = systemConfig;
             LoadCsvToDataTable();
             if (mySqlDb != null)
             {
                 MySqlData = mySqlDb;
             }
         }
-        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb)
+        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             if (_inventory == null)
-                _inventory = new CarInventory(filePath, mySqlDb);
+                _inventory = new CarInventory(filePath, mySqlDb, systemConfig);
             return _inventory;
         }
         #endregion
@@ -127,7 +138,7 @@ namespace Zeus
             if (product is CarPart carPart)
             {              
                 //Add product to inventory database
-                if (MySqlData != null)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     var productColValPairs = new List<Tuple<string, string>>()
                     {
@@ -168,44 +179,43 @@ namespace Zeus
                     id = long.Parse(readData[0].Item2[0].Item2);
                 }
                 //Add product to datatable 
-                if (Constants.LocalInventory)
-                {
-                    if (id != 0) carPart.Id = Int32.Parse(id.ToString());
+                if (!SystemConfig.LocalInventory) return true;
 
-                    DictOfData.Rows.Add();
-                    var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-                    row["Id"] = carPart.Id.ToString();
-                    row["Codigo"] = carPart.Code;
-                    row["CodigoAlterno"] = carPart.AlternativeCode;
-                    row["ProveedorProductoId"] = carPart.ProviderProductId;
-                    row["Descripcion"] = carPart.Description;
-                    row["VIN"] = carPart.Vin;
-                    row["Marca"] = carPart.Make;
-                    row["Modelo"] = carPart.Model;
-                    row["Anho"] = carPart.Year.ToString();
-                    row["Transmision"] = carPart.Transmission;
-                    row["Motor"] = carPart.Motor;
-                    row["Color"] = carPart.Color;
-                    row["Proveedor"] = carPart.Provider;
-                    row["Categoria"] = carPart.Category;
-                    row["Costo"] = carPart.Cost.ToString(CultureInfo.InvariantCulture);
-                    row["CostoMoneda"] = carPart.CostCurrency;
-                    row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
-                    row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;
-                    row["Precio"] = carPart.Price.ToString();
-                    row["PrecioMoneda"] = carPart.PriceCurrency;
-                    row["Ubicacion"] = carPart.Location;
-                    row["Pasillo"] = carPart.SpecificLocation;
-                    row["CantidadInternoHistorial"] = carPart.InternalQuantity.ToString();
-                    row["CantidadVendidoHistorial"] = carPart.QuantitySold.ToString();
-                    row["CantidadLocal"] = carPart.LocalQuantityAvailable.ToString();
-                    row["CantidadDisponibleTotal"] = carPart.TotalQuantityAvailable.ToString();
-                    row["VendidoHistorial"] = carPart.AmountSold.ToString();
-                    row["CantidadMinima"] = carPart.MinimumStockQuantity.ToString();
-                    row["UltimoPedidoFecha"] = carPart.LastPurchaseDate.ToString();
-                    row["UltimaTransaccionFecha"] = carPart.LastSaleDate.ToString();
-                    row["Imagen"] = carPart.ImageName;
-                }
+                if (id != 0) carPart.Id = Int32.Parse(id.ToString());
+
+                DictOfData.Rows.Add();
+                var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
+                row["Id"] = carPart.Id.ToString();
+                row["Codigo"] = carPart.Code;
+                row["CodigoAlterno"] = carPart.AlternativeCode;
+                row["ProveedorProductoId"] = carPart.ProviderProductId;
+                row["Descripcion"] = carPart.Description;
+                row["VIN"] = carPart.Vin;
+                row["Marca"] = carPart.Make;
+                row["Modelo"] = carPart.Model;
+                row["Anho"] = carPart.Year.ToString();
+                row["Transmision"] = carPart.Transmission;
+                row["Motor"] = carPart.Motor;
+                row["Color"] = carPart.Color;
+                row["Proveedor"] = carPart.Provider;
+                row["Categoria"] = carPart.Category;
+                row["Costo"] = carPart.Cost.ToString(CultureInfo.InvariantCulture);
+                row["CostoMoneda"] = carPart.CostCurrency;
+                row["CostoImportacion"] = carPart.ImportCost.ToString(CultureInfo.InvariantCulture);
+                row["CostoImportacionMoneda"] = carPart.ImportCostCurrency;
+                row["Precio"] = carPart.Price.ToString();
+                row["PrecioMoneda"] = carPart.PriceCurrency;
+                row["Ubicacion"] = carPart.Location;
+                row["Pasillo"] = carPart.SpecificLocation;
+                row["CantidadInternoHistorial"] = carPart.InternalQuantity.ToString();
+                row["CantidadVendidoHistorial"] = carPart.QuantitySold.ToString();
+                row["CantidadLocal"] = carPart.LocalQuantityAvailable.ToString();
+                row["CantidadDisponibleTotal"] = carPart.TotalQuantityAvailable.ToString();
+                row["VendidoHistorial"] = carPart.AmountSold.ToString();
+                row["CantidadMinima"] = carPart.MinimumStockQuantity.ToString();
+                row["UltimoPedidoFecha"] = carPart.LastPurchaseDate.ToString();
+                row["UltimaTransaccionFecha"] = carPart.LastSaleDate.ToString();
+                row["Imagen"] = carPart.ImageName;
                 return true;
             }
             else
@@ -215,14 +225,19 @@ namespace Zeus
 
         }
 
+        /// <summary>
+        /// Deletes an item from the database
+        /// </summary>
+        /// <param name="inputSearch"></param>
+        /// <param name="columnName"></param>
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 MySqlData.Delete(columnName, inputSearch);
             }
 
-            if (!Constants.LocalInventory) return;
+            if (!SystemConfig.LocalInventory) return;
 
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
@@ -248,7 +263,7 @@ namespace Zeus
         {
             try
             {
-                if (MySqlData != null && Constants.CloudInventory)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     MySqlData.Read("Codigo", code, out var foundData);
                     if (foundData.Count < 1)
@@ -301,7 +316,7 @@ namespace Zeus
                     }
                 }
 
-                if (Constants.LocalInventory)
+                if (SystemConfig.LocalInventory)
                 {
                     for (int index = 0; index < DictOfData.Rows.Count; index++)
                     {
@@ -330,7 +345,6 @@ namespace Zeus
                                 MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                                 LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                                 ImageName = row["Imagen"].ToString(),
-
                                 Vin = row["VIN"].ToString(),
                                 Make = row["Marca"].ToString(),
                                 Model = row["Modelo"].ToString(),
@@ -355,75 +369,19 @@ namespace Zeus
             return new ProductBase() { Description = "", Category = "", Cost = 0M };
         }
 
-        //public IProduct GetProductFromDescription(string description)
-        //{
-        //    ///TODO:Repricate
-        //    try
-        //    {
-        //        for (int index = 0; index < DictOfData.Rows.Count; index++)
-        //        {
-        //            var row = DictOfData.Rows[index];
-        //            if (row["Descripcion"].ToString() == description)
-        //            {
-        //                return new CarPart()
-        //                {
-        //                    Id = Int32.Parse(row["Id"].ToString()),
-        //                    Code = row["Codigo"].ToString(),
-        //                    AlternativeCode = row["CodigoAlterno"].ToString(),
-        //                    ProviderProductId = row["ProveedorProductoId"].ToString(),
-        //                    Description = row["Descripcion"].ToString(),
-        //                    Provider = row["Proveedor"].ToString(),
-        //                    Category = row["Categoria"].ToString(),
-        //                    LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
-        //                    Cost = Decimal.Parse(row["Costo"].ToString()),
-        //                    CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-        //                    Price = decimal.Parse(row["Precio"].ToString()),
-        //                    PriceCurrency = row["PrecioMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-        //                    InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
-        //                    QuantitySold = Int32.Parse(row["CantidadVendidoHistorial"].ToString()),
-        //                    AmountSold = decimal.Parse(row["VendidoHistorial"].ToString()),
-        //                    LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
-        //                    TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
-        //                    MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-        //                    LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
-        //                    ImageName = row["Imagen"].ToString(),
-
-        //                    Vin = row["VIN"].ToString(),
-        //                    Make = row["Marca"].ToString(),
-        //                    Model = row["Modelo"].ToString(),
-        //                    Year = Int32.Parse(row["Anho"].ToString()),
-        //                    Transmission = row["Transmision"].ToString(),
-        //                    Motor = row["Motor"].ToString(),
-        //                    Color = row["Color"].ToString(),
-        //                    ImportCost = decimal.Parse(row["CostoImportacion"].ToString()),
-        //                    ImportCostCurrency = row["CostoImportacionMoneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN,
-        //                    Location = row["Ubicacion"].ToString(),
-        //                    SpecificLocation = row["Pasillo"].ToString()
-        //                };
-        //            }
-        //        }
-        //    }
-        //    catch (Exception e)
-        //    {
-        //        MessageBox.Show("Error en el Codigo", "Error");
-        //    }
-
-        //    return new ProductBase() { Description = "", Category = "", Cost = 0M };
-        //}
-
         ///TODO: Remove InventoryBase
         public List<IProduct> GetProductList(string filePath, out string listName)
         {
             var productList = new List<IProduct>();
 
-            if (InventoryBase._inventory != null)
+            if (CarInventory._inventory != null)
             {
                 //Get codes from product lists
                 var list = CategoryCatalog.GetList(filePath);
                 //Skip first line, which is title of the list
                 for (int i = 1; i < list.Count; ++i)
                 {
-                    productList.Add(InventoryBase._inventory.GetProduct(list[i]));
+                    productList.Add(CarInventory._inventory.GetProduct(list[i]));
                 }
                 listName = list.First();
                 return productList;
@@ -450,19 +408,6 @@ namespace Zeus
             }
         }
 
-        //public string QueryDataFromCode(string code, string columnName)
-        //{
-        //    for (int index = 0; index < DictOfData.Rows.Count; index++)
-        //    {
-        //        var row = DictOfData.Rows[index];
-        //        if (row["Codigo"].ToString() == code)
-        //        {
-        //            return row[columnName].ToString();
-        //        }
-        //    }
-        //    return string.Format("No se encontro el codigo {0}", code);
-        //}
-
         public void SaveDataTableToCsv()
         {
             StringBuilder sb = new StringBuilder();
@@ -487,7 +432,7 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(input) || input == "x")
                 return products;
 
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
                 if (input == "*")
@@ -642,7 +587,7 @@ namespace Zeus
 
                 return products;
             }
-            else
+            else //If it is local db
             {
                 if (input == "*")
                 {
@@ -818,11 +763,10 @@ namespace Zeus
         {
             if (product is CarPart carPart)
             {
-                if (MySqlData != null)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     var data = new List<Tuple<string, string>>()
                     {  
-
                         new Tuple<string, string>(DbColumns[1], carPart.Code),
                         new Tuple<string, string>(DbColumns[2], carPart.AlternativeCode),
                         new Tuple<string, string>(DbColumns[3], carPart.ProviderProductId),
@@ -856,7 +800,7 @@ namespace Zeus
                     MySqlData.Update("Codigo", product.Code, data);
                 }
 
-                if (!Constants.CloudInventory) return false;
+                if (!SystemConfig.LocalInventory) return false;
 
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {

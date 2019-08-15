@@ -461,6 +461,7 @@ namespace Zeus
         public EndSalesPageViewModel()
         {
             Pos = MainWindowViewModel.PosInstance; //Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
+            
             //Calculate sales from transactions
             CalculateInitialCash();
             CalculateExpenses();
@@ -509,7 +510,7 @@ namespace Zeus
             }
 
             //Email Receipts if option is enabled
-            if (Constants.EmailTransactionsFileAfterEndSalesReport)
+            if (MainWindowViewModel.SystemConfig.EmailTransactionsFileAfterEndSalesReport)
             {
                 try
                 {
@@ -601,7 +602,7 @@ namespace Zeus
 
             if (master)
             {
-                CalculateSales(false, Constants.IntFlag);
+                CalculateSales(false, MainWindowViewModel.SystemConfig.IntFlag);
                 CalculateDelta();
                 CollectEndOfSalesReceiptInformation();
                 //Record End Of Sales Transaction in db
@@ -629,7 +630,7 @@ namespace Zeus
             }
 
             //Email Receipts if option is enabled
-            if (Constants.EmailTransactionsFileAfterEndSalesReport)
+            if (MainWindowViewModel.SystemConfig.EmailTransactionsFileAfterEndSalesReport)
             {
                 try
                 {
@@ -866,12 +867,9 @@ namespace Zeus
                     //Log
                     MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte Z realizado");
                     MainWindowViewModel.GetInstance(null, null).Code = "Corte Z realizado!";                                     
-                    break;
-                    
+                    break;              
             }
-
             MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
-
         }
 
         internal bool CanExecute_GenerateEndOfDaySalesReportCommand(object parameter)

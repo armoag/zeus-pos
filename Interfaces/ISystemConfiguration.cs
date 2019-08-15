@@ -14,5 +14,14 @@ namespace Zeus
         string Password { get; set; }
         string CustomerTableName { get; set; }
         string InventoryTableName { get; set; }
+
+        //Optional Features
+        bool EmailTransactionsFileAfterEndSalesReport { get; set; }
+        bool IntFlag { get; set; }
+        bool LocalCustomers { get; set; }
+        bool CloudCustomers { get; set; }
+        bool LocalInventory { get; set; }
+        bool CloudInventory { get; set; }
+
     }
 }

@@ -332,7 +332,7 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(searchInput) || searchInput == "x")
                 return customers;
 
-            if (MySqlData != null && Constants.CloudCustomers)
+            if (MySqlData != null)
             {
                 var allFields = MySqlData.SelectAll(columns).AsEnumerable();
                 if (searchInput == "*")

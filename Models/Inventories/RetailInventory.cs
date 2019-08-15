@@ -26,6 +26,7 @@ namespace Zeus
         private DataTable _dictOfData;
         private string _filePath;
         public static IInventory _inventory = null;
+        public static ISystemConfiguration _systemConfig = null;
 
         public List<string> _dbColumns = new List<string>()
         {
@@ -69,6 +70,15 @@ namespace Zeus
         public MySqlDatabase MySqlData { get; set; }
         #endregion
 
+        /// <summary>
+        /// Contains system configuration to customize the funcionality
+        /// </summary>
+        public ISystemConfiguration SystemConfig
+        {
+            get { return _systemConfig; }
+            set { _systemConfig = value; }
+        }
+
         public List<string> DbColumns
         {
             get { return _dbColumns; }
@@ -91,21 +101,22 @@ namespace Zeus
 
         #region Constructors
         //Singleton pattern
-        protected RetailInventory(string filePath, MySqlDatabase mySqlDb)
+        protected RetailInventory(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             //Read inventory CSV format
             FilePath = filePath;
+            SystemConfig = systemConfig;
             LoadCsvToDataTable();
             if (mySqlDb != null)
             {
                 MySqlData = mySqlDb;
             }
         }
-        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb)
+        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             if (_inventory == null)
-                _inventory = new RetailInventory(filePath, mySqlDb);
+                _inventory = new RetailInventory(filePath, mySqlDb, systemConfig);
             return _inventory;
         }
         #endregion
@@ -122,7 +133,7 @@ namespace Zeus
             if (product is RetailItem item)
             {              
                 //Add product to inventory database
-                if (MySqlData != null)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     var productColValPairs = new List<Tuple<string, string>>()
                     {
@@ -159,39 +170,38 @@ namespace Zeus
                     id = long.Parse(readData[0].Item2[0].Item2);
                 }
                 //Add product to datatable 
-                if (Constants.LocalInventory)
-                {
-                    if (id != 0) item.Id = Int32.Parse(id.ToString());
+                if (!SystemConfig.LocalInventory) return true;
 
-                    DictOfData.Rows.Add();
-                    var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-                    row["Id"] = item.Id.ToString();
-                    row["Codigo"] = item.Code;
-                    row["CodigoAlterno"] = item.AlternativeCode;
-                    row["ProveedorProductoId"] = item.ProviderProductId;
-                    row["Descripcion"] = item.Description;
-                    row["Proveedor"] = item.Provider;
-                    row["Categoria"] = item.Category;
-                    row["UltimoPedidoFecha"] = item.LastPurchaseDate.ToString();
-                    row["Costo"] = item.Cost.ToString(CultureInfo.InvariantCulture);
-                    row["CostoMoneda"] = item.CostCurrency;
-                    row["Precio"] = item.Price.ToString();
-                    row["PrecioMoneda"] = item.PriceCurrency;
-                    row["CantidadInternoHistorial"] = item.InternalQuantity.ToString();
-                    row["CantidadVendidoHistorial"] = item.QuantitySold.ToString();
-                    row["CantidadLocal"] = item.LocalQuantityAvailable.ToString();
-                    row["CantidadDisponibleLocal1"] = item.StoreOneQuantityAvailable.ToString();
-                    row["CantidadDisponibleLocal2"] = item.StoreTwoQuantityAvailable.ToString();
-                    row["CantidadDisponibleLocal3"] = item.StoreThreeQuantityAvailable.ToString();
-                    row["CantidadDisponibleTotal"] = item.TotalQuantityAvailable.ToString();
-                    row["CantidadMinima"] = item.MinimumStockQuantity.ToString();
-                    row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
-                    row["CantidadVendidoLocal1"] = item.StoreOneQuantitySold.ToString();
-                    row["CantidadVendidoLocal2"] = item.StoreTwoQuantitySold.ToString();
-                    row["CantidadVendidoLocal3"] = item.StoreThreeQuantitySold.ToString();
-                    row["UltimaTransaccionFecha"] = item.LastSaleDate.ToString();
-                    row["Imagen"] = item.ImageName;
-                }
+                if (id != 0) item.Id = Int32.Parse(id.ToString());
+
+                DictOfData.Rows.Add();
+                var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
+                row["Id"] = item.Id.ToString();
+                row["Codigo"] = item.Code;
+                row["CodigoAlterno"] = item.AlternativeCode;
+                row["ProveedorProductoId"] = item.ProviderProductId;
+                row["Descripcion"] = item.Description;
+                row["Proveedor"] = item.Provider;
+                row["Categoria"] = item.Category;
+                row["UltimoPedidoFecha"] = item.LastPurchaseDate.ToString();
+                row["Costo"] = item.Cost.ToString(CultureInfo.InvariantCulture);
+                row["CostoMoneda"] = item.CostCurrency;
+                row["Precio"] = item.Price.ToString();
+                row["PrecioMoneda"] = item.PriceCurrency;
+                row["CantidadInternoHistorial"] = item.InternalQuantity.ToString();
+                row["CantidadVendidoHistorial"] = item.QuantitySold.ToString();
+                row["CantidadLocal"] = item.LocalQuantityAvailable.ToString();
+                row["CantidadDisponibleLocal1"] = item.StoreOneQuantityAvailable.ToString();
+                row["CantidadDisponibleLocal2"] = item.StoreTwoQuantityAvailable.ToString();
+                row["CantidadDisponibleLocal3"] = item.StoreThreeQuantityAvailable.ToString();
+                row["CantidadDisponibleTotal"] = item.TotalQuantityAvailable.ToString();
+                row["CantidadMinima"] = item.MinimumStockQuantity.ToString();
+                row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
+                row["CantidadVendidoLocal1"] = item.StoreOneQuantitySold.ToString();
+                row["CantidadVendidoLocal2"] = item.StoreTwoQuantitySold.ToString();
+                row["CantidadVendidoLocal3"] = item.StoreThreeQuantitySold.ToString();
+                row["UltimaTransaccionFecha"] = item.LastSaleDate.ToString();
+                row["Imagen"] = item.ImageName;
                 return true;
             }
             else
@@ -203,12 +213,12 @@ namespace Zeus
 
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 MySqlData.Delete(columnName, inputSearch);
             }
 
-            if (!Constants.LocalInventory) return;
+            if (!SystemConfig.LocalInventory) return;
 
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
@@ -234,7 +244,7 @@ namespace Zeus
         {
             try
             {
-                if (MySqlData != null && Constants.CloudInventory)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     MySqlData.Read("Codigo", code, out var foundData);
                     if (foundData.Count < 1)
@@ -280,7 +290,7 @@ namespace Zeus
                     }
                 }
 
-                if (Constants.LocalInventory)
+                if (SystemConfig.LocalInventory)
                 {
                     for (int index = 0; index < DictOfData.Rows.Count; index++)
                     {
@@ -391,14 +401,14 @@ namespace Zeus
         {
             var productList = new List<IProduct>();
 
-            if (InventoryBase._inventory != null)
+            if (RetailInventory._inventory != null)
             {
                 //Get codes from product lists
                 var list = CategoryCatalog.GetList(filePath);
                 //Skip first line, which is title of the list
                 for (int i = 1; i < list.Count; ++i)
                 {
-                    productList.Add(InventoryBase._inventory.GetProduct(list[i]));
+                    productList.Add(RetailInventory._inventory.GetProduct(list[i]));
                 }
                 listName = list.First();
                 return productList;
@@ -462,7 +472,7 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(input) || input == "x")
                 return products;
 
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
                 if (input == "*")
@@ -798,7 +808,7 @@ namespace Zeus
                     MySqlData.Update("Codigo", product.Code, data);
                 }
 
-                if (!Constants.CloudInventory) return false;
+                if (!SystemConfig.LocalInventory) return false;
 
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {

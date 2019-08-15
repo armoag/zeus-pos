@@ -18,7 +18,8 @@ namespace Zeus
     {
         #region Fields
 
-        public static InventoryBase _inventory = null; 
+        public static InventoryBase _inventory = null;
+        public static ISystemConfiguration _systemConfig = null;
 
         DataTable _dictofdata;
         private string _filePath;
@@ -63,6 +64,15 @@ namespace Zeus
         public MySqlDatabase MySqlData { get; set; }
         #endregion
 
+        /// <summary>
+        /// Contains system configuration to customize the funcionality
+        /// </summary>
+        public ISystemConfiguration SystemConfig
+        {
+            get { return _systemConfig; }
+            set { _systemConfig = value; }
+        }
+
         public List<string> DbColumns
         {
             get { return _dbColumns; }
@@ -84,11 +94,12 @@ namespace Zeus
 
         #region Constructors
         //Singleton pattern
-        protected InventoryBase(string filePath, MySqlDatabase mySqlDb)
+        protected InventoryBase(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             //Read inventory CSV format
             _filePath = filePath;
+            SystemConfig = systemConfig;
             LoadCsvToDataTable();
             if (mySqlDb != null)
             {
@@ -96,10 +107,10 @@ namespace Zeus
             }
         }
 
-        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb)
+        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             if (_inventory == null)
-                _inventory = new InventoryBase(filePath, mySqlDb);
+                _inventory = new InventoryBase(filePath, mySqlDb, systemConfig);
             return _inventory;
         }
 
@@ -207,12 +218,12 @@ namespace Zeus
         /// <param name="columnName"></param>
         public void DeleteItemInDataTable(string inputSearch, string columnName)
         {
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 MySqlData.Delete(columnName, inputSearch);
             }
 
-            if (!Constants.LocalInventory) return;
+            if (!SystemConfig.LocalInventory) return;
 
             for (int index = 0; index < DictOfData.Rows.Count; index++)
             {
@@ -253,7 +264,7 @@ namespace Zeus
         {
             try
             {
-                if (MySqlData != null && Constants.CloudInventory)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     MySqlData.Read("Codigo", code, out var foundData);
                     if (foundData.Count < 1)
@@ -293,7 +304,7 @@ namespace Zeus
                     }
                 }
 
-                if (Constants.LocalInventory)
+                if (SystemConfig.LocalInventory)
 
 
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
@@ -419,7 +430,7 @@ namespace Zeus
         {
             if (product is ProductBase productBase)
             {
-                if (MySqlData != null)
+                if (MySqlData != null && SystemConfig.CloudInventory)
                 {
                     var data = new List<Tuple<string, string>>()
                     {
@@ -447,7 +458,7 @@ namespace Zeus
                     MySqlData.Update("Codigo", product.Code, data);
                 }
 
-                if (!Constants.CloudInventory) return false;
+                if (!SystemConfig.LocalInventory) return false;
 
                 for (int index = 0; index < DictOfData.Rows.Count; index++)
                 {
@@ -520,7 +531,7 @@ namespace Zeus
                 }
 
                 //Add product to datatable 
-                if (Constants.LocalInventory)
+                if (SystemConfig.LocalInventory)
                 {
                     DictOfData.Rows.Add();
                     var row = _dictofdata.Rows[_dictofdata.Rows.Count - 1];
@@ -566,7 +577,7 @@ namespace Zeus
             if (string.IsNullOrWhiteSpace(input) || input == "x")
                 return products;
 
-            if (MySqlData != null && Constants.CloudInventory)
+            if (MySqlData != null && SystemConfig.CloudInventory)
             {
                 var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
                 if (input == "*")
