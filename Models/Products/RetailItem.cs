@@ -45,12 +45,12 @@ namespace Zeus
         private int _totalQuantityAvailable;
 
         //Not in interface
-        private int _storeOneQuantityAvailable;
-        private int _storeTwoQuantityAvailable;
-        private int _storeThreeQuantityAvailable;
-        private int _storeOneQuantitySold;
-        private int _storeTwoQuantitySold;
-        private int _storeThreeQuantitySold;
+        //private int _storeOneQuantityAvailable;
+        //private int _storeTwoQuantityAvailable;
+        //private int _storeThreeQuantityAvailable;
+        //private int _storeOneQuantitySold;
+        //private int _storeTwoQuantitySold;
+        //private int _storeThreeQuantitySold;
 
         //private string _vin;
         //private string _model;
@@ -171,8 +171,22 @@ namespace Zeus
 
         public BitmapImage Image
         {
-            get { return _image; }
-            set { _image = value; }
+            get
+            {
+                BitmapImage bitmap = new BitmapImage();
+                if (ImageName != null)
+                {
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(@"C:\Projects\seiya-pos\Data\Images\" + ImageName);
+                    bitmap.EndInit();
+                    _image = bitmap;
+                }
+                return bitmap;
+            }
+            set
+            {
+                _image = value;
+            }
         }
 
         public string ImageName
@@ -276,41 +290,41 @@ namespace Zeus
 
         //Specific properties not in the interface
 
-        public int StoreOneQuantityAvailable
-        {
-            get { return _storeOneQuantityAvailable; }
-            set { _storeOneQuantityAvailable = value; }
-        }
+        //public int StoreOneQuantityAvailable
+        //{
+        //    get { return _storeOneQuantityAvailable; }
+        //    set { _storeOneQuantityAvailable = value; }
+        //}
 
-        public int StoreTwoQuantityAvailable
-        {
-            get { return _storeTwoQuantityAvailable; }
-            set { _storeTwoQuantityAvailable = value; }
-        }
+        //public int StoreTwoQuantityAvailable
+        //{
+        //    get { return _storeTwoQuantityAvailable; }
+        //    set { _storeTwoQuantityAvailable = value; }
+        //}
 
-        public int StoreThreeQuantityAvailable
-        {
-            get { return _storeThreeQuantityAvailable; }
-            set { _storeThreeQuantityAvailable = value; }
-        }
+        //public int StoreThreeQuantityAvailable
+        //{
+        //    get { return _storeThreeQuantityAvailable; }
+        //    set { _storeThreeQuantityAvailable = value; }
+        //}
 
-        public int StoreOneQuantitySold
-        {
-            get { return _storeOneQuantitySold; }
-            set { _storeOneQuantitySold = value; }
-        }
+        //public int StoreOneQuantitySold
+        //{
+        //    get { return _storeOneQuantitySold; }
+        //    set { _storeOneQuantitySold = value; }
+        //}
 
-        public int StoreTwoQuantitySold
-        {
-            get { return _storeTwoQuantitySold; }
-            set { _storeTwoQuantitySold = value; }
-        }
+        //public int StoreTwoQuantitySold
+        //{
+        //    get { return _storeTwoQuantitySold; }
+        //    set { _storeTwoQuantitySold = value; }
+        //}
 
-        public int StoreThreeQuantitySold
-        {
-            get { return _storeThreeQuantitySold; }
-            set { _storeThreeQuantitySold = value; }
-        }
+        //public int StoreThreeQuantitySold
+        //{
+        //    get { return _storeThreeQuantitySold; }
+        //    set { _storeThreeQuantitySold = value; }
+        //}
 
         public bool Valid
         {
@@ -322,7 +336,7 @@ namespace Zeus
         //Create a basic product with minimal information for manual transactions
         public static IProduct Add(string description, string category, decimal soldPrice, int lastQuantitySold)
         {
-            return new CarPart()
+            return new RetailItem()
             {
                 Description = description,
                 Category = category,
@@ -350,7 +364,7 @@ namespace Zeus
 
         public IProduct CreateNewItem(string description, string category, decimal soldPrice, int lastQuantitySold)
         {
-            return new CarPart()
+            return new RetailItem()
             {
                 Description = description,
                 Category = category,

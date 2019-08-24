@@ -4751,7 +4751,7 @@ namespace Zeus
             return new ObservableCollection<string>(items);
         }
 
-       
+
         /// <summary>
         /// Get products list and title for the pages
         /// </summary>
@@ -4819,7 +4819,7 @@ namespace Zeus
                     }
                 default:
                     {
-                        items = new List<IProduct>() { ProductBase.Add("Varios", "Varios", 1, 1)};
+                        items = new List<IProduct>() { ProductBase.Add("Varios", "Varios", 1, 1) };
                         products = new ObservableCollection<IProduct>(items);
                         pageTitle = "Pagina de Productos";
                         break;

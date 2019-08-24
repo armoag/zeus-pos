@@ -44,19 +44,40 @@ namespace Zeus
             "PrecioMoneda",
             "CantidadInternoHistorial",
             "CantidadVendidoHistorial",
+            "VendidoHistorial",
             "CantidadLocal",
-            "CantidadDisponibleLocal1",
-            "CantidadDisponibleLocal2",
-            "CantidadDisponibleLocal3",
             "CantidadDisponibleTotal",
             "CantidadMinima",
-            "VendidoHistorial",
-            "CantidadVendidoLocal1",
-            "CantidadVendidoLocal2",
-            "CantidadVendidoLocal3",
             "UltimaTransaccionFecha",
             "Imagen"
         };
+
+            //"Id",
+            //"Codigo",
+            //"CodigoAlterno",
+            //"ProveedorProductoId",
+            //"Descripcion",
+            //"Proveedor",
+            //"Categoria",
+            //"UltimoPedidoFecha",
+            //"Costo",
+            //"CostoMoneda",
+            //"Precio",
+            //"PrecioMoneda",
+            //"CantidadInternoHistorial",
+            //"CantidadVendidoHistorial",
+            //"CantidadLocal",
+            //"CantidadDisponibleLocal1",
+            //"CantidadDisponibleLocal2",
+            //"CantidadDisponibleLocal3",
+            //"CantidadDisponibleTotal",
+            //"CantidadMinima",
+            //"VendidoHistorial",
+            //"CantidadVendidoLocal1",
+            //"CantidadVendidoLocal2",
+            //"CantidadVendidoLocal3",
+            //"UltimaTransaccionFecha",
+            //"Imagen"
         #endregion
 
         #region Properties
@@ -151,18 +172,12 @@ namespace Zeus
                         new Tuple<string, string>(DbColumns[11], item.PriceCurrency.ToString()),
                         new Tuple<string, string>(DbColumns[12], item.InternalQuantity.ToString()),
                         new Tuple<string, string>(DbColumns[13], item.QuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[14], item.LocalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[15], item.StoreOneQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[16], item.StoreTwoQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[17], item.StoreThreeQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[18], item.TotalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[19], item.MinimumStockQuantity.ToString()),
-                        new Tuple<string, string>(DbColumns[20], item.AmountSold.ToString(CultureInfo.InvariantCulture)),
-                        new Tuple<string, string>(DbColumns[21], item.StoreOneQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[22], item.StoreTwoQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[23], item.StoreThreeQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[24], item.LastSaleDateString),
-                        new Tuple<string, string>(DbColumns[25], item.ImageName)
+                        new Tuple<string, string>(DbColumns[14], item.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[15], item.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[16], item.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[17], item.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[18], item.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[19], item.ImageName)
                     };
                     MySqlData.Insert(productColValPairs);
                     //Get Id for local database
@@ -190,16 +205,10 @@ namespace Zeus
                 row["PrecioMoneda"] = item.PriceCurrency;
                 row["CantidadInternoHistorial"] = item.InternalQuantity.ToString();
                 row["CantidadVendidoHistorial"] = item.QuantitySold.ToString();
+                row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
                 row["CantidadLocal"] = item.LocalQuantityAvailable.ToString();
-                row["CantidadDisponibleLocal1"] = item.StoreOneQuantityAvailable.ToString();
-                row["CantidadDisponibleLocal2"] = item.StoreTwoQuantityAvailable.ToString();
-                row["CantidadDisponibleLocal3"] = item.StoreThreeQuantityAvailable.ToString();
                 row["CantidadDisponibleTotal"] = item.TotalQuantityAvailable.ToString();
                 row["CantidadMinima"] = item.MinimumStockQuantity.ToString();
-                row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
-                row["CantidadVendidoLocal1"] = item.StoreOneQuantitySold.ToString();
-                row["CantidadVendidoLocal2"] = item.StoreTwoQuantitySold.ToString();
-                row["CantidadVendidoLocal3"] = item.StoreThreeQuantitySold.ToString();
                 row["UltimaTransaccionFecha"] = item.LastSaleDate.ToString();
                 row["Imagen"] = item.ImageName;
                 return true;
@@ -274,18 +283,12 @@ namespace Zeus
                                 : CurrencyTypeEnum.MXN,
                             InternalQuantity = Int32.Parse(foundData.First().Item2[12].Item2),
                             QuantitySold = Int32.Parse(foundData.First().Item2[13].Item2),
-                            LocalQuantityAvailable = Int32.Parse(foundData.First().Item2[14].Item2),
-                            StoreOneQuantityAvailable = Int32.Parse(foundData.First().Item2[15].Item2),
-                            StoreTwoQuantityAvailable = Int32.Parse(foundData.First().Item2[16].Item2),
-                            StoreThreeQuantityAvailable = Int32.Parse(foundData.First().Item2[17].Item2),
-                            TotalQuantityAvailable = Int32.Parse(foundData.First().Item2[18].Item2),
-                            MinimumStockQuantity = Int32.Parse(foundData.First().Item2[19].Item2),
-                            AmountSold = decimal.Parse(foundData.First().Item2[20].Item2),
-                            StoreOneQuantitySold = Int32.Parse(foundData.First().Item2[21].Item2),
-                            StoreTwoQuantitySold = Int32.Parse(foundData.First().Item2[22].Item2),
-                            StoreThreeQuantitySold = Int32.Parse(foundData.First().Item2[23].Item2),
-                            LastSaleDate = Convert.ToDateTime(foundData.First().Item2[24].Item2),
-                            ImageName = foundData.First().Item2[25].Item2
+                            AmountSold = decimal.Parse(foundData.First().Item2[14].Item2),
+                            LocalQuantityAvailable = Int32.Parse(foundData.First().Item2[15].Item2),
+                            TotalQuantityAvailable = Int32.Parse(foundData.First().Item2[16].Item2),
+                            MinimumStockQuantity = Int32.Parse(foundData.First().Item2[17].Item2),
+                            LastSaleDate = Convert.ToDateTime(foundData.First().Item2[18].Item2),
+                            ImageName = foundData.First().Item2[19].Item2
                         };
                     }
                 }
@@ -319,14 +322,6 @@ namespace Zeus
                                 MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                                 LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                                 ImageName = row["Imagen"].ToString(),
-
-                                //Specific to retail
-                                StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                                StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                                StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                                StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                                StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                                StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                             };
                         }
                     }
@@ -501,15 +496,6 @@ namespace Zeus
                             MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                             LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                             ImageName = row["Imagen"].ToString(),
-
-                            //Specific to retail
-                            StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                            StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                            StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                            StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                            StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                            StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
-
                         };
 
                         product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -547,14 +533,6 @@ namespace Zeus
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                         LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
-
-                        //Specific to retail
-                        StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                        StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                        StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                        StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                        StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                        StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                     };
 
                     product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -589,14 +567,6 @@ namespace Zeus
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                         LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
-
-                        //Specific to retail
-                        StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                        StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                        StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                        StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                        StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                        StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                     };
 
                     product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -641,14 +611,6 @@ namespace Zeus
                             MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                             LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                             ImageName = row["Imagen"].ToString(),
-
-                            //Specific to retail
-                            StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                            StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                            StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                            StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                            StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                            StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                         };
 
                         product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -689,14 +651,6 @@ namespace Zeus
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                         LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
-
-                        //Specific to retail
-                        StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                        StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                        StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                        StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                        StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                        StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                     };
 
                     product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -731,14 +685,6 @@ namespace Zeus
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
                         LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
-
-                        //Specific to retail
-                        StoreOneQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal1"].ToString()),
-                        StoreTwoQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal2"].ToString()),
-                        StoreThreeQuantityAvailable = Int32.Parse(row["CantidadDisponibleLocal3"].ToString()),
-                        StoreOneQuantitySold = Int32.Parse(row["CantidadVendidoLocal1"].ToString()),
-                        StoreTwoQuantitySold = Int32.Parse(row["CantidadVendidoLocal2"].ToString()),
-                        StoreThreeQuantitySold = Int32.Parse(row["CantidadVendidoLocal3"].ToString())
                     };
 
                     product.CostCurrency = row["CostoMoneda"].ToString().ToUpper() == "USD"
@@ -792,18 +738,12 @@ namespace Zeus
                         new Tuple<string, string>(DbColumns[11], item.PriceCurrency.ToString()),
                         new Tuple<string, string>(DbColumns[12], item.InternalQuantity.ToString()),
                         new Tuple<string, string>(DbColumns[13], item.QuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[14], item.LocalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[15], item.StoreOneQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[16], item.StoreTwoQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[17], item.StoreThreeQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[18], item.TotalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[19], item.MinimumStockQuantity.ToString()),
-                        new Tuple<string, string>(DbColumns[20], item.AmountSold.ToString(CultureInfo.InvariantCulture)),
-                        new Tuple<string, string>(DbColumns[21], item.StoreOneQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[22], item.StoreTwoQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[23], item.StoreThreeQuantitySold.ToString()),
-                        new Tuple<string, string>(DbColumns[24], item.LastSaleDateString),
-                        new Tuple<string, string>(DbColumns[25], item.ImageName)
+                        new Tuple<string, string>(DbColumns[14], item.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[15], item.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[16], item.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[17], item.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[18], item.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[19], item.ImageName)
                     };    
                     MySqlData.Update("Codigo", product.Code, data);
                 }
@@ -829,16 +769,10 @@ namespace Zeus
                         row["PrecioMoneda"] = item.PriceCurrency;
                         row["CantidadInternoHistorial"] = item.InternalQuantity.ToString();
                         row["CantidadVendidoHistorial"] = item.QuantitySold.ToString();
+                        row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
                         row["CantidadLocal"] = item.LocalQuantityAvailable.ToString();
-                        row["CantidadDisponibleLocal1"] = item.StoreOneQuantityAvailable.ToString();
-                        row["CantidadDisponibleLocal2"] = item.StoreTwoQuantityAvailable.ToString();
-                        row["CantidadDisponibleLocal3"] = item.StoreThreeQuantityAvailable.ToString();
                         row["CantidadDisponibleTotal"] = item.TotalQuantityAvailable.ToString();
                         row["CantidadMinima"] = item.MinimumStockQuantity.ToString();
-                        row["VendidoHistorial"] = item.AmountSold.ToString(CultureInfo.InvariantCulture);
-                        row["CantidadVendidoLocal1"] = item.StoreOneQuantitySold.ToString();
-                        row["CantidadVendidoLocal2"] = item.StoreTwoQuantitySold.ToString();
-                        row["CantidadVendidoLocal3"] = item.StoreThreeQuantitySold.ToString();
                         row["UltimaTransaccionFecha"] = item.LastSaleDate.ToString();
                         row["Imagen"] = item.ImageName;
                     }

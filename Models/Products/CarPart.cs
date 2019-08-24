@@ -164,8 +164,22 @@ namespace Zeus
 
         public BitmapImage Image
         {
-            get { return _image; }
-            set { _image = value; }
+            get
+            {
+                BitmapImage bitmap = new BitmapImage();
+                if (ImageName != null)
+                {
+                    bitmap.BeginInit();
+                    bitmap.UriSource = new Uri(@"C:\Projects\seiya-pos\Data\Images\" + ImageName);
+                    bitmap.EndInit();
+                    _image = bitmap;
+                }
+                return bitmap;
+            }
+            set
+            {
+                _image = value;
+            }
         }
 
         public string ImageName
