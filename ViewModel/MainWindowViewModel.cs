@@ -203,7 +203,7 @@ namespace Zeus
                 if (LogoImage != null)
                 {
                     bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(@"C:\Projects\seiya-pos\Resources\Images\" + PosInstance.LogoName);
+                    bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + PosInstance.LogoName);
                     bitmap.EndInit();
                     _logoImage = bitmap;
                 }
@@ -1638,7 +1638,7 @@ namespace Zeus
                     CurrentPage = Constants.PosGeneralPage;
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Guia de Usuario Inicio");
-                    System.Diagnostics.Process.Start(@"C:\Projects\seiya-pos\Resources\UsersGuide\GuiaUsuario.pdf");
+                    System.Diagnostics.Process.Start(Constants.ResourcesFolderPath + "GuiaUsuario.pdf");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Guia de Usuario Completado");
                     break;

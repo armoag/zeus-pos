@@ -74,25 +74,6 @@ namespace Zeus
             {
                 return _rights.ToString();
             }
-            //set
-            //{
-            //    if (value == "Administrador")
-            //    {
-            //        Rights = UserAccessLevelEnum.Admin;
-            //    }
-            //    else if (value == "Basico")
-            //    {
-            //        Rights = UserAccessLevelEnum.Basic;
-            //    }
-            //    else if (value == "Avanzado")
-            //    {
-            //        Rights = UserAccessLevelEnum.Advanced;
-            //    }
-            //    else
-            //    {
-            //        Rights = UserAccessLevelEnum.Unknown;
-            //    }
-            //}
         }
 
         public string Name { get => _name; set => _name = value; }

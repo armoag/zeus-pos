@@ -132,7 +132,7 @@ namespace Zeus
                 FileName = "Selecciona archivo",
                 Filter = ".csv files (*.csv)|*.csv",
                 Title = "Selecciona archivo de partes de carros",
-                InitialDirectory = @"C:\\Projects\\"
+                InitialDirectory = @"C:\"
             };
             if (dialog.ShowDialog() == true)
             {

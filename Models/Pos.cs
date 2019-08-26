@@ -45,22 +45,22 @@ namespace Zeus
 
         #region FilePaths
 
-        private const string _clientsDataFilePath = Constants.DataFolderPath + Constants.CustomersFileName;
-        private const string _categoryCatalog = Constants.DataFolderPath + Constants.CategoryListFileName;
-        private const string _corteZDataFilePath = Constants.DataFolderPath + Constants.EndOfDaySalesFileName;
-        private const string _inventoryDataFilePath = Constants.DataFolderPath + Constants.InventoryFileName;
-        private const string _ordersDataFilePath = Constants.DataFolderPath + Constants.OrdersFileName;
-        private const string _posDataFilePath = Constants.DataFolderPath + Constants.PosDataFileName;
-        private const string _vendorsDatafilePath = Constants.DataFolderPath + Constants.VendorsFileName;
-        private const string _transactionsDataFilePath = Constants.DataFolderPath + Constants.TransactionsXFileName;
-        private const string _transactionMasterDataFilePath = Constants.DataFolderPath + Constants.TransactionsZFileName;
-        private const string _transactionHistoryDataFilePath = Constants.DataFolderPath + Constants.TransactionsHistoryFileName;
-        private const string _transactionTypes = Constants.DataFolderPath + Constants.TransactionsTypesFileName;
-        private const string _transactionBackUpPath = Constants.DataFolderPath + Constants.TransactionsBackupFolderPath;
-        private const string _users = Constants.DataFolderPath + Constants.UsersFileName;
-        private const string _inventoryBackUpPath = Constants.DataFolderPath + Constants.InventoryBackupFolderPath;
-        private const string _receiptCustomerBackUpPath = Constants.DataFolderPath + Constants.ReceiptBackupFolderPath;
-        private const string _receiptMasterBackUpPath = Constants.DataFolderPath + Constants.MasterReceiptBackupFolderPath;
+        private static string _clientsDataFilePath = Constants.DataFolderPath + Constants.CustomersFileName;
+        private static string _categoryCatalog = Constants.DataFolderPath + Constants.CategoryListFileName;
+        private static string _corteZDataFilePath = Constants.DataFolderPath + Constants.EndOfDaySalesFileName;
+        private static string _inventoryDataFilePath = Constants.DataFolderPath + Constants.InventoryFileName;
+        private static string _ordersDataFilePath = Constants.DataFolderPath + Constants.OrdersFileName;
+        private static string _posDataFilePath = Constants.DataFolderPath + Constants.PosDataFileName;
+        private static string _vendorsDatafilePath = Constants.DataFolderPath + Constants.VendorsFileName;
+        private static string _transactionsDataFilePath = Constants.DataFolderPath + Constants.TransactionsXFileName;
+        private static string _transactionMasterDataFilePath = Constants.DataFolderPath + Constants.TransactionsZFileName;
+        private static string _transactionHistoryDataFilePath = Constants.DataFolderPath + Constants.TransactionsHistoryFileName;
+        private static string _transactionTypes = Constants.DataFolderPath + Constants.TransactionsTypesFileName;
+        private static string _transactionBackUpPath = Constants.DataFolderPath + Constants.TransactionsBackupFolderPath;
+        private static string _users = Constants.DataFolderPath + Constants.UsersFileName;
+        private static string _inventoryBackUpPath = Constants.DataFolderPath + Constants.InventoryBackupFolderPath;
+        private static string _receiptCustomerBackUpPath = Constants.DataFolderPath + Constants.ReceiptBackupFolderPath;
+        private static string _receiptMasterBackUpPath = Constants.DataFolderPath + Constants.MasterReceiptBackupFolderPath;
 
 
         #endregion

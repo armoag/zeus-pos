@@ -9,7 +9,12 @@ namespace Zeus
     public static class Constants
     {
         //Main data path
-        public const string DataFolderPath = @"C:\Projects\seiya-pos\Data\";
+        public static string DataFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) + 
+            @"\Wibsar\Pos\Data\";
+        public static string LogsFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) +
+                                              @"\Wibsar\Pos\Logs\";
+        public static string ResourcesFolderPath = Environment.GetFolderPath(Environment.SpecialFolder.LocalApplicationData) +
+                                              @"\Wibsar\Pos\Resources\";
         public const string PosDataFileName = "PosData.csv";
         public const string ReceiptBackupFolderPath = @"ReceiptCustomerBackUp\";
         public const string MasterReceiptBackupFolderPath = @"MasterReceiptCustomerBackUp\";
@@ -84,7 +89,7 @@ namespace Zeus
         //log
         public const string LogFileName = "Log.txt";
 
-        //Car Reltated files
+        //Car Related files
         public const string CarBrandListFileName = "Marcas.txt";
         public const string LocationListFileName = "Locaciones.txt";
         public const string TransmissiondListFileName = "Transmisiones.txt";
@@ -125,12 +130,5 @@ namespace Zeus
         public const string VendorDetailPage = "\\View\\VendorDetailPage.xaml";
         public const string VendorMainPage = "\\View\\VendorMainPage.xaml";
 
-        ////Optional Features
-        //public const bool EmailTransactionsFileAfterEndSalesReport = true;
-        //public const bool IntFlag = true;
-        //public const bool LocalCustomers = false;
-        //public const bool CloudCustomers = true;
-        //public const bool LocalInventory = true;
-        //public const bool CloudInventory = true;
     }
 }
