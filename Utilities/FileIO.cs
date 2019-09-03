@@ -76,17 +76,17 @@ namespace Zeus
             return false;
         }
 
-        public static void MoveFileToUserDefinedFolder(string sourceFileFullPath)
+        public static void MoveFileToUserDefinedFolder(string sourceFileFullPath, string defaultName = "")
         {
             //Open dialog and select jpg image
-            var dialog = new Microsoft.Win32.SaveFileDialog(){AddExtension = true, DefaultExt = "csv"};
+            var dialog = new Microsoft.Win32.SaveFileDialog() {FileName  = defaultName, AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
             //Display dialog
             bool? result = dialog.ShowDialog();
 
             if (result == true)
             {
                 var fullName = dialog.FileName;
-                File.Copy(sourceFileFullPath, fullName);
+                File.Copy(sourceFileFullPath, fullName, true);
             }
         }
 

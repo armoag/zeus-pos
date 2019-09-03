@@ -7,6 +7,8 @@ using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using System.Windows.Controls;
+using System.Windows.Documents;
 using Zeus.WpfBindingUtilities;
 using System.Windows.Input;
 
@@ -20,6 +22,7 @@ namespace Zeus
         #region Fields
 
         private Pos _posInstance;
+
         private string _printerName;
         private string _fiscalNumber;
         private string _fiscalName;
@@ -38,7 +41,8 @@ namespace Zeus
         private string _emailOrders;
         private decimal _discountPercent;
         private decimal _pointsPercent;
-
+        private string _comments;
+        private string _businessName;
         private ObservableCollection<string> _printers;
 
         #endregion
@@ -54,6 +58,7 @@ namespace Zeus
             _posInstance = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName);
 
             PrinterName = _posInstance.PrinterName;
+            BusinessName = _posInstance.BusinessName;
             FiscalNumber = _posInstance.FiscalNumber;
             FiscalName = _posInstance.FiscalName;
             Address = _posInstance.FiscalStreetAddress;
@@ -63,6 +68,7 @@ namespace Zeus
             Facebook = _posInstance.Facebook;
             Instagram = _posInstance.Instagram;
             Website = _posInstance.Website;
+            Comments = _posInstance.Comments;
             FooterMessage = _posInstance.FooterMessage;
             Version = _posInstance.System;
             EmailSender = _posInstance.EmailSender;
@@ -99,6 +105,20 @@ namespace Zeus
             }
         }
 
+        private FixedDocumentSequence _document;
+        public FixedDocumentSequence Document
+        {
+            get
+            {
+                return _document;
+            }
+            set
+            {
+                _document = value;
+                OnPropertyChanged();
+            }
+        }
+
         public string FiscalNumber
         {
             get
@@ -121,6 +141,18 @@ namespace Zeus
             set
             {
                 _fiscalName = Formatter.SanitizeInput(value);
+                OnPropertyChanged();
+            }
+        }
+        public string BusinessName
+        {
+            get
+            {
+                return _businessName;
+            }
+            set
+            {
+                _businessName = Formatter.SanitizeInput(value);
                 OnPropertyChanged();
             }
         }
@@ -229,6 +261,15 @@ namespace Zeus
             }
         }
 
+        public string Comments
+        {
+            get { return _comments; }
+            set
+            {
+                _comments = Formatter.SanitizeInput(value);
+                OnPropertyChanged();
+            }
+        }
         public string Version
         {
             get
@@ -334,6 +375,8 @@ namespace Zeus
             _posInstance.EmailOrders = EmailOrders;
             _posInstance.DiscountPercent = DiscountPercent;
             _posInstance.PointsPercent = PointsPercent;
+            _posInstance.BusinessName = BusinessName;
+            _posInstance.Comments = Comments;
             //Save Data
             _posInstance.UpdateAllData();
             _posInstance.SaveDataTableToCsv();
@@ -362,6 +405,35 @@ namespace Zeus
             SelectImage();
         }
         internal bool CanExecute_SystemSaveLogoCommand(object parameter)
+        {
+            return true;
+        }
+        #endregion
+
+        #region DocumentPreviewCommand
+
+        private ICommand _documentPreviewCommand;
+        public ICommand DocumentPreviewCommand { get { return _documentPreviewCommand ?? (_documentPreviewCommand = new DelegateCommand(Execute_DocumentPreviewCommand, CanExecute_DocumentPreviewCommand)); } }
+
+        internal void Execute_DocumentPreviewCommand(object parameter)
+        {
+            ////Create new document
+            //string fileName = @"G:\wibsar-pos-solution\ticket.oxps";
+            //var doc = new System.Windows.Xps.Packaging.XpsDocument(fileName, FileAccess.Read);
+            //FixedDocumentSequence fds = doc.GetFixedDocumentSequence();
+            //Document = fds;
+            //Generate receipt
+            var transaction = new Transaction(null);
+            var salesData = new SalesDataStruct();
+            
+
+            var receipt = new Receipt(MainWindowViewModel.PosInstance, transaction, salesData);
+
+            //save receipt
+
+            //open receipt
+        }
+        internal bool CanExecute_DocumentPreviewCommand(object parameter)
         {
             return true;
         }

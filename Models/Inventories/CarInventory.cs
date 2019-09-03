@@ -112,10 +112,14 @@ namespace Zeus
             //Read inventory CSV format
             FilePath = filePath;
             SystemConfig = systemConfig;
-            LoadCsvToDataTable();
+            //LoadCsvToDataTable();
             if (mySqlDb != null)
             {
                 MySqlData = mySqlDb;
+            }
+            else
+            {
+                LoadCsvToDataTable();
             }
         }
         public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
@@ -770,32 +774,33 @@ namespace Zeus
                         new Tuple<string, string>(DbColumns[1], carPart.Code),
                         new Tuple<string, string>(DbColumns[2], carPart.AlternativeCode),
                         new Tuple<string, string>(DbColumns[3], carPart.ProviderProductId),
-                        new Tuple<string, string>(DbColumns[4], carPart.Code),
-                        new Tuple<string, string>(DbColumns[5], carPart.Description),
-                        new Tuple<string, string>(DbColumns[6], carPart.Vin),
-                        new Tuple<string, string>(DbColumns[7], carPart.Make),
-                        new Tuple<string, string>(DbColumns[8], carPart.Model),
-                        new Tuple<string, string>(DbColumns[9], carPart.Year.ToString()),
-                        new Tuple<string, string>(DbColumns[10], carPart.Transmission),
-                        new Tuple<string, string>(DbColumns[11], carPart.Model),
+                        new Tuple<string, string>(DbColumns[4], carPart.Description),
+                        new Tuple<string, string>(DbColumns[5], carPart.Vin),
+                        new Tuple<string, string>(DbColumns[6], carPart.Make),
+                        new Tuple<string, string>(DbColumns[7], carPart.Model),
+                        new Tuple<string, string>(DbColumns[8], carPart.Year.ToString()),
+                        new Tuple<string, string>(DbColumns[9], carPart.Transmission),
+                        new Tuple<string, string>(DbColumns[10], carPart.Motor),
+                        new Tuple<string, string>(DbColumns[11], carPart.Color),
                         new Tuple<string, string>(DbColumns[12], carPart.Provider),
                         new Tuple<string, string>(DbColumns[13], carPart.Category),
                         new Tuple<string, string>(DbColumns[14], carPart.LastPurchaseDateString),
-                        new Tuple<string, string>(DbColumns[15], carPart.Cost.ToString()),
+                        new Tuple<string, string>(DbColumns[15], carPart.Cost.ToString(CultureInfo.InvariantCulture)),
                         new Tuple<string, string>(DbColumns[16], carPart.CostCurrency.ToString()),
-                        new Tuple<string, string>(DbColumns[17], carPart.ImportCost.ToString()),
+                        new Tuple<string, string>(DbColumns[17], carPart.ImportCost.ToString(CultureInfo.InvariantCulture)),
                         new Tuple<string, string>(DbColumns[18], carPart.ImportCostCurrency.ToString()),
-                        new Tuple<string, string>(DbColumns[19], carPart.Price.ToString()),
+                        new Tuple<string, string>(DbColumns[19], carPart.Price.ToString(CultureInfo.InvariantCulture)),
                         new Tuple<string, string>(DbColumns[20], carPart.PriceCurrency.ToString()),
                         new Tuple<string, string>(DbColumns[21], carPart.Location),
                         new Tuple<string, string>(DbColumns[22], carPart.SpecificLocation),
                         new Tuple<string, string>(DbColumns[23], carPart.InternalQuantity.ToString()),
-                        new Tuple<string, string>(DbColumns[24], carPart.AmountSold.ToString()),
-                        new Tuple<string, string>(DbColumns[25], carPart.LocalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[26], carPart.TotalQuantityAvailable.ToString()),
-                        new Tuple<string, string>(DbColumns[27], carPart.MinimumStockQuantity.ToString()),
-                        new Tuple<string, string>(DbColumns[28], carPart.LastSaleDateString),
-                        new Tuple<string, string>(DbColumns[29], carPart.ImageName)
+                        new Tuple<string, string>(DbColumns[24], carPart.QuantitySold.ToString()),
+                        new Tuple<string, string>(DbColumns[25], carPart.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(DbColumns[26], carPart.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[27], carPart.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(DbColumns[28], carPart.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(DbColumns[29], carPart.LastSaleDateString),
+                        new Tuple<string, string>(DbColumns[30], carPart.ImageName)
                     };    
                     MySqlData.Update("Codigo", product.Code, data);
                 }

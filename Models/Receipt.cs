@@ -126,8 +126,8 @@ namespace Zeus
 
             PrintDocument printDocument = new PrintDocument();
 
-            printDocument.PrintPage += new PrintPageEventHandler(printReceipt);
-
+            // printDocument.PrintPage += new PrintPageEventHandler(printReceipt);
+            printDocument.PrintPage += new PrintPageEventHandler(printSampleReceipt);        
             var fullReceiptName = Constants.DataFolderPath + Constants.ReceiptBackupFolderPath + "Recibo_" +
                                   Pos.LastReceiptNumber.ToString() + ".xps";
 
@@ -151,11 +151,12 @@ namespace Zeus
             }
 
             _products.Clear();
-            printDocument.PrintPage -= printReceipt;
+            //printDocument.PrintPage -= printReceipt;
+            printDocument.PrintPage -= printSampleReceipt;
         }
 
         /// <summary>
-        /// Prints regular sale receipt
+        /// Prints regular sale receipt OLD TICKET
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -363,7 +364,7 @@ namespace Zeus
         }
 
         /// <summary>
-        /// Prints end of day Z receipt
+        /// Prints end of day Z short receipt
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -386,29 +387,28 @@ namespace Zeus
 
             int itemsNumber = 0;
 
-            //Header business information
-            buf = "  " + Pos.BusinessName;
+            //Ticket header with business information
+            buf = Formatter.AlignToCenter(Pos.BusinessName, 19);
             graphic.DrawString(buf, storeNameFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeNameFontHeight;
-            buf = "     " + Pos.FiscalName;
+            buf = Formatter.AlignToCenter(Pos.FiscalName);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "          " + Pos.FiscalType + "  " + Pos.FiscalNumber;
+            buf = Formatter.AlignToCenter(Pos.FiscalType + " " + Pos.FiscalNumber);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "  " + Pos.FiscalStreetAddress;
+            buf = Formatter.AlignToCenter(Pos.FiscalStreetAddress);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black),
                 startX, startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "   " + Pos.FiscalCityAndZipCode + "  " + Pos.FiscalPhoneNumber;
+            buf = Formatter.AlignToCenter(Pos.FiscalCityAndZipCode + " " + Pos.FiscalPhoneNumber);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-
-            buf = "        " + Pos.FiscalEmail;
+            buf = Formatter.AlignToCenter(Pos.FiscalEmail);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight + 10;
@@ -480,7 +480,7 @@ namespace Zeus
         }
 
         /// <summary>
-        /// Prints end of sales X receipt
+        /// Prints end of sales X full receipt
         /// </summary>
         /// <param name="sender"></param>
         /// <param name="e"></param>
@@ -511,28 +511,28 @@ namespace Zeus
             int itemsNumber = 0;
 
             //Header business info
-            buf = "  " + Pos.BusinessName;
+            buf = Formatter.AlignToCenter(Pos.BusinessName);
             graphic.DrawString(buf, storeNameFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeNameFontHeight;
-            buf = "     " + Pos.FiscalName;
+            buf = Formatter.AlignToCenter(Pos.FiscalName);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "          " + Pos.FiscalType + "  " + Pos.FiscalNumber;
+            buf = Formatter.AlignToCenter(Pos.FiscalType + "  " + Pos.FiscalNumber);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "  " + Pos.FiscalStreetAddress;
+            buf = Formatter.AlignToCenter(Pos.FiscalStreetAddress);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black),
                 startX, startY + offset);
             offset = offset + (int)storeInfoFontHeight;
-            buf = "   " + Pos.FiscalCityAndZipCode + "  " + Pos.FiscalPhoneNumber;
+            buf = Formatter.AlignToCenter(Pos.FiscalCityAndZipCode + "  " + Pos.FiscalPhoneNumber);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight;
 
-            buf = "        " + Pos.FiscalEmail;
+            buf = Formatter.AlignToCenter(Pos.FiscalEmail);
             graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight + 10;
@@ -569,12 +569,6 @@ namespace Zeus
             }
 
             offset = offset + 10;
-
-            //TOTAL LE CABEN 35 letras
-            //graphic.DrawString("***********************************", font,
-            //    new SolidBrush(Color.Black), startX, startY + offset);
-
-            //offset = offset + (int)fontHeight + 1;
 
             graphic.DrawString("********** Total Ventas ***********", font,
                 new SolidBrush(Color.Black), startX, startY + offset);
@@ -881,8 +875,211 @@ namespace Zeus
             File.AppendAllText(filePath, data);
         }
 
-        #endregion
+        public void PrintReceiptSample(string fullFileName, bool printFileOnly = false)
+        {
+            bool printToFileOnly = false;
 
+            PrintDocument printDocument = new PrintDocument();
+
+            printDocument.PrintPage += new PrintPageEventHandler(printSampleReceipt);
+
+            var fullReceiptName = fullFileName;
+
+            if (!printToFileOnly)
+            {
+                printDocument.PrinterSettings.PrinterName = Pos.PrinterName;
+                printDocument.Print();
+            }
+
+            try
+            {
+                printDocument.PrinterSettings.PrinterName = "Microsoft XPS Document Writer";
+                printDocument.PrinterSettings.PrintToFile = true;
+                printDocument.PrinterSettings.PrintFileName = fullReceiptName;
+                printDocument.Print();
+            }
+            catch (Exception)
+            {
+
+            }
+
+            _products.Clear();
+            printDocument.PrintPage -= printSampleReceipt;
+        }
+        #endregion
+        /// <summary>
+        /// Prints regular sale receipt
+        /// </summary>
+        /// <param name="sender"></param>
+        /// <param name="e"></param>
+        public void printSampleReceipt(object sender, PrintPageEventArgs e)
+        {
+            Graphics graphic = e.Graphics;
+
+            Font font = new Font("Courier New", 8, System.Drawing.FontStyle.Bold);
+            Font storeNameFont = new Font("Courier New", 14, System.Drawing.FontStyle.Bold);
+            Font storeInfoFont = new Font("Courier New", 8, System.Drawing.FontStyle.Bold);
+
+            var buf = string.Empty;
+            float fontHeight = font.GetHeight();
+            float storeNameFontHeight = storeNameFont.GetHeight();
+            float storeInfoFontHeight = storeInfoFont.GetHeight();
+
+            int startX = 5;
+            int startY = 5;
+            int offset = 15;
+
+            int itemsNumber = 0;
+
+            //Ticket header with business information
+            buf = Formatter.AlignToCenter(Pos.BusinessName,19);
+            graphic.DrawString(buf, storeNameFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeNameFontHeight;
+            buf = Formatter.AlignToCenter(Pos.FiscalName);
+            graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight;
+            buf = Formatter.AlignToCenter(Pos.FiscalType + " " + Pos.FiscalNumber);
+            graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight;
+            buf = Formatter.AlignToCenter(Pos.FiscalStreetAddress);
+            graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black),
+                startX, startY + offset);
+            offset = offset + (int)storeInfoFontHeight;
+            buf = Formatter.AlignToCenter(Pos.FiscalCityAndZipCode + " " + Pos.FiscalPhoneNumber);
+            graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight;
+            buf = Formatter.AlignToCenter(Pos.FiscalEmail);
+            graphic.DrawString(buf, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight + 10;
+
+            //Username
+            graphic.DrawString("Usuario: " + SalesData.User.UserName, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight + 2;
+
+            //Date and ticket number
+            Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+            var date = DateTime.Now.ToString("g");
+            var ticketNumber = "No. " + Pos.LastReceiptNumber.ToString();
+            graphic.DrawString(ticketNumber.PadRight(14) + date, storeInfoFont, new SolidBrush(Color.Black), startX,
+                startY + offset);
+            offset = offset + (int)storeInfoFontHeight + 10;
+
+            //Product loop
+            foreach (var product in _products)
+            {
+                //TODO: poner descripcion en vez de solo la categoria como default o opcion a elegir
+                string productCategory = product.Category.PadRight(15);
+                string productDescription = product.Category.PadRight(15);
+                string productTotal = string.Format("{0:c}", product.Price);
+                string productLine = productDescription + productTotal;
+                string detailsLine = string.Empty;
+
+                if (product.Code != null)
+                {
+                    detailsLine = "- " + product.Code + " " + Formatter.TrimToFixedLength(product.Description, 33-product.Code.Length);
+
+                }
+                else
+                {
+                    detailsLine = "- 0000 " + Formatter.TrimToFixedLength(product.Description, 26);
+                }
+
+                //details line
+                graphic.DrawString(detailsLine, font, new SolidBrush(Color.Black), startX, startY + offset);
+
+                offset = offset + (int)fontHeight;
+
+                ////product line
+                //graphic.DrawString(product.ToString(), font, new SolidBrush(Color.Black), startX, startY + offset);
+
+                //offset = offset + (int)fontHeight;
+
+                productLine = string.Format("{0,-11} {1,-3} {2,-10:c} {3,-10:c}", Formatter.TrimToFixedLength(product.Category, 11), product.LastQuantitySold.ToString() +"x",
+                                  product.Price, product.Price * product.LastQuantitySold);
+
+                graphic.DrawString(productLine, font, new SolidBrush(Color.Black), startX, startY + offset);
+
+                offset = offset + (int)fontHeight;
+
+                if (product.Category != "Puntos")
+                {
+                    itemsNumber = itemsNumber + product.LastQuantitySold;
+                }
+            }
+
+            offset = offset + 20;
+
+            buf = string.Format("{0,-14} {1,-8:c}", "Total:", Transaction.TotalDue);
+            graphic.DrawString(buf, font,
+                new SolidBrush(Color.Black), startX, startY + offset);
+
+            offset = offset + (int)fontHeight;
+
+            buf = string.Format("{0,-14} {1,-8:c}", Transaction.PaymentType.ToString() +":", Transaction.AmountPaid);
+            graphic.DrawString(buf, font,
+                new SolidBrush(Color.Black), startX, startY + offset);
+
+            offset = offset + (int)fontHeight;
+
+            buf = string.Format("{0,-14} {1,-8:c}", "Cambio:", Transaction.ChangeDue);
+            graphic.DrawString(buf, font,
+                new SolidBrush(Color.Black), startX, startY + offset);
+
+            offset = offset + (int)fontHeight;
+
+            buf = string.Format("{0,-14} {1,-8}", "Articulos:", itemsNumber);
+            graphic.DrawString(buf, font,
+                new SolidBrush(Color.Black), startX, startY + offset);
+
+            //Customer info, if available
+            if (SalesData.Customer != null)
+            {
+                offset = offset + (int)fontHeight + 20;
+
+                buf = string.Format("{0,-17} {1,-8}", "Cliente:", SalesData.Customer.Name);
+                graphic.DrawString(buf, font,
+                    new SolidBrush(Color.Black), startX, startY + offset);
+
+                offset = offset + (int)fontHeight;
+
+                buf = string.Format("{0,-17} {1,-8:c}", "Pts Obtenidos:", SalesData.PointsObtained);
+                graphic.DrawString(buf, font,
+                    new SolidBrush(Color.Black), startX, startY + offset);
+
+                offset = offset + (int)fontHeight;
+
+                buf = string.Format("{0,-17} {1,-8:c}", "Pts Disponibles:", SalesData.Customer.PointsAvailable);
+                graphic.DrawString(buf, font,
+                    new SolidBrush(Color.Black), startX, startY + offset);
+            }
+
+            offset = offset + (int)fontHeight + 20;
+
+            var comments = Formatter.BreakDownString(Pos.Comments, 35);
+
+            foreach (var comment in comments)
+            {
+                graphic.DrawString(comment, font,
+                    new SolidBrush(Color.Black), startX, startY + offset);
+                offset = offset + (int)fontHeight;
+            }
+
+            offset = offset + (int)fontHeight + 20;
+
+            buf = Formatter.AlignToCenter(Pos.FooterMessage);
+
+            //Footer message
+            graphic.DrawString(buf, font, new SolidBrush(Color.Black), startX,
+                startY + offset);
+
+            offset = offset + (int) fontHeight + 5;
+        }
     }
 
     public enum ReceiptType

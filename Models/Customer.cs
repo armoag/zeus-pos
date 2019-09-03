@@ -62,6 +62,16 @@ namespace Zeus
         public decimal TotalSpent { get => _totalSpent; set => _totalSpent = value; }
         public DateTime LastVisitDate { get => _lastVisitDate; set => _lastVisitDate = value; }
 
+        public string RegistrationDateString
+        {
+            get { return Utilities.FormatDateForMySql(RegistrationDate); }
+        }
+
+        public string LastVisitDateString
+        {
+            get { return Utilities.FormatDateForMySql(LastVisitDate); }
+        }
+
         #region MySQL Properties
 
         public string Server
@@ -100,6 +110,28 @@ namespace Zeus
             set { _mySqlData = value; }
         }
 
+
+        public List<string> DbColumns
+        {
+            get
+            {
+                return new List<string>()
+                {
+                    "Id",
+                    "Nombre",
+                    "Codigo",
+                    "Email",
+                    "Telefono",
+                    "FechaRegistro",
+                    "RFC",
+                    "PuntosDisponibles",
+                    "PuntosUsados",
+                    "TotalVisitas",
+                    "TotalVendido",
+                    "UltimaVisitaFecha"
+                };
+            }
+        }
         #endregion
 
         #endregion
@@ -115,7 +147,10 @@ namespace Zeus
             {
                 MySqlData = mySqlDb;
             }
-            LoadCsvToDataTable();
+            else
+            {
+                LoadCsvToDataTable();
+            }
         }
 
         public Customer(string dbPath, MySqlDatabase mySqlDb, string name, string code, string email, long phone, int id, string rfc, double pointsAvailable,
@@ -144,7 +179,7 @@ namespace Zeus
         #region Methods
 
         /// <summary>
-        /// Register user to both local and remote databases
+        /// Register user local or remote databases
         /// </summary>
         /// <param name="filePath"></param>
         /// <param name="mySqlDb"></param>
@@ -182,22 +217,24 @@ namespace Zeus
                 mySqlDb.Read("Telefono", phone.ToString(), out readData);
                 if (readData != null) readCode = (readData[0].Item2)[0].Item2;
             }
-
-            if (readCode != string.Empty)
+            else
             {
-                int readId = 0;
-                Int32.TryParse(readCode, out readId);
-                if (readId != 0) id = readId.ToString();
+                if (readCode != string.Empty)
+                {
+                    int readId = 0;
+                    Int32.TryParse(readCode, out readId);
+                    if (readId != 0) id = readId.ToString();
+                }
+
+                //TODO: Check if username already exists
+                //TODO: Implement feature
+                string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", id, name, code,
+                                  email, phone.ToString(), DateTime.Now.ToString(), rfc, pointsAvailable.ToString(), pointsUsed.ToString(),
+                                  totalVisits.ToString(), totalSpent.ToString(), DateTime.Now.ToString())
+                              + Environment.NewLine;
+
+                File.AppendAllText(filePath, data);
             }
-
-            //TODO: Check if username already exists
-            //TODO: Implement feature
-            string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", id, name, code,
-                              email, phone.ToString(), DateTime.Now.ToString(), rfc, pointsAvailable.ToString(), pointsUsed.ToString(),
-                              totalVisits.ToString(), totalSpent.ToString(), DateTime.Now.ToString())
-                          + Environment.NewLine;
-
-            File.AppendAllText(filePath, data);
         }
 
         /// <summary>
@@ -226,20 +263,22 @@ namespace Zeus
                 MySqlData.Read("Telefono", Phone.ToString(), out readData);
                 if (readData != null) readCode = (readData[0].Item2)[0].Item2;
             }
-
-            if (readCode != string.Empty)
+            else
             {
-                int id = 0;
-                Int32.TryParse(readCode, out id);
-                if (id != 0) Id = id;
+                if (readCode != string.Empty)
+                {
+                    int id = 0;
+                    Int32.TryParse(readCode, out id);
+                    if (id != 0) Id = id;
+                }
+
+                string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", Id, Name, Code,
+                                  Email, Phone.ToString(), DateTime.Now.ToString(), Rfc, PointsAvailable.ToString(), PointsUsed.ToString(),
+                                  TotalVisits.ToString(), TotalSpent.ToString(), DateTime.Now.ToString())
+                              + Environment.NewLine;
+
+                File.AppendAllText(DbPath, data);
             }
-
-            string data = string.Format("{0},{1},{2},{3},{4},{5},{6},{7},{8},{9},{10},{11}", Id, Name, Code,
-                 Email, Phone.ToString(), DateTime.Now.ToString(), Rfc, PointsAvailable.ToString(), PointsUsed.ToString(),
-                 TotalVisits.ToString(), TotalSpent.ToString(), DateTime.Now.ToString())
-                 + Environment.NewLine;
-
-            File.AppendAllText(DbPath, data);
         }
 
         /// <summary>
@@ -247,10 +286,13 @@ namespace Zeus
         /// </summary>
         public void Delete()
         {
-            base.RemoveEntryInDataTable(this.Id.ToString(), "Id");
             if (MySqlData != null)
             {
                 MySqlData.Delete("Id", Id.ToString());
+            }
+            else
+            {
+                base.RemoveEntryInDataTable(this.Id.ToString(), "Id");
             }
         }
 
@@ -280,12 +322,15 @@ namespace Zeus
 
         public void Update(string item, string parameter, string newData)
         {
-            base.UpdateDataFieldInDataTable(item, parameter, newData);
             if (MySqlData != null)
             {
                 var updateData = new List<Tuple<string, string>>();
                 updateData.Add(new Tuple<string, string>(parameter, newData));
                 MySqlData.Update(parameter, item, updateData);
+            }
+            else
+            {
+                base.UpdateDataFieldInDataTable(item, parameter, newData);
             }
         }
 
@@ -298,13 +343,16 @@ namespace Zeus
         {
             if (MySqlData != null)
             {
-                //TODO Check ID of the last entry
-            }
-
-            if (DataTable.Rows.Count == 0)
                 return 0;
-            var row = DataTable.Rows[DataTable.Rows.Count - 1];
-            return Int32.Parse(row["Id"].ToString());
+
+            }
+            else
+            {
+                if (DataTable.Rows.Count == 0)
+                    return 0;
+                var row = DataTable.Rows[DataTable.Rows.Count - 1];
+                return Int32.Parse(row["Id"].ToString());
+            }
         }
 
         public List<Customer> Search(string searchInput)
@@ -568,23 +616,25 @@ namespace Zeus
                 };
                 MySqlData.Update("Id", customer.Id.ToString(), data);
             }
-
-            for (var index = 0; index < DataTable.Rows.Count; index++)
+            else
             {
-                var row = DataTable.Rows[index];
-                if (row["Id"].ToString() == customer.Id.ToString())
+                for (var index = 0; index < DataTable.Rows.Count; index++)
                 {
-                    row["Nombre"] = customer.Name;
-                    row["Codigo"] = customer.Code;
-                    row["Email"] = customer.Email;
-                    row["Telefono"] = customer.Phone;
-                    row["FechaRegistro"] = customer.RegistrationDate;
-                    row["RFC"] = customer.Rfc;
-                    row["PuntosDisponibles"] = customer.PointsAvailable.ToString();
-                    row["PuntosUsados"] = customer.PointsUsed.ToString();
-                    row["TotalVisitas"] = customer.TotalVisits.ToString();
-                    row["TotalVendido"] = customer.TotalSpent.ToString();
-                    row["UltimaVisitaFecha"] = customer.LastVisitDate.ToString();
+                    var row = DataTable.Rows[index];
+                    if (row["Id"].ToString() == customer.Id.ToString())
+                    {
+                        row["Nombre"] = customer.Name;
+                        row["Codigo"] = customer.Code;
+                        row["Email"] = customer.Email;
+                        row["Telefono"] = customer.Phone;
+                        row["FechaRegistro"] = customer.RegistrationDate;
+                        row["RFC"] = customer.Rfc;
+                        row["PuntosDisponibles"] = customer.PointsAvailable.ToString();
+                        row["PuntosUsados"] = customer.PointsUsed.ToString();
+                        row["TotalVisitas"] = customer.TotalVisits.ToString();
+                        row["TotalVendido"] = customer.TotalSpent.ToString();
+                        row["UltimaVisitaFecha"] = customer.LastVisitDate.ToString();
+                    }
                 }
             }
 
@@ -630,23 +680,25 @@ namespace Zeus
                 };
                 MySqlData.Update("Id", this.Id.ToString(), data);
             }
-
-            for (int index = 0; index < DataTable.Rows.Count; index++)
+            else
             {
-                var row = DataTable.Rows[index];
-                if (row["Id"].ToString() == this.Id.ToString())
+                for (int index = 0; index < DataTable.Rows.Count; index++)
                 {
-                    row["Nombre"] = this.Name;
-                    row["Codigo"] = this.Code;
-                    row["Email"] = this.Email;
-                    row["Telefono"] = this.Phone;
-                    row["FechaRegistro"] = this.RegistrationDate;
-                    row["RFC"] = this.Rfc;
-                    row["PuntosDisponibles"] = this.PointsAvailable.ToString();
-                    row["PuntosUsados"] = this.PointsUsed.ToString();
-                    row["TotalVisitas"] = this.TotalVisits.ToString();
-                    row["TotalVendido"] = this.TotalSpent.ToString();
-                    row["UltimaVisitaFecha"] = this.LastVisitDate.ToString();
+                    var row = DataTable.Rows[index];
+                    if (row["Id"].ToString() == this.Id.ToString())
+                    {
+                        row["Nombre"] = this.Name;
+                        row["Codigo"] = this.Code;
+                        row["Email"] = this.Email;
+                        row["Telefono"] = this.Phone;
+                        row["FechaRegistro"] = this.RegistrationDate;
+                        row["RFC"] = this.Rfc;
+                        row["PuntosDisponibles"] = this.PointsAvailable.ToString();
+                        row["PuntosUsados"] = this.PointsUsed.ToString();
+                        row["TotalVisitas"] = this.TotalVisits.ToString();
+                        row["TotalVendido"] = this.TotalSpent.ToString();
+                        row["UltimaVisitaFecha"] = this.LastVisitDate.ToString();
+                    }
                 }
             }
             return true;

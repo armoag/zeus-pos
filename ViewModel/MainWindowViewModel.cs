@@ -311,10 +311,12 @@ namespace Zeus
         private BitmapImage _logoImage;
         public BitmapImage LogoImage
         {
+            ///TODO: pponer de regreso
             get
             {
                 //return SelectedInventoryProduct == null ? null : SelectedInventoryProduct.Image;
-                return Image == null ? null : _logoImage;
+                //return Image == null ? null : _logoImage;
+                return _logoImage;
             }
             set
             {
@@ -770,6 +772,11 @@ namespace Zeus
                 _paymentPointsReceived = value;
                 OnPropertyChanged();
             }
+        }
+
+        public string PaymentPointsReceivedString
+        {
+            get { return string.Format("{0:c}", _paymentPointsReceived); }
         }
 
         public bool PartialPaymentEnabled
@@ -1673,8 +1680,14 @@ namespace Zeus
                 case "Efectivo":
                     if (PaymentTotalMXN != 0M && (PaymentTotalMXN <= (PaymentReceivedMXN + PaymentReceivedUSD * _exchangeRate)))
                     {
-                        //TODO: Add internal capability for personal use
-                        transactionType = PaymentTotalMXN <= 150 ? TransactionType.Regular : TransactionType.Interno;
+                        if(SystemConfig.IntFlag)
+                        {
+                            transactionType = PaymentTotalMXN <= 150 ? TransactionType.Regular : TransactionType.Interno;
+                        }
+                        else
+                        {
+                            transactionType = TransactionType.Regular;
+                        }
                         PaymentProcessStart(parameter.ToString(), transactionType);
                         SystemUnlock = false;
                         CurrentPage = Constants.PaymentEndPage;
@@ -1749,7 +1762,7 @@ namespace Zeus
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
                 case "others":
-                    CurrentPage = Constants.PosGeneralPage;
+                    CurrentPage = Constants.CarRegistrationMainPage;
                     break;
             }
         }
@@ -1850,8 +1863,21 @@ namespace Zeus
 
         internal void Execute_SearchCodeCommand(object parameter)
         {
-            ///TODO: Check if X needs to be removed from code
-            var product = InventoryInstance.GetProduct((string)parameter + "x");
+            IProduct product;
+
+            if (SystemConfig.IntFlag)
+            {
+                product = InventoryInstance.GetProduct((string)parameter + "x");
+                if(product.Code == null)
+                {
+                    product = InventoryInstance.GetProduct((string)parameter);
+                }
+            }
+            else
+            {
+                product = InventoryInstance.GetProduct((string)parameter);
+            }
+
             if (product.Code != null)
             {
                 product.LastQuantitySold = 1;
@@ -2710,7 +2736,6 @@ namespace Zeus
                     {
                         temporalProduct = new CarPart()
                         {
-                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "",
                             AmountSold = 0M,
@@ -2745,12 +2770,15 @@ namespace Zeus
                             Location = "",
                             SpecificLocation = ""
                         };
+                        if (!SystemConfig.CloudInventory)
+                        {
+                            temporalProduct.Id = InventoryInstance.GetLastItemNumber() + 1;
+                        }
                     }
                     else
                     {
                         temporalProduct = new ProductBase()
                         {
-                            Id = InventoryInstance.GetLastItemNumber() + 1,
                             Code = "",
                             AlternativeCode = "",
                             AmountSold = 0M,
@@ -2774,6 +2802,10 @@ namespace Zeus
                             TotalQuantityAvailable = 0,
                             Brand = ""
                         };
+                        if (!SystemConfig.CloudInventory)
+                        {
+                            temporalProduct.Id = InventoryInstance.GetLastItemNumber() + 1;
+                        }
                     }
 
                     CurrentPage = Constants.InventoryItemPage;
@@ -3133,12 +3165,15 @@ namespace Zeus
                         Id = SelectedCustomer.Id,
                         Name = SelectedCustomer.Name,
                         Email = SelectedCustomer.Email,
+                        Code = SelectedCustomer.Code,
                         Phone = SelectedCustomer.Phone,
                         Rfc = SelectedCustomer.Rfc,
                         PointsAvailable = SelectedCustomer.PointsAvailable,
                         PointsUsed = SelectedCustomer.PointsUsed,
                         TotalSpent = SelectedCustomer.TotalSpent,
                         TotalVisits = SelectedCustomer.TotalVisits,
+                        LastVisitDate = SelectedCustomer.LastVisitDate,
+                        RegistrationDate = SelectedCustomer.RegistrationDate
                     };
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Cliente:" + " " + SelectedCustomer.Name);
@@ -3231,14 +3266,28 @@ namespace Zeus
             }
             else
             {
-                CustomerTemporalItem.Register();
+                var cusObj = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb);
+                var phones = cusObj.Search(CustomerTemporalItem.Phone.ToString());
+                var codes = (cusObj.Search(CustomerTemporalItem.Code));
+                if (phones.Count == 0 && codes.Count == 0)
+                {
+                    CustomerTemporalItem.Register();
+                    Code = "Cliente Guardado";
+                    CodeColor = Constants.ColorCodeSave;
+                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "cliente Guardado:" + " " + CustomerTemporalItem.Name);
+
+                }
+                else
+                {
+                    Code = "Codigo o telefono ya existe!";
+                    CodeColor = Constants.ColorCodeError;
+                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "cliente duplicado:" + " " + CustomerTemporalItem.Name);
+
+                }
             }
             //Log
-            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuario Guardado:" + " " + CustomerTemporalItem.Name);
             CustomersSearchedEntries = null;
             CurrentPage = Constants.CustomerMainPage;
-            Code = "Cliente Guardado";
-            CodeColor = Constants.ColorCodeSave;
         }
 
         internal bool CanExecute_CustomerSaveChangesCommand(object parameter)
@@ -3721,8 +3770,6 @@ namespace Zeus
         {
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inicia el Envio del Pedido:" + OrderTemporalItem.OrderTicketNumber);
-            ProgressMessage = "Enviando...";
-            ProgressBarValue = 20;
             //Check if code was updated
             if (SelectedOrder != null)
             {
@@ -3733,8 +3780,6 @@ namespace Zeus
             {
                 OrderTemporalItem.Register();
             }
-
-            ProgressBarValue = 65;
             SendEmailNotification();
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Envio Terminado Pedido Guardado:" + OrderTemporalItem.OrderTicketNumber);
@@ -3742,25 +3787,33 @@ namespace Zeus
 
         private void SendEmailNotification()
         {
-            //TODO: Make it generic based on POS data later
-            var toName = "Estrella de Regalos";
-            var toEmailAddress = PosInstance.EmailOrders; //"armoag+movvfdhrzrdgpqmw5qcg@boards.trello.com";
-            var subject = OrderTemporalItem.Customer + " " + OrderTemporalItem.OrderTicketNumber;
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
-            var body = OrderTemporalItem.Description + Environment.NewLine +
-                       OrderTemporalItem.DueDate.ToString("G", CultureInfo.CreateSpecificCulture("mx"));
-            Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
-            var attachmentFilePath = Constants.DataFolderPath + Constants.ImagesFolderPath + OrderTemporalItem.ImageName;
-            var fromEmailAddress = PosInstance.EmailSender; //"lluviasantafe@gmail.com";
-            var fromPassword = PosInstance.EmailSenderPassword; //"Yadira00";
-            Notification.SendNotification(toName, toEmailAddress, subject, body, attachmentFilePath, fromEmailAddress, fromPassword);
-            ProgressBarValue = 90;
-            OrdersSearchedEntries = null;
-            CurrentPage = Constants.OrderMainPage;
-            Code = "¡Pedido Enviado!";
-            CodeColor = Constants.ColorCodeSave;
-            ProgressMessage = "";
-            ProgressBarValue = 0;
+            try
+            {
+                var toName = PosInstance.BusinessName;
+                var toEmailAddress = PosInstance.EmailOrders;
+                var subject = OrderTemporalItem.Customer + " " + OrderTemporalItem.OrderTicketNumber;
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("en-US");
+                var body = OrderTemporalItem.Description + Environment.NewLine +
+                           OrderTemporalItem.DueDate.ToString("G", CultureInfo.CreateSpecificCulture("mx"));
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                var attachmentFilePath =
+                    Constants.DataFolderPath + Constants.ImagesFolderPath + OrderTemporalItem.ImageName;
+                var fromEmailAddress = PosInstance.EmailSender;
+                var fromPassword = PosInstance.EmailSenderPassword;
+                Notification.SendNotification(toName, toEmailAddress, subject, body, attachmentFilePath,
+                    fromEmailAddress, fromPassword);
+                OrdersSearchedEntries = null;
+                CurrentPage = Constants.OrderMainPage;
+                Code = "Pedido Enviado";
+                CodeColor = Constants.ColorCodeSave;
+            }
+            catch (Exception e)
+            {
+                OrdersSearchedEntries = null;
+                CurrentPage = Constants.OrderMainPage;
+                Code = "Error al enviar notificacion";
+                CodeColor = Constants.ColorCodeSave;
+            }
         }
 
         internal bool CanExecute_OrderSaveChangesCommand(object parameter)
@@ -3791,6 +3844,21 @@ namespace Zeus
         }
 
         internal bool CanExecute_OrderDeleteCommand(object parameter)
+        {
+            return true;
+        }
+        #endregion
+
+        #region  OrderSendCommand
+        public ICommand OrderSendCommand { get { return _orderSendCommand ?? (_orderSendCommand = new DelegateCommand(Execute_OrderSendCommand, CanExecute_OrderSendCommand)); } }
+        private ICommand _orderSendCommand;
+
+        internal void Execute_OrderSendCommand(object parameter)
+        {
+            SendEmailNotification();
+        }
+
+        internal bool CanExecute_OrderSendCommand(object parameter)
         {
             return true;
         }
@@ -4185,56 +4253,89 @@ namespace Zeus
                 case "save_transactions":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsMasterFileName, "Transacciones");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
                 case "save_customers":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.CustomersFileName);
+                    if (SystemConfig.CloudCustomers)
+                    {
+                        //Open dialog and select jpg image
+                        var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Clientes", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
+                        //Display dialog
+                        bool? result = dialog.ShowDialog();
+
+                        if (result == true)
+                        {
+                            var customer = new Customer(" ", MySqlCustomerDb);
+                            var dataTable = MySqlCustomerDb.SelectAll(customer.DbColumns);
+                            Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                        }
+                    }
+                    else
+                    {
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.CustomersFileName, "Clientes");
+                    }
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Completada");
                     break;
                 case "save_vendors":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.VendorsFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.VendorsFileName, "Proveedores");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Completada");
                     break;
                 case "save_inventory":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.InventoryFileName);
+                    if(SystemConfig.CloudInventory)
+                    {
+                        //Open dialog and select jpg image
+                        var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Inventario", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
+                        //Display dialog
+                        bool? result = dialog.ShowDialog();
+                        
+                        if(result == true)
+                        {
+                            var dataTable = MySqlInventoryDb.SelectAll(InventoryInstance.DbColumns);
+                            Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                        }
+                    }
+                    else
+                    {
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.InventoryFileName, "Inventario");
+                    }
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Completada");
                     break;
                 case "save_expenses":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ExpenseFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ExpenseFileName, "Gastos");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Completada");
                     break;
                 case "save_orders":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.OrdersFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.OrdersFileName, "Pedidos");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Completada");
                     break;
                 case "save_returns":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ReturnsFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ReturnsFileName, "Devoluciones");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Completada");
                     break;
                 case "save_users":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.UsersFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.UsersFileName, "Usuarios");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Completada");
                     break;
@@ -4555,8 +4656,11 @@ namespace Zeus
             }
             transaction.ChangeDue = transaction.AmountPaid - transaction.TotalDue;
 
-            //Save inventory
-            InventoryInstance.SaveDataTableToCsv();
+            //Save inventory if it is csv local
+            if (SystemConfig.LocalInventory)
+            {
+                InventoryInstance.SaveDataTableToCsv();
+            }
 
             //Save pos data
             PosInstance.SaveDataTableToCsv();
@@ -4580,8 +4684,14 @@ namespace Zeus
                 CurrentCustomer.PointsUsed += PaymentPointsInUse;
                 CurrentCustomer.LastVisitDate = DateTime.Now;
                 CurrentCustomer.UpdateUserToTable();
-                CurrentCustomer.SaveDataTableToCsv();
-                InventoryInstance.LoadCsvToDataTable();
+                if (SystemConfig.LocalCustomers)
+                {
+                    CurrentCustomer.SaveDataTableToCsv();
+                }
+                if(SystemConfig.LocalInventory)
+                {
+                    InventoryInstance.LoadCsvToDataTable();
+                }
             }
 
             return true;

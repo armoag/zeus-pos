@@ -15,6 +15,7 @@ namespace Zeus
     {
         DataTable DictOfData { get; set; }
         string FilePath { get; set; }
+        List<string> DbColumns { get; set; }
 
         bool AddNewProductToTable(IProduct product);
         void DeleteItemInDataTable(string inputSearch, string columnName);
@@ -28,8 +29,9 @@ namespace Zeus
         List<IProduct> Search(string input);
     //    void UpdateItem(string code, string columnName, string newData);
         bool UpdateProductToTable(IProduct product);
-     //   void UpdateSoldItemQuantity(string code, int unitsSold);
-     //   bool UpdateSoldProductToTable(IProduct product);
+
+        //   void UpdateSoldItemQuantity(string code, int unitsSold);
+        //   bool UpdateSoldProductToTable(IProduct product);
         //      #region Properties
 
         //      DataTable DictOfData { get; set; }

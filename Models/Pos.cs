@@ -1,4 +1,5 @@
 ﻿using System;
+using System.CodeDom;
 using System.Collections.Generic;
 using System.Data;
 using System.IO;
@@ -39,7 +40,8 @@ namespace Zeus
         private string _emailReports;
         private string _emailOrders;
         private decimal _discountPercent;
-        private decimal _pointsPercent; 
+        private decimal _pointsPercent;
+        private string _comments;
 
         #endregion
 
@@ -218,6 +220,12 @@ namespace Zeus
             {
                 _website = value;
             }
+        }
+
+        public string Comments
+        {
+            get { return _comments; }
+            set { _comments = value; }
         }
         public string FooterMessage
         {
@@ -423,6 +431,7 @@ namespace Zeus
                 Instagram = row["Instagram"].ToString();
                 Twitter = row["Twitter"].ToString();
                 Website = row["PaginaInternet"].ToString();
+                Comments = row["Comentarios"].ToString();
                 FooterMessage = row["MensajePie"].ToString();
                 LogoName = row["LogoImagen"].ToString();
                 EmailSender = row["EmailSaliente"].ToString();
@@ -482,6 +491,7 @@ namespace Zeus
             row["Instagram"] = Instagram;
             row["Twitter"] = Twitter;
             row["PaginaInternet"] = Website;
+            row["Comentarios"] = Comments;
             row["MensajePie"] = FooterMessage;
             row["LogoImagen"] = LogoName;
             row["EmailSaliente"] = EmailSender;

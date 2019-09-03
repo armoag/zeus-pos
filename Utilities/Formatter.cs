@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
@@ -126,6 +127,32 @@ namespace Zeus
             return strings;
         }
 
+        public static string AlignToCenter(string input, int maxCharacters = 35)
+        {
+            if (input.Length > 35 || input.Length == 0)
+                return string.Empty;
+
+            var alignedString = string.Empty;
+            var emptySpace = maxCharacters - input.Length;
+            var leftSpace = emptySpace / 2;
+
+            for (var i = 0; i <= leftSpace; i++)
+            {
+                alignedString += " ";
+            }
+
+            return alignedString + input;
+        }
+
+        public static string TrimToFixedLength(string input, int maxCharacters = 35)
+        {
+            if (input == null) return string.Empty;
+
+            if (input.Length <= maxCharacters)
+                return input;
+
+            return input.Remove(maxCharacters, input.Length - maxCharacters);
+        }
         public static string FirstLetterUpperConverter(string input)
         {
             var newCategory = input.ToString().ToCharArray();

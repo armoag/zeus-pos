@@ -128,10 +128,14 @@ namespace Zeus
             //Read inventory CSV format
             FilePath = filePath;
             SystemConfig = systemConfig;
-            LoadCsvToDataTable();
+            //LoadCsvToDataTable();
             if (mySqlDb != null)
             {
                 MySqlData = mySqlDb;
+            }
+            else
+            {
+                LoadCsvToDataTable();
             }
         }
         public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
