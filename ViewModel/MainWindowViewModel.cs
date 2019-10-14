@@ -1016,6 +1016,8 @@ namespace Zeus
                 OnPropertyChanged();
             }
         }
+        public bool InitialInventorySearch { get; set; }
+
         #endregion
 
         #region Vendor Related Properties
@@ -1602,6 +1604,7 @@ namespace Zeus
                 case "inventory_cancel":
                     CurrentPage = Constants.InventoryMainPage;
                     SelectedInventoryProduct = null;
+                    InitialInventorySearch = true;
                     break;
                 case "sales_report":
                     CurrentPage = Constants.EndSalesPage;
@@ -1865,18 +1868,20 @@ namespace Zeus
         {
             IProduct product;
 
-            if (SystemConfig.IntFlag)
-            {
-                product = InventoryInstance.GetProduct((string)parameter + "x");
-                if(product.Code == null)
-                {
-                    product = InventoryInstance.GetProduct((string)parameter);
-                }
-            }
-            else
-            {
-                product = InventoryInstance.GetProduct((string)parameter);
-            }
+            //if (SystemConfig.IntFlag)
+            //{
+            //    product = InventoryInstance.GetProduct((string)parameter + "x");
+            //    if(product.Code == null)
+            //    {
+            //        product = InventoryInstance.GetProduct((string)parameter);
+            //    }
+            //}
+            //else
+            //{
+            //    product = InventoryInstance.GetProduct((string)parameter);
+            //}
+
+            product = InventoryInstance.GetProduct((string)parameter);
 
             if (product.Code != null)
             {
@@ -2542,6 +2547,9 @@ namespace Zeus
                 case "inventory_details":
                     //Create new productt
                     IProduct temporalProduct;
+                    //Search for product based on code to get the date column fields
+                    SelectedInventoryProduct = InventoryInstance.GetProduct(SelectedInventoryProduct.Code);
+
                     if (_productType is CarPart)
                     {
                         temporalProduct = new CarPart()
@@ -2582,7 +2590,7 @@ namespace Zeus
                             ImportCost = ((CarPart)SelectedInventoryProduct).ImportCost,
                             ImportCostCurrency = ((CarPart)SelectedInventoryProduct).ImportCostCurrency
                         };
-                     }
+                    }
                     //Add more products types here
                     //else if ()
                     //{
@@ -2853,12 +2861,12 @@ namespace Zeus
 
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
-            //Inventory search method that returns a list of products for the datagrid
-            InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText));
+            InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText, InitialInventorySearch));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Inventario:" + " " + InventorySearchText);
             InventorySearchText = "";
-                       
+            //it won't research the db unless the user goes to a different page
+            InitialInventorySearch = false;
         }
         internal bool CanExecute_InventoryStartSearchCommand(object parameter)
         {

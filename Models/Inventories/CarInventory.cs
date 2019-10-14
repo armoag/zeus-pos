@@ -27,6 +27,8 @@ namespace Zeus
         private string _filePath;
         public static IInventory _inventory = null;
         public static ISystemConfiguration _systemConfig = null;
+        public EnumerableRowCollection<DataRow> allFields { get; set; }
+
         public List<string> _dbColumns = new List<string>()
         {
             "Id",
@@ -428,7 +430,7 @@ namespace Zeus
             File.WriteAllText(FilePath, sb.ToString());
         }
 
-        public List<IProduct> Search(string input)
+        public List<IProduct> Search(string input, bool updateFromDataBase = true)
         {
             var products = new List<IProduct>();
 
@@ -438,7 +440,8 @@ namespace Zeus
 
             if (MySqlData != null && SystemConfig.CloudInventory)
             {
-                var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
+                if (updateFromDataBase || allFields == null) allFields = MySqlData.Select(_dbColumns).AsEnumerable();
+
                 if (input == "*")
                 {
                     var allProducts = allFields;

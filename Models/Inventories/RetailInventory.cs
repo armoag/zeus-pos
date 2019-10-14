@@ -27,6 +27,7 @@ namespace Zeus
         private string _filePath;
         public static IInventory _inventory = null;
         public static ISystemConfiguration _systemConfig = null;
+        public EnumerableRowCollection<DataRow> allFields { get; set; }
 
         public List<string> _dbColumns = new List<string>()
         {
@@ -463,7 +464,7 @@ namespace Zeus
             File.WriteAllText(FilePath, sb.ToString());
         }
 
-        public List<IProduct> Search(string input)
+        public List<IProduct> Search(string input, bool updateFromDataBase = true)
         {
             var products = new List<IProduct>();
 
@@ -473,7 +474,38 @@ namespace Zeus
 
             if (MySqlData != null && SystemConfig.CloudInventory)
             {
-                var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
+                //TEST
+                List<string> _data = new List<string>()
+                {
+                    "Id",
+                    "Codigo",
+                    "CodigoAlterno",
+                    "ProveedorProductoId",
+                    "Descripcion",
+                    "Proveedor",
+                    "Categoria",
+                    "UltimoPedidoFecha",
+                    "Costo",
+                    "CostoMoneda",
+                    "Precio",
+                    "PrecioMoneda",
+                    "CantidadInternoHistorial",
+                    "CantidadVendidoHistorial",
+                    "VendidoHistorial",
+                    "CantidadLocal",
+                    "CantidadDisponibleTotal",
+                    "CantidadMinima",
+                    "UltimaTransaccionFecha",
+                    "Imagen"
+                };
+                List<int> _dataIndex = new List<int>()
+                {
+                    1, 4, 6, 10, 11, 15, 16
+                };
+
+    //            var allFields = MySqlData.SelectAll(DbColumns).AsEnumerable();
+                if(updateFromDataBase || allFields == null) allFields = MySqlData.Select(_data).AsEnumerable();
+                
                 if (input == "*")
                 {
                     var allProducts = allFields;
@@ -489,7 +521,7 @@ namespace Zeus
                             Description = row["Descripcion"].ToString(),
                             Provider = row["Proveedor"].ToString(),
                             Category = row["Categoria"].ToString(),
-                            LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+//                          LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
                             Cost = Decimal.Parse(row["Costo"].ToString()),
                             Price = decimal.Parse(row["Precio"].ToString()),
                             InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
@@ -498,7 +530,7 @@ namespace Zeus
                             LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
                             TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
                             MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                            LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+//                          LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                             ImageName = row["Imagen"].ToString(),
                         };
 
@@ -526,7 +558,7 @@ namespace Zeus
                         Description = row["Descripcion"].ToString(),
                         Provider = row["Proveedor"].ToString(),
                         Category = row["Categoria"].ToString(),
-                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+//                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
                         Cost = Decimal.Parse(row["Costo"].ToString()),
                         Price = decimal.Parse(row["Precio"].ToString()),
                         InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
@@ -535,7 +567,7 @@ namespace Zeus
                         LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
                         TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+   //                     LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
                     };
 
@@ -560,7 +592,7 @@ namespace Zeus
                         Description = row["Descripcion"].ToString(),
                         Provider = row["Proveedor"].ToString(),
                         Category = row["Categoria"].ToString(),
-                        LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
+ //                       LastPurchaseDate = Convert.ToDateTime(row["UltimoPedidoFecha"].ToString()),
                         Cost = Decimal.Parse(row["Costo"].ToString()),
                         Price = decimal.Parse(row["Precio"].ToString()),
                         InternalQuantity = Int32.Parse(row["CantidadInternoHistorial"].ToString()),
@@ -569,7 +601,7 @@ namespace Zeus
                         LocalQuantityAvailable = Int32.Parse(row["CantidadLocal"].ToString()),
                         TotalQuantityAvailable = Int32.Parse(row["CantidadDisponibleTotal"].ToString()),
                         MinimumStockQuantity = Int32.Parse(row["CantidadMinima"].ToString()),
-                        LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
+   //                     LastSaleDate = Convert.ToDateTime(row["UltimaTransaccionFecha"].ToString()),
                         ImageName = row["Imagen"].ToString(),
                     };
 

@@ -26,7 +26,7 @@ namespace Zeus
         void LoadCsvToDataTable();
    //     string QueryDataFromCode(string code, string columnName);
         void SaveDataTableToCsv();
-        List<IProduct> Search(string input);
+        List<IProduct> Search(string input, bool updateFromDataBase = true);
     //    void UpdateItem(string code, string columnName, string newData);
         bool UpdateProductToTable(IProduct product);
 
