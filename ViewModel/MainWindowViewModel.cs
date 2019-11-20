@@ -4884,7 +4884,9 @@ namespace Zeus
             {
                 case 1:
                     {
+                        ///TODO: thismethod is making the product list selection way too slow
                         items = InventoryInstance.GetProductList(Constants.DataFolderPath + Constants.ProductPageOne, out pageTitle);
+
                         products = new ObservableCollection<IProduct>(items);
                         CurrentPageListProducts = products;
                         PageOneTitle = pageTitle;

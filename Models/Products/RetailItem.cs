@@ -177,7 +177,14 @@ namespace Zeus
                 if (ImageName != null)
                 {
                     bitmap.BeginInit();
-                    bitmap.UriSource = new Uri( Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
+                    if (File.Exists(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName))
+                    {
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
+                    }
+                    else
+                    {
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + "NA.jpg");
+                    }
                     bitmap.EndInit();
                     _image = bitmap;
                 }
