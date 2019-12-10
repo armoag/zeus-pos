@@ -211,6 +211,7 @@ namespace Zeus
         public decimal LastAmountSold
         {
             get { return _lastAmountSold; }
+            set { _lastAmountSold = value; }
         }
 
         public DateTime LastPurchaseDate

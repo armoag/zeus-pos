@@ -290,20 +290,20 @@ namespace Zeus
                 else
                 {
                     //Check price currency and current currency state 
-                    if (ManualProduct.PriceCurrency == CurrencyTypeEnum.USD)
+                    //    if (ManualProduct.PriceCurrency == CurrencyTypeEnum.USD)
+                    if (UsdEnabled)
                     {
-                        UsdEnabled = true;
                         ManualProduct.Price = Math.Round(decimal.Parse(Price) * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
                     }
                     else
                     {
-                        UsdEnabled = false;
                         ManualProduct.Price = decimal.Parse(Price);
                     }
         
                     ManualProduct.Description = Description;
                     ManualProduct.Category = Category;
                     ManualProduct.LastQuantitySold = Quantity;
+                    ManualProduct.LastAmountSold = ManualProduct.Price * ManualProduct.LastQuantitySold;
                 }
             }
             //MainWindowViewModel.AddManualProductToCart(ManualProduct); Changed from static

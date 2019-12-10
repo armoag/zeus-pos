@@ -231,11 +231,12 @@ namespace Zeus
             {
                 if (carPart.Valid)
                 {
-                    carPart.Id = MainWindowViewModel.InventoryInstance.GetLastItemNumber() + 1;
+                    if(MainWindowViewModel.SystemConfig.LocalInventory) carPart.Id = MainWindowViewModel.InventoryInstance.GetLastItemNumber() + 1;
                     MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
                 }
             }
-            MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
+            if (MainWindowViewModel.SystemConfig.LocalInventory) MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
+
             MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
         }
 

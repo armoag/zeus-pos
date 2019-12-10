@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Collections.ObjectModel;
+using System.Configuration;
 using System.Globalization;
 using System.IO;
 using System.Linq;
@@ -104,6 +105,10 @@ namespace Zeus
         {
             //Check license
             ///TODO: Check for license status
+            
+            ////Check app settings
+            //var inventoryMethod = ConfigurationManager.AppSettings["inventory"].ToString();
+            //var customersMethod = ConfigurationManager.AppSettings["Customers"].ToString();
 
             //Log
             Log = Logger.GetInstance(Constants.DataFolderPath + Constants.LogFileName);
@@ -1760,7 +1765,7 @@ namespace Zeus
                 case "save_transactions":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsZFileName);
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
@@ -1868,24 +1873,18 @@ namespace Zeus
         {
             IProduct product;
 
-            //if (SystemConfig.IntFlag)
-            //{
-            //    product = InventoryInstance.GetProduct((string)parameter + "x");
-            //    if(product.Code == null)
-            //    {
-            //        product = InventoryInstance.GetProduct((string)parameter);
-            //    }
-            //}
-            //else
-            //{
-            //    product = InventoryInstance.GetProduct((string)parameter);
-            //}
+
 
             product = InventoryInstance.GetProduct((string)parameter);
 
             if (product.Code != null)
             {
+                if (product.PriceCurrency == CurrencyTypeEnum.USD)
+                {
+                    product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
+                }
                 product.LastQuantitySold = 1;
+                product.LastAmountSold = product.Price * product.LastQuantitySold;
                 AddProductToCart(product);
                 Code = "";
             }
@@ -2971,7 +2970,8 @@ namespace Zeus
             if (SelectedInventoryProduct != null)
             {
                 InventoryInstance.DeleteItemInDataTable(SelectedInventoryProduct.Code, "Codigo");
-                InventoryInstance.SaveDataTableToCsv();
+                if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
+
                 CurrentPage = Constants.InventoryMainPage;
 
                 Code = "Producto Eliminado";
@@ -2985,6 +2985,41 @@ namespace Zeus
         }
 
         internal bool CanExecute_InventoryDeleteCommand(object parameter)
+        {
+            return SelectedInventoryProduct != null;
+        }
+        #endregion
+
+        #region VinDeleteCommand
+
+        public ICommand VinDeleteCommand { get { return _vinDeleteCommand ?? (_vinDeleteCommand = new DelegateCommand(Execute_VinDeleteCommand, CanExecute_VinDeleteCommand)); } }
+        private ICommand _vinDeleteCommand;
+
+        internal void Execute_VinDeleteCommand(object parameter)
+        {
+            //Check if code was updated
+            if (SelectedInventoryProduct is CarPart part)
+            {
+                if (SelectedInventoryProduct != null)
+                {
+                    InventoryInstance.DeleteItemInDataTable(part.Vin, "VIN");
+                    if (SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
+
+                    CurrentPage = Constants.InventoryMainPage;
+
+                    Code = "Productos Eliminados";
+                    CodeColor = Constants.ColorCodeError;
+                    //Log
+                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Producto Eliminado:" + " " + SelectedInventoryProduct.Code);
+                    //Reset list
+                    InventorySearchedProducts = null;
+                    SelectedInventoryProduct = null;
+                    CurrentPage = Constants.PosMenuPage;
+                }
+            }
+        }
+
+        internal bool CanExecute_VinDeleteCommand(object parameter)
         {
             return SelectedInventoryProduct != null;
         }
@@ -4042,7 +4077,7 @@ namespace Zeus
             switch ((string)parameter)
             {
                 case "transaction_details":
-                    var temporalTransaction = new Transaction(Constants.DataFolderPath + Constants.TransactionsMasterFileName, true, true)
+                    var temporalTransaction = new Transaction(Constants.DataFolderPath + Constants.TransactionsZFileName, true, true)
                     {
                         TransactionNumber = SelectedTransaction.TransactionNumber,
                         ReceiptNumber = SelectedTransaction.ReceiptNumber,
@@ -4261,7 +4296,7 @@ namespace Zeus
                 case "save_transactions":
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsMasterFileName, "Transacciones");
+                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsZFileName, "Transacciones");
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
                     break;
@@ -4537,7 +4572,7 @@ namespace Zeus
         {
             //Create new instance
             transaction = new Transaction(Constants.DataFolderPath + Constants.TransactionsFileName,
-                Constants.DataFolderPath + Constants.TransactionsMasterFileName, Constants.DataFolderPath +
+                Constants.DataFolderPath + Constants.TransactionsZFileName, Constants.DataFolderPath + //master
                 Constants.TransactionsHistoryFileName, true);
 
             //General transaction information

@@ -90,6 +90,7 @@ namespace Zeus
         public decimal LastAmountSold
         {
             get { return Price * LastQuantitySold; }
+            set { LastAmountSold = value; }
         }
 
         #endregion

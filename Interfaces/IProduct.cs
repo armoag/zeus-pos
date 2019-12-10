@@ -22,7 +22,7 @@ namespace Zeus
         BitmapImage Image { get; set; }
         string ImageName { get; set; }
         int InternalQuantity { get; set; }
-        decimal LastAmountSold { get; }
+        decimal LastAmountSold { get; set; }
         DateTime LastPurchaseDate { get; set; }
         string LastPurchaseDateString { get; }
         int LastQuantitySold { get; set; }

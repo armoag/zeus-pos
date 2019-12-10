@@ -197,6 +197,7 @@ namespace Zeus
         public decimal LastAmountSold
         {
             get { return _lastAmountSold; }
+            set { _lastAmountSold = value; }
         }
 
         public DateTime LastPurchaseDate
@@ -485,7 +486,7 @@ namespace Zeus
                     TotalQuantityAvailable = quantity,
                     MinimumStockQuantity = 0,
                     LastSaleDate = car.LastPurchaseDate,
-                    ImageName = car.ImageName,
+                    ImageName = "NA.jpg",
                     Valid = true
                 };
 
