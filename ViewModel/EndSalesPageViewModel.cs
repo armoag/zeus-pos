@@ -521,7 +521,7 @@ namespace Zeus
                     Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
                     var subject = "Reporte " + DateTime.Now.ToShortDateString() + " " +
                                   Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
-                    var body = "Reporte del dia " + DateTime.Now.ToString("g") + "realizado por " +
+                    var body = "Reporte Z del dia " + DateTime.Now.ToString("g") + "realizado por " +
                                MainWindowViewModel.GetInstance(null, null).CurrentUser.Name +
                                " para " + Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
                                    .BusinessName + " desde " +
@@ -530,7 +530,7 @@ namespace Zeus
                     Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
                     //Files to be emailed
                     var transactionsFile = Constants.DataFolderPath + Constants.TransactionsXFileName;
-                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseFileName;
+                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseZFileName;
                     var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName;
 
                     var attachments = new List<string>()
@@ -641,7 +641,7 @@ namespace Zeus
                     Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
                     var subject = "Reporte " + DateTime.Now.ToShortDateString() + " " +
                                   Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName).BusinessName;
-                    var body = "Reporte del dia " + DateTime.Now.ToString("g") + "realizado por " +
+                    var body = "Reporte X del dia " + DateTime.Now.ToString("g") + "realizado por " +
                                MainWindowViewModel.GetInstance(null, null).CurrentUser.Name +
                                " para " + Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
                                    .BusinessName + " desde " +
@@ -650,7 +650,7 @@ namespace Zeus
                     Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
                     //Files to be emailed
                     var transactionsFile = Constants.DataFolderPath + Constants.TransactionsXFileName;
-                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseFileName;
+                    var expensesFile = Constants.DataFolderPath + Constants.ExpenseXFileName;
                     var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName;
 
                     var attachments = new List<string>()

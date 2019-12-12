@@ -88,6 +88,7 @@
     <Compile Include="Models\Order.cs" />
     <Compile Include="Models\Pos.cs" />
     <Compile Include="Models\ProductBase.cs" />
+    <Compile Include="Models\QueueTransaction.cs" />
     <Compile Include="Models\Receipt.cs" />
     <Compile Include="Models\SalesDataStruct.cs" />
     <Compile Include="Models\SalesReceipt.cs" />

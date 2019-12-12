@@ -2935,13 +2935,13 @@ namespace Zeus
             if(SelectedInventoryProduct != null)
             {
                 InventoryInstance.UpdateProductToTable(InventoryTemporalItem);
-                InventoryInstance.SaveDataTableToCsv();
+                if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
                 CurrentPage = Constants.InventoryMainPage;
             }
             else
             {
                 InventoryInstance.AddNewProductToTable(InventoryTemporalItem);
-                InventoryInstance.SaveDataTableToCsv();
+                if (SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
                 CurrentPage = Constants.InventoryMainPage;
             }
 
@@ -3305,7 +3305,7 @@ namespace Zeus
             if (SelectedCustomer != null)
             {
                 SelectedCustomer.UpdateUserToTable(CustomerTemporalItem);
-                SelectedCustomer.SaveDataTableToCsv();
+                if (SystemConfig.LocalCustomers) SelectedCustomer.SaveDataTableToCsv();
             }
             else
             {
@@ -3350,7 +3350,7 @@ namespace Zeus
             if (SelectedCustomer != null)
             {
                 SelectedCustomer.Delete();
-                SelectedCustomer.SaveDataTableToCsv();
+                if (SystemConfig.LocalCustomers) SelectedCustomer.SaveDataTableToCsv();
             }
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Cliente Eliminado:" + " " + SelectedCustomer.Name);
@@ -4614,7 +4614,7 @@ namespace Zeus
             }
 
             //Save inventory
-            InventoryInstance.SaveDataTableToCsv();
+            if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
 
             return true;
         }
