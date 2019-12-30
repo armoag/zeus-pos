@@ -29,10 +29,10 @@ namespace Zeus
         public const string TransactionsMasterFileName = "TransaccionesMaster.csv";
         public const string TransactionsHistoryFileName = "TransaccionesHistorial.csv";
         public const string TransactionsTypesFileName = "TransactionTypes.txt";
-        public const string TransactionBlankFileName = "TransaccionesBlank.csv";
-        public const string TransactionMasterBlankFileName = "TransaccionesMasterBlank.csv";
+        public const string TransactionBlankFileName = @"\Blanks\TransaccionesBlank.csv";
+        public const string TransactionMasterBlankFileName = @"\Blanks\TransaccionesMasterBlank.csv";
         public const string TransactionsPaymentsFileName = "Pagos.csv";
-        public const string TransactionsPaymentsBlankFileName = "PagosBlank.csv";
+        public const string TransactionsPaymentsBlankFileName = @"\Blanks\PagosBlank.csv";
 
         //New transaction Files
         public const string TransactionsFullFileName = "TransaccionesHistorial.csv";
@@ -46,7 +46,7 @@ namespace Zeus
         public const string ExpenseXFileName = "GastosX.csv";
         public const string ExpenseZFileName = "GastosZ.csv";
         public const string ExpenseHistoryFileName = "GastosHistorial.csv";
-        public const string ExpenseBlankFileName = "GastosBlank.csv";
+        public const string ExpenseBlankFileName = @"\Blanks\GastosBlank.csv";
 
 
         //End of day reports

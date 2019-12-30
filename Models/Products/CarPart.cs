@@ -169,10 +169,21 @@ namespace Zeus
                 BitmapImage bitmap = new BitmapImage();
                 if (ImageName != null)
                 {
-                    bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
-                    bitmap.EndInit();
-                    _image = bitmap;
+                    //check if the image exists
+                    if (File.Exists(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName))
+                    {
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
+                        bitmap.EndInit();
+                        _image = bitmap;
+                    }
+                    else
+                    {
+                        bitmap.BeginInit();
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + "NA.jpg");
+                        bitmap.EndInit();
+                        _image = bitmap;
+                    }
                 }
                 return bitmap;
             }

@@ -22,6 +22,7 @@ namespace Zeus
         bool CloudCustomers { get; set; }
         bool LocalInventory { get; set; }
         bool CloudInventory { get; set; }
+        bool IndirectPrice { get; set; }
 
     }
 }

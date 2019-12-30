@@ -2540,6 +2540,7 @@ namespace Zeus
 
         internal void Execute_InventorModifyItemCommand(object parameter)
         {
+            ///TODO: Add Retail Item here
             //Change main frame page based on the parameter
             switch ((string)parameter)
             {
@@ -2663,7 +2664,7 @@ namespace Zeus
                             TotalQuantityAvailable = 0,
                             Brand = SelectedInventoryProduct.Brand,
 
-                            Vin = "",
+                            Vin = ((CarPart)SelectedInventoryProduct).Vin,
                             Make = ((CarPart)SelectedInventoryProduct).Make,
                             Model = ((CarPart)SelectedInventoryProduct).Model,
                             Year = ((CarPart)SelectedInventoryProduct).Year,
@@ -2936,13 +2937,13 @@ namespace Zeus
             {
                 InventoryInstance.UpdateProductToTable(InventoryTemporalItem);
                 if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
-                CurrentPage = Constants.InventoryMainPage;
+                CurrentPage = Constants.PosMenuPage;
             }
             else
             {
                 InventoryInstance.AddNewProductToTable(InventoryTemporalItem);
                 if (SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
-                CurrentPage = Constants.InventoryMainPage;
+                CurrentPage = Constants.PosMenuPage;
             }
 
             Code = "Producto Guardado";
@@ -4291,97 +4292,106 @@ namespace Zeus
         internal void Execute_ExportDataBaseCommand(object parameter)
         {
             //Change main frame page based on the parameter
-            switch ((string)parameter)
+            if (CurrentUser.Rights == UserAccessLevelEnum.Avanzado || CurrentUser.Rights == UserAccessLevelEnum.Administrador)
             {
-                case "save_transactions":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsZFileName, "Transacciones");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
-                    break;
-                case "save_customers":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Iniciada");
-                    if (SystemConfig.CloudCustomers)
-                    {
-                        //Open dialog and select jpg image
-                        var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Clientes", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
-                        //Display dialog
-                        bool? result = dialog.ShowDialog();
+                switch ((string)parameter)
+                {
+                    case "save_transactions":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.TransactionsZFileName, "Transacciones");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Transacciones Exportacion Completada");
+                        break;
+                    case "save_customers":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Iniciada");
+                        if (SystemConfig.CloudCustomers)
+                        {
+                            //Open dialog and select jpg image
+                            var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Clientes", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
+                            //Display dialog
+                            bool? result = dialog.ShowDialog();
 
-                        if (result == true)
-                        {
-                            var customer = new Customer(" ", MySqlCustomerDb);
-                            var dataTable = MySqlCustomerDb.SelectAll(customer.DbColumns);
-                            Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                            if (result == true)
+                            {
+                                var customer = new Customer(" ", MySqlCustomerDb);
+                                var dataTable = MySqlCustomerDb.SelectAll(customer.DbColumns);
+                                Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                            }
                         }
-                    }
-                    else
-                    {
-                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.CustomersFileName, "Clientes");
-                    }
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Completada");
-                    break;
-                case "save_vendors":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.VendorsFileName, "Proveedores");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Completada");
-                    break;
-                case "save_inventory":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Iniciada");
-                    if(SystemConfig.CloudInventory)
-                    {
-                        //Open dialog and select jpg image
-                        var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Inventario", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
-                        //Display dialog
-                        bool? result = dialog.ShowDialog();
-                        
-                        if(result == true)
+                        else
                         {
-                            var dataTable = MySqlInventoryDb.SelectAll(InventoryInstance.DbColumns);
-                            Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                            FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.CustomersFileName, "Clientes");
                         }
-                    }
-                    else
-                    {
-                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.InventoryFileName, "Inventario");
-                    }
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Completada");
-                    break;
-                case "save_expenses":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ExpenseFileName, "Gastos");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Completada");
-                    break;
-                case "save_orders":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.OrdersFileName, "Pedidos");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Completada");
-                    break;
-                case "save_returns":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ReturnsFileName, "Devoluciones");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Completada");
-                    break;
-                case "save_users":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Iniciada");
-                    FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.UsersFileName, "Usuarios");
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Completada");
-                    break;
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Clientes Exportacion Completada");
+                        break;
+                    case "save_vendors":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.VendorsFileName, "Proveedores");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Proveedores Exportacion Completada");
+                        break;
+                    case "save_inventory":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Iniciada");
+                        if(SystemConfig.CloudInventory)
+                        {
+                            //Open dialog and select jpg image
+                            var dialog = new Microsoft.Win32.SaveFileDialog() { FileName = "Inventario", AddExtension = true, DefaultExt = "csv", Filter = "CSV file (*.csv)|.csv|All files (*.*)|*.*" };
+                            //Display dialog
+                            bool? result = dialog.ShowDialog();
+                            
+                            if(result == true)
+                            {
+                                var dataTable = MySqlInventoryDb.SelectAll(InventoryInstance.DbColumns);
+                                Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
+                            }
+                        }
+                        else
+                        {
+                            FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.InventoryFileName, "Inventario");
+                        }
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Inventario Exportacion Completada");
+                        break;
+                    case "save_expenses":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ExpenseFileName, "Gastos");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Gastos Exportacion Completada");
+                        break;
+                    case "save_orders":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.OrdersFileName, "Pedidos");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pedidos Exportacion Completada");
+                        break;
+                    case "save_returns":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.ReturnsFileName, "Devoluciones");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Devoluciones Exportacion Completada");
+                        break;
+                    case "save_users":
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Iniciada");
+                        FileIO.MoveFileToUserDefinedFolder(Constants.DataFolderPath + Constants.UsersFileName, "Usuarios");
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Usuarios Exportacion Completada");
+                        break;
+                }
+            }
+            else
+            {
+                Code = "No disponible";
+                CodeColor = Constants.ColorCodeRegular;
+                _currentPage = Constants.PosGeneralPage;
             }
         }
 
@@ -4400,7 +4410,7 @@ namespace Zeus
         public void AddProductToCart(IProduct product)
         {
             //Check if product already exists in the file
-            if (product.Price != 0M)
+            if (product.Price != 0M && !SystemConfig.IndirectPrice)
             {
                 if(!CategoriesList.Contains(product.Category)) product.Category = "General";
                 for (var index = 0; index < CurrentCartProducts.Count; index++)

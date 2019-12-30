@@ -18,6 +18,7 @@ namespace Zeus
         private BitmapImage _image;
         private DateTime _lastPurchaseDate;
         private DateTime _lastSaleDate;
+        private decimal _lastAmountSold;
         #endregion
 
         #region Properties
@@ -51,7 +52,14 @@ namespace Zeus
                 if (ImageName != null)
                 {
                     bitmap.BeginInit();
-                    bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
+                    if (File.Exists(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName))
+                    {
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + ImageName);
+                    }
+                    else
+                    {
+                        bitmap.UriSource = new Uri(Constants.DataFolderPath + Constants.ImagesFolderPath + "NA.jpg");
+                    }
                     bitmap.EndInit();
                     _image = bitmap;
                 }
@@ -87,12 +95,16 @@ namespace Zeus
 
         public int LastQuantitySold { get; set; }
 
+        //public decimal LastAmountSold
+        //{
+        //    get { return Price * LastQuantitySold; }
+        //    set { LastAmountSold = value; }
+        //}
         public decimal LastAmountSold
         {
-            get { return Price * LastQuantitySold; }
-            set { LastAmountSold = value; }
+            get { return _lastAmountSold; }
+            set { _lastAmountSold = value; }
         }
-
         #endregion
 
         #region Constructors

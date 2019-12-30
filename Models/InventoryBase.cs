@@ -166,11 +166,15 @@ namespace Zeus
         /// <returns></returns>
         public int GetLastItemNumber()
         {
-            ///TODO: Check if need to be repricated
-            if (DictOfData.Rows.Count == 0)
-                return 0;
-            var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-            return Int32.Parse(row["Id"].ToString());
+            if (SystemConfig.LocalInventory)
+            {
+                if (DictOfData.Rows.Count == 0)
+                    return 0;
+                var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
+                return Int32.Parse(row["Id"].ToString());
+            }
+
+            return -1;
         }
 
         /// <summary>

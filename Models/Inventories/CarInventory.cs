@@ -258,11 +258,19 @@ namespace Zeus
 
         public int GetLastItemNumber()
         {
-            ///TODO: need to implement for DB
-            if (DictOfData.Rows.Count == 0)
-                return 0;
-            var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
-            return Int32.Parse(row["Id"].ToString());
+            if (SystemConfig.LocalInventory)
+            {
+                ///TODO: need to implement for DB
+                if (DictOfData.Rows.Count == 0)
+                    return 0;
+                var row = DictOfData.Rows[DictOfData.Rows.Count - 1];
+                return Int32.Parse(row["Id"].ToString());
+            }
+            else
+            {
+                return -1;
+            }
+
         }
 
         public IProduct GetProduct(string code)
