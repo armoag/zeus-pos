@@ -1637,7 +1637,6 @@ namespace Zeus
                         CurrentPage = Constants.PosGeneralPage;
                         break;
                     }
-
                     break;
                 case "remove_inventory":
                     CurrentPage = Constants.RemoveInventoryPage;
@@ -3134,6 +3133,7 @@ namespace Zeus
             product.Description = ((QueueTransaction) parameter).ProductDescription;
             product.Category = ((QueueTransaction) parameter).ProductCategory;
             product.LastAmountSold = ((QueueTransaction) parameter).TotalAmountSold;
+            product.Seller = ((QueueTransaction) parameter).Seller;
 
             //temporary disable indirect to cart
             if (SystemConfig.IndirectPrice)
@@ -4283,7 +4283,8 @@ namespace Zeus
                         CustomerName = SelectedTransaction.CustomerName,
                         UserName = SelectedTransaction.UserName,
                         SaleType = SelectedTransaction.SaleType,
-                        PaymentType = SelectedTransaction.PaymentType
+                        PaymentType = SelectedTransaction.PaymentType,
+                        SellerName = SelectedTransaction.SellerName
                     };
                     //Log
                     Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Detalle de Transaccion: " + SelectedTransaction.TransactionNumber);
@@ -4600,6 +4601,19 @@ namespace Zeus
 
         public void AddProductToCart(IProduct product)
         {
+            if (product.Id == 0)
+            {
+                var sellerName = PosGeneralPageViewModel.GetInstance().Seller;
+                if (string.IsNullOrEmpty(sellerName) || sellerName == "")
+                {
+                    product.Seller = "General";
+                }
+                else
+                {
+                    product.Seller = sellerName;
+                }
+            }
+
             //Check if product already exists in the file
             if (product.Price != 0M && !SystemConfig.IndirectPrice)
             {
@@ -4853,11 +4867,11 @@ namespace Zeus
             var transactionDate = DateTime.Now;
             decimal totalDue = 0M;
             string customer = "General";
-            
+
             //Get customer, if registered
             if(CurrentCustomer != null)
                 customer = CurrentCustomer.Name;
-
+            
             //Check if it is a return
             if (transactionType == TransactionType.DevolucionEfectivo || transactionType == TransactionType.DevolucionTarjeta)
             {
@@ -4870,6 +4884,14 @@ namespace Zeus
             //Record each item in the transactions db
             foreach (var product in CurrentCartProducts)
             {
+                string seller;
+                if (product.Seller != null || product.Seller != "" || product.Seller != string.Empty)
+                    seller = product.Seller;
+                else
+                {
+                    seller = "General";
+                }
+
                 transaction.TransactionNumber = transactionNumber;
                 //transaction.InternalNumber = internalNumber;
                 transaction.InternalNumber = 0;
@@ -4878,6 +4900,7 @@ namespace Zeus
                 transaction.TransactionDate = transactionDate;
                 transaction.CustomerName = customer;
                 transaction.UserName = user;
+                transaction.SellerName = seller;
                 transaction.FiscalReceiptRequired = fiscalReceipt;
                 transaction.SaleType = saleType;
                 transaction.PaymentType = paymentType;

@@ -511,7 +511,7 @@ namespace Zeus
             int itemsNumber = 0;
 
             //Header business info
-            buf = Formatter.AlignToCenter(Pos.BusinessName);
+            buf = Formatter.AlignToCenter(Pos.BusinessName, 19);
             graphic.DrawString(buf, storeNameFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeNameFontHeight;
@@ -546,7 +546,7 @@ namespace Zeus
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             var date = DateTime.Now.ToString("g");
 
-            var ticketNumber = "No. " + Pos.LastCorteZNumber.ToString();
+            var ticketNumber = "No. " + (Pos.LastCorteZNumber + 1).ToString();
             graphic.DrawString(ticketNumber.PadRight(18) + date, storeInfoFont, new SolidBrush(Color.Black), startX,
                 startY + offset);
             offset = offset + (int)storeInfoFontHeight + 10;

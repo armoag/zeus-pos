@@ -578,7 +578,24 @@ namespace Zeus
            //Transaction.BackUpTransactionMasterFile(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
             Transaction.ClearTransactionFile(Constants.DataFolderPath + Constants.TransactionsZFileName);
             //Transaction.ClearTransactionMasterFile(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
-            FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
+            if (MainWindowViewModel.SystemConfig.LocalInventory)
+            {
+                FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
+            }
+            else if (MainWindowViewModel.SystemConfig.CloudInventory)
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                var currentTime = DateTime.Now;
+                var fileName = Path.GetFileNameWithoutExtension("Inventario");
+
+                //Load inventory csv file and create a backup copy
+                var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
+                     + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
+                    currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
+                    currentTime.Second.ToString("00") + ".csv";
+                var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
+                Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
+            }
             //Inventory.InventoryBackUp(Constants.DataFolderPath + Constants.InventoryFileName);
             //BackUp Z Expenses files
             Expense.BackUpExpensesFile(Constants.DataFolderPath + Constants.ExpenseZFileName, true);
@@ -698,8 +715,25 @@ namespace Zeus
             //Transaction.BackUpTransactionMasterFile(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
             Transaction.ClearTransactionFile(Constants.DataFolderPath + Constants.TransactionsXFileName);
             //Transaction.ClearTransactionMasterFile(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
-           // Inventory.InventoryBackUp(Constants.DataFolderPath + Constants.InventoryFileName);
-            FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
+            // Inventory.InventoryBackUp(Constants.DataFolderPath + Constants.InventoryFileName);
+            if (MainWindowViewModel.SystemConfig.LocalInventory)
+            {
+                FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
+            }
+            else if (MainWindowViewModel.SystemConfig.CloudInventory)
+            {
+                Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                var currentTime = DateTime.Now;
+                var fileName = Path.GetFileNameWithoutExtension("Inventario");
+
+                //Load inventory csv file and create a backup copy
+                var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
+                                                                           + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
+                                                                           currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
+                                                                           currentTime.Second.ToString("00") + ".csv";
+                var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
+                Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
+            }
             //BackUp X Expenses files
             Expense.BackUpExpensesFile(Constants.DataFolderPath + Constants.ExpenseXFileName, false);
             Expense.ClearExpensesFile(Constants.DataFolderPath + Constants.ExpenseXFileName);

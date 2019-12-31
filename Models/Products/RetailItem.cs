@@ -44,6 +44,7 @@ namespace Zeus
         private int _quantitySold;
         private int _totalQuantityAvailable;
 
+        private string _seller;
         //Not in interface
         //private int _storeOneQuantityAvailable;
         //private int _storeTwoQuantityAvailable;
@@ -110,7 +111,7 @@ namespace Zeus
 
             //TODO: Check
             this.LastAmountSold = this.Price * this.LastQuantitySold;
-
+            this.Seller = product.Seller;
 
         }
         #endregion
@@ -342,6 +343,12 @@ namespace Zeus
         {
             get { return _valid; }
             set { _valid = value; }
+        }
+
+        public string Seller
+        {
+            get { return _seller; }
+            set { _seller = value; }
         }
 
         //Methods not in interface

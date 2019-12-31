@@ -57,6 +57,8 @@ namespace Zeus
         private string _location;
         private string _specificLocation;
         private bool _valid;
+
+        private string _seller;
         #endregion
 
         #region Properties
@@ -102,6 +104,8 @@ namespace Zeus
             this.LastSaleDate = product.LastSaleDate;
             //TODO: Check
             this.LastAmountSold = this.Price * this.LastQuantitySold;
+
+            this.Seller = product.Seller;
 
         }
         #endregion
@@ -368,7 +372,11 @@ namespace Zeus
             get { return _valid; }
             set { _valid = value; }
         }
-
+        public string Seller
+        {
+            get { return _seller; }
+            set { _seller = value; }
+        }
         //Methods not in interface
         //Create a basic product with minimal information for manual transactions
         public static IProduct Add(string description, string category, decimal soldPrice, int lastQuantitySold)

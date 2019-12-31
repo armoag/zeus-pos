@@ -105,6 +105,8 @@ namespace Zeus
             get { return _lastAmountSold; }
             set { _lastAmountSold = value; }
         }
+        public string Seller { get; set; }
+
         #endregion
 
         #region Constructors
@@ -145,6 +147,7 @@ namespace Zeus
             this.LastSaleDate = product.LastSaleDate;
             //TODO: Check
             this.LastAmountSold = this.Price * this.LastQuantitySold;
+            this.Seller = product.Seller;
         }
 
         #endregion

@@ -37,6 +37,7 @@ namespace Zeus
         string ProviderProductId { get; set; }
         int QuantitySold { get; set; }
         int TotalQuantityAvailable { get; set; }
+        string Seller { get; set; }
 
         IProduct CreateNewItem(string description, string category, decimal soldPrice, int lastQuantitySold);
         decimal GetMargin(decimal exchangeRate);

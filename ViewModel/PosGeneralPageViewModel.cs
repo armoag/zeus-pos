@@ -296,8 +296,8 @@ namespace Zeus
                     {
                         ManualProduct = ProductBase.Add(Description, Category, decimal.Parse(Price), Quantity);
                     }
+                    ManualProduct.Seller = Seller;
                     ManualProduct.LastAmountSold = ManualProduct.LastQuantitySold * ManualProduct.Price;
-
                 }
                 else
                 {
@@ -311,7 +311,8 @@ namespace Zeus
                     {
                         ManualProduct.Price = decimal.Parse(Price);
                     }
-        
+
+                    ManualProduct.Seller = Seller;
                     ManualProduct.Description = Description;
                     ManualProduct.Category = Category;
                     ManualProduct.LastQuantitySold = Quantity;
@@ -325,6 +326,7 @@ namespace Zeus
             Clear = true;
             Price = "0";
             Description = "";
+            Seller = "";
             Quantity = 1;
             ManualProduct = null;
 
@@ -398,6 +400,7 @@ namespace Zeus
             Price = string.Empty;
             Quantity = 1;
             Description = string.Empty;
+            Seller = string.Empty;
             Category = null;
             Clear = false;
             ManualProduct = null;

@@ -90,20 +90,9 @@ namespace Zeus
                 CostCurrency = CurrencyTypeEnum.USD,
                 ImportCostCurrency = CurrencyTypeEnum.USD,
                 LastPurchaseDate = DateTime.Now,
-
-                //Temportal Items
-                Vin = "15641",
-                Cost = 10M,
-                ImportCost = 1M,
                 Make = carList[0],
-                Transmission = transList[0],
+                Transmission = transList[1],
                 Location = locationList[0],
-                SpecificLocation = "1A",
-                Motor = "2.0",
-                Color = "Blanco",
-                Provider = "SDParts",
-                Year = 2012,
-                Model = "Civic"
             };
 
             CurrentPage = Constants.CarRegistrationMainPage; //"\\View\\CarRegistrationInfoPage.xaml";
@@ -453,7 +442,7 @@ namespace Zeus
 
                 case "b":
 
-                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Interior".ToLower()));
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Suspension D".ToLower()));
 
                     foreach (var carPart in catFilter)
                     {
@@ -469,7 +458,7 @@ namespace Zeus
 
                 case "c":
 
-                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Exterior".ToLower()));
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Suspension T".ToLower()));
 
                     foreach (var carPart in catFilter)
                     {
@@ -485,7 +474,7 @@ namespace Zeus
 
                 case "d":
 
-                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Delantera".ToLower()));
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Interior".ToLower()));
 
                     foreach (var carPart in catFilter)
                     {
@@ -501,7 +490,7 @@ namespace Zeus
 
                 case "e":
 
-                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Trasera".ToLower()));
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Exterior".ToLower()));
 
                     foreach (var carPart in catFilter)
                     {
@@ -549,7 +538,23 @@ namespace Zeus
 
                 case "h":
 
-                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Misc".ToLower()));
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Cajuela".ToLower()));
+
+                    foreach (var carPart in catFilter)
+                    {
+                        //Add if it does not exist already
+                        if (!products.Exists(x => x.Code == carPart.Code))
+                            products.Add(carPart);
+                    }
+
+                    CarPartsSearchedEntries = null;
+                    CarPartsSearchedEntries = new ObservableCollection<CarPart>(products);
+
+                    break;
+
+                case "i":
+
+                    catFilter = CarParts.AsEnumerable().Where(r => r.Category.ToLower().Contains("Otros".ToLower()));
 
                     foreach (var carPart in catFilter)
                     {

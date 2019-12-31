@@ -58,7 +58,7 @@ namespace Zeus
         public DateTime TransactionDate { get => _transactionDate; set => _transactionDate = value; }
         public string CustomerName { get => _customerName; set => _customerName = value; }
         public string UserName { get => _userName; set => _userName = value; }
-        public string SellerName { get => _userName; set => _userName = value; }
+        public string SellerName { get => _sellerName; set => _sellerName = value; }
 
         public string FiscalReceiptRequired { get => _fiscalReceiptRequireed; set => _fiscalReceiptRequireed = value; }
         public TransactionType SaleType { get => _saleType; set => _saleType = value; }
