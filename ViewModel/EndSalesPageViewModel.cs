@@ -563,6 +563,7 @@ namespace Zeus
                         MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
                         MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
                     }
+                    attachments.Clear();
                 }
                 catch (Exception e)
                 {
@@ -711,6 +712,7 @@ namespace Zeus
                         MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
                         MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
                     }
+                    attachments.Clear();
                 }
                 catch (Exception e)
                 {
