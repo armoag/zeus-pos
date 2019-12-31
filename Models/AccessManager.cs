@@ -68,7 +68,8 @@ namespace Zeus
                 new Tuple<string, UserAccessLevelEnum>(Constants.UserDetailPage, UserAccessLevelEnum.Administrador),
                 new Tuple<string, UserAccessLevelEnum>(Constants.UserMainPage, UserAccessLevelEnum.Basico),
                 new Tuple<string, UserAccessLevelEnum>(Constants.VendorMainPage, UserAccessLevelEnum.Avanzado),
-                new Tuple<string, UserAccessLevelEnum>(Constants.VendorDetailPage, UserAccessLevelEnum.Avanzado)
+                new Tuple<string, UserAccessLevelEnum>(Constants.VendorDetailPage, UserAccessLevelEnum.Avanzado),
+                new Tuple<string, UserAccessLevelEnum>(Constants.QueueMainPage, UserAccessLevelEnum.Basico)
             };
 
             return list;

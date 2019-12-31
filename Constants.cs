@@ -129,6 +129,7 @@ namespace Zeus
         public const string UserMainPage = "\\View\\UserMainPage.xaml";
         public const string VendorDetailPage = "\\View\\VendorDetailPage.xaml";
         public const string VendorMainPage = "\\View\\VendorMainPage.xaml";
+        public const string QueueMainPage = "\\View\\QueueMainPage.xaml";
 
     }
 }

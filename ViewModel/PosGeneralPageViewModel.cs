@@ -21,6 +21,7 @@ namespace Zeus
         private int _quantity = 1;
         private string _description;
         private string _category;
+        private string _seller;
         private bool _clear;
         private static IProduct _manualProduct;
         private static ObservableCollection<string> _categoriesList;
@@ -154,6 +155,15 @@ namespace Zeus
         {
             get { return _category; }
             set { _category = value; OnPropertyChanged(); }
+        }
+
+        /// <summary>
+        /// Category of item entered
+        /// </summary>
+        public string Seller
+        {
+            get { return _seller; }
+            set { _seller = value; OnPropertyChanged(); }
         }
 
         /// <summary>

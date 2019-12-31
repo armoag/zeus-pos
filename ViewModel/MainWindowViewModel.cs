@@ -145,7 +145,7 @@ namespace Zeus
                     SystemConfig.UserID, SystemConfig.Password);
             }
 
-            if (SystemConfig.SystemType == SystemTypeEnum.Slave)
+            if (SystemConfig.SystemType == SystemTypeEnum.Slave || SystemConfig.SystemType == SystemTypeEnum.Master)
             {
                 MySqlQueueDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.QueueTableName,
                     SystemConfig.UserID, SystemConfig.Password);
@@ -1041,6 +1041,52 @@ namespace Zeus
 
         #endregion
 
+        #region Queue Related Obvervable Properties
+
+        private string _queueSearchText;
+        public string QueueSearchText
+        {
+            get
+            {
+                return _queueSearchText;
+            }
+            set
+            {
+                _queueSearchText = value.ToLower();
+                OnPropertyChanged();
+            }
+        }
+
+        /// <summary>
+        /// Hold active cart items list
+        /// </summary>
+        /// 
+        private ObservableCollection<QueueTransaction> _queueSearchedProducts;
+
+        public ObservableCollection<QueueTransaction> QueueSearchedProducts
+        {
+            get { return _queueSearchedProducts; }
+            set
+            {
+                _queueSearchedProducts = value;
+                OnPropertyChanged();
+            }
+        }
+
+        private QueueTransaction _selectedQueueProduct;
+        public QueueTransaction SelectedQueueProduct
+        {
+            get { return _selectedQueueProduct; }
+            set
+            {
+                _selectedQueueProduct = value;
+                OnPropertyChanged();
+            }
+        }
+        public bool InitialQueueSearch { get; set; }
+
+        #endregion
+
         #region Vendor Related Properties
         private Vendor _vendorTemporalItem;
         public Vendor VendorTemporalItem
@@ -1639,6 +1685,11 @@ namespace Zeus
                     CurrentPage = Constants.InventoryMainPage;
                     SelectedInventoryProduct = null;
                     InitialInventorySearch = true;
+                    break;
+                case "queue":
+                    CurrentPage = Constants.QueueMainPage;
+                    SelectedQueueProduct = null;
+                    InitialQueueSearch = false;
                     break;
                 case "sales_report":
                     CurrentPage = Constants.EndSalesPage;
@@ -3063,6 +3114,110 @@ namespace Zeus
         #endregion
 
         #endregion Inventory Commands
+
+        #region Queue Commands
+
+        #region QueueAddItemToCartCommand
+
+        public ICommand QueueAddItemToCartCommand { get { return _queueAddItemToCartCommand ?? (_queueAddItemToCartCommand = new DelegateCommand(Execute_QueueAddItemToCartCommand, CanExecute_QueueAddItemToCartCommand)); } }
+        private ICommand _queueAddItemToCartCommand;
+
+        internal void Execute_QueueAddItemToCartCommand(object parameter)
+        {
+            //TODO: Check to make sure the item is found, otherwise show error message
+            //Create a new product for order line
+            IProduct product;
+            product = InventoryInstance.GetProduct(((QueueTransaction)parameter).ProductCode);
+
+            product.Price = ((QueueTransaction) parameter).PriceSold;
+            product.LastQuantitySold = ((QueueTransaction) parameter).UnitsSold;
+            product.Description = ((QueueTransaction) parameter).ProductDescription;
+            product.Category = ((QueueTransaction) parameter).ProductCategory;
+            product.LastAmountSold = ((QueueTransaction) parameter).TotalAmountSold;
+
+            //temporary disable indirect to cart
+            if (SystemConfig.IndirectPrice)
+            {
+                SystemConfig.IndirectPrice = false;
+                AddProductToCart(product);
+                //Enable disable indirect back
+                SystemConfig.IndirectPrice = true;
+            }
+            else
+            {
+                AddProductToCart(product);
+            }
+
+            //Log
+            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Orden Agregada al Carrito:" + " " + product.Code);
+            //Get customer
+            //CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(((QueueTransaction) parameter).Customer));
+            //if (CustomersSearchedEntries.Count > 0)
+            //    CurrentCustomer = CustomersSearchedEntries.First();
+            
+        }
+
+        internal bool CanExecute_QueueAddItemToCartCommand(object parameter)
+        {
+            return parameter != null;
+        }
+
+        #endregion
+
+        #region QueueStartSearchCommand
+
+        public ICommand QueueStartSearchCommand { get { return _queueStartSearchCommand ?? (_queueStartSearchCommand = new DelegateCommand(Execute_QueueStartSearchCommand, CanExecute_QueueStartSearchCommand)); } }
+        private ICommand _queueStartSearchCommand;
+
+        internal void Execute_QueueStartSearchCommand(object parameter)
+        {
+            QueueSearchedProducts = new ObservableCollection<QueueTransaction>(new QueueTransaction(null, MySqlQueueDb).Search(QueueSearchText.ToString()));
+            //Log
+            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Ordenes:" + " " + QueueSearchText);
+            QueueSearchText = "";
+            //it won't research the db unless the user goes to a different page
+            InitialQueueSearch = false;
+        }
+        internal bool CanExecute_QueueStartSearchCommand(object parameter)
+        {
+            return true;
+        }
+
+
+        #endregion
+
+        #region QueueDeleteCommand
+
+        public ICommand QueueDeleteCommand { get { return _queueDeleteCommand ?? (_queueDeleteCommand = new DelegateCommand(Execute_QueueDeleteCommand, CanExecute_QueueDeleteCommand)); } }
+        private ICommand _queueDeleteCommand;
+
+        internal void Execute_QueueDeleteCommand(object parameter)
+        {
+            //Check if code was updated
+            if (SelectedQueueProduct != null)
+            {
+                var queue = new QueueTransaction(null, MySqlQueueDb);
+                queue.OrderNumber = SelectedQueueProduct.OrderNumber;
+                queue.DeleteOrder();
+
+  //              CurrentPage = Constants.PosGeneralPage;
+                Code = "Orden Eliminada";
+                CodeColor = Constants.ColorCodeError;
+                //Log
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Orden Eliminada:" + " " + SelectedQueueProduct.ProductCode);
+                //Reset list
+                QueueSearchedProducts = null;
+ //               SelectedQueueProduct = null;
+            }
+        }
+
+        internal bool CanExecute_QueueDeleteCommand(object parameter)
+        {
+            return SelectedQueueProduct != null;
+        }
+        #endregion
+
+        #endregion
 
         #region Users Commands
 
@@ -4791,7 +4946,7 @@ namespace Zeus
         }
 
         /// <summary>
-        /// Method to update inventory after a transaction is sucessful
+        /// Method to update inventory after a transaction is successful
         /// </summary>
         /// <param name="product"></param>
         /// <param name="transactionDate"></param>
@@ -5213,6 +5368,8 @@ namespace Zeus
 
             CurrentCartProducts.Clear();
             PaymentTotalMXN = 0;
+            CodeColor = Constants.ColorCodeSave;
+            Code = "Número: transaction.OrderNumber.ToString()";
         }
 
         #endregion
