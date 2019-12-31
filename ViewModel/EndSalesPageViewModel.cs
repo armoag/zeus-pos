@@ -604,9 +604,20 @@ namespace Zeus
             Transaction.BackUpPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsZFileName, true);
             Transaction.ClearPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsZFileName);
 
+            //Backup History Files
+            FileIO.FileBackUp(Constants.DataFolderPath + Constants.TransactionsHistoryFileName, 
+                Constants.DataFolderPath + Constants.TransactionsBackupFolderPath);
+            FileIO.FileBackUp(Constants.DataFolderPath + Constants.ExpenseHistoryFileName,
+                Constants.DataFolderPath + Constants.TransactionsBackupFolderPath);
+            FileIO.FileBackUp(Constants.DataFolderPath + Constants.EndOfDaySalesFileName,
+                Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
+            FileIO.FileBackUp(Constants.DataFolderPath + Constants.CurrentDaySalesFileName,
+                Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
+            FileIO.FileBackUp(Constants.DataFolderPath + Constants.TransactionsPaymentsFileName,
+                Constants.DataFolderPath + Constants.TransactionsBackupFolderPath);
             //Update POS Data
             Pos.UpdateAllData();
-            Pos.SaveDataTableToCsv();
+                Pos.SaveDataTableToCsv();
         }
 
         /// <summary>

@@ -337,7 +337,7 @@ namespace Zeus
 
             var currentTime = DateTime.Now;
             var fullReceiptName = Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath + "CorteX_No_" +
-                                  Pos.LastCorteZNumber + "_" + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") + currentTime.Year.ToString("0000") +
+                                  (Pos.LastCorteZNumber + 1) +  "_" + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") + currentTime.Year.ToString("0000") +
                                   currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") + currentTime.Second.ToString("00") + ".xps";
 
             if (!printToFileOnly)
