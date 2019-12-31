@@ -286,6 +286,8 @@ namespace Zeus
                     {
                         ManualProduct = ProductBase.Add(Description, Category, decimal.Parse(Price), Quantity);
                     }
+                    ManualProduct.LastAmountSold = ManualProduct.LastQuantitySold * ManualProduct.Price;
+
                 }
                 else
                 {

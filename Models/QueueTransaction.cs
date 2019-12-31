@@ -108,10 +108,10 @@ namespace Zeus
             var colValPairs = new List<Tuple<string, string>>();
             colValPairs.Add(new Tuple<string, string>("Codigo", ProductCode));
             colValPairs.Add(new Tuple<string, string>("CategoriaProducto", ProductCategory));
-            colValPairs.Add(new Tuple<string, string>("Descripcion", ProductCategory));
+            colValPairs.Add(new Tuple<string, string>("Descripcion", ProductDescription));
             colValPairs.Add(new Tuple<string, string>("PrecioVendido", PriceSold.ToString()));
             colValPairs.Add(new Tuple<string, string>("UnidadesVendidas", UnitsSold.ToString()));
-            colValPairs.Add(new Tuple<string, string>("TotalVendido", PriceSold.ToString()));
+            colValPairs.Add(new Tuple<string, string>("TotalVendido", TotalAmountSold.ToString()));
             colValPairs.Add(new Tuple<string, string>("FechaVenta", Utilities.FormatDateForMySql(DateTime.Now)));
             colValPairs.Add(new Tuple<string, string>("Cliente", Customer));
             colValPairs.Add(new Tuple<string, string>("Vendedor", Seller));

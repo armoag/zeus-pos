@@ -14,7 +14,7 @@ namespace Zeus
         string Password { get; set; }
         string CustomerTableName { get; set; }
         string InventoryTableName { get; set; }
-
+        string QueueTableName { get; set; }
         //Optional Features
         bool EmailTransactionsFileAfterEndSalesReport { get; set; }
         bool IntFlag { get; set; }
@@ -23,6 +23,8 @@ namespace Zeus
         bool LocalInventory { get; set; }
         bool CloudInventory { get; set; }
         bool IndirectPrice { get; set; }
+        
+        SystemTypeEnum SystemType { get; set; }
 
     }
 }

@@ -10,7 +10,9 @@ using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
+using System.Windows.Media;
 using System.Windows.Media.Imaging;
+using System.Xml.Linq;
 using MySql.Data.MySqlClient;
 using Zeus.WpfBindingUtilities;
 using Shun;
@@ -35,7 +37,7 @@ namespace Zeus
         private static User _currentUser;
         private static Customer _currentCustomer;
         private static IProduct _productType;
-
+        
         //Products page list related fields
         private static ObservableCollection<string> _products;
         private static string _pageOneTitle;
@@ -122,6 +124,14 @@ namespace Zeus
             {
                 SystemConfig = config;
             }
+
+            //Get app settings, if any
+            SystemTypeEnum systemTypeResult = SystemTypeEnum.Master;
+            if (Enum.TryParse(ConfigurationManager.AppSettings["SystemType"], true, out systemTypeResult))
+            {
+                SystemConfig.SystemType = systemTypeResult;
+            }
+
             //Initialize DBs
             if (SystemConfig.CloudInventory)
             {
@@ -132,6 +142,12 @@ namespace Zeus
             if (SystemConfig.CloudCustomers)
             {
                 MySqlCustomerDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.CustomerTableName,
+                    SystemConfig.UserID, SystemConfig.Password);
+            }
+
+            if (SystemConfig.SystemType == SystemTypeEnum.Slave)
+            {
+                MySqlQueueDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.QueueTableName,
                     SystemConfig.UserID, SystemConfig.Password);
             }
 
@@ -182,7 +198,7 @@ namespace Zeus
 
         public static MySqlDatabase MySqlCustomerDb { get; set; }
         public static MySqlDatabase MySqlInventoryDb { get; set; }
-
+        public static MySqlDatabase MySqlQueueDb { get; set; }
         public static Pos PosInstance
         {
             get { return _posInstance; }
@@ -1557,12 +1573,25 @@ namespace Zeus
                     CurrentPage = Constants.PosGeneralPage;
                     break;
                 case "payment":
-                    //Log
-                    Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Iniciado Cantidad: " + PaymentTotalMXN);
-                    PaymentCustomerSearchInput = "";
-                    ClearPaymentInput();
-                    CurrentCustomer = null;
-                    CurrentPage = Constants.PaymentPage;
+                    if (SystemConfig.SystemType == SystemTypeEnum.Master)
+                    {
+                        //Process Payment
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Pago Iniciado Cantidad: " + PaymentTotalMXN);
+                        PaymentCustomerSearchInput = "";
+                        ClearPaymentInput();
+                        CurrentCustomer = null;
+                        CurrentPage = Constants.PaymentPage;
+                    }
+                    else if (SystemConfig.SystemType == SystemTypeEnum.Slave)
+                    {
+                        OrderProcessStart();
+                        //Log
+                        Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Orden Registrada");
+                        SystemUnlock = false;
+                        CurrentPage = Constants.PosGeneralPage;
+                        break;
+                    }
+
                     break;
                 case "remove_inventory":
                     CurrentPage = Constants.RemoveInventoryPage;
@@ -1872,9 +1901,7 @@ namespace Zeus
         internal void Execute_SearchCodeCommand(object parameter)
         {
             IProduct product;
-
-
-
+            
             product = InventoryInstance.GetProduct((string)parameter);
 
             if (product.Code != null)
@@ -1884,7 +1911,6 @@ namespace Zeus
                     product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
                 }
                 product.LastQuantitySold = 1;
-                product.LastAmountSold = product.Price * product.LastQuantitySold;
                 AddProductToCart(product);
                 Code = "";
             }
@@ -1928,6 +1954,7 @@ namespace Zeus
             activeProduct.LastQuantitySold -= 1;
             if (activeProduct.LastQuantitySold > 0)
             {
+                activeProduct.LastAmountSold = activeProduct.LastQuantitySold * activeProduct.Price;
                 CurrentCartProducts.Insert(index, activeProduct);
                 SelectedCartProduct = activeProduct;
             }
@@ -1950,6 +1977,7 @@ namespace Zeus
 
             CurrentCartProducts.RemoveAt(index);
             activeProduct.LastQuantitySold += 1;
+            activeProduct.LastAmountSold = activeProduct.Price * activeProduct.LastQuantitySold;
             CurrentCartProducts.Insert(index, activeProduct);
             SelectedCartProduct = activeProduct;
             PaymentTotalMXN = CalculateCurrentCartTotal();
@@ -1972,6 +2000,7 @@ namespace Zeus
             var activeProduct = (IProduct)parameter;
             CurrentCartProducts.RemoveAt(index);
             activeProduct.Price = Math.Round(activeProduct.Price*(1 - DiscountPercent), 2);
+            activeProduct.LastAmountSold = activeProduct.LastQuantitySold * activeProduct.Price;
             CurrentCartProducts.Insert(index, activeProduct);
             SelectedCartProduct = activeProduct;
             PaymentTotalMXN = CalculateCurrentCartTotal();
@@ -2842,6 +2871,13 @@ namespace Zeus
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new object for every product 
             IProduct product = new ProductBase((IProduct)parameter) { LastQuantitySold = 1 };
+
+            if (product.PriceCurrency == CurrencyTypeEnum.USD)
+            {
+                product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
+            }
+
+            product.LastAmountSold = product.LastQuantitySold * product.Price;
             AddProductToCart(product);
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda Agregada al Carrito:" + " " + product.Code);
@@ -4421,6 +4457,7 @@ namespace Zeus
                     return;
                 }
                 //end test
+                product.LastAmountSold = product.Price * product.LastQuantitySold;
                 CurrentCartProducts.Insert(0, product);
                 PaymentTotalMXN = CalculateCurrentCartTotal();
             }
@@ -4451,6 +4488,8 @@ namespace Zeus
             //Check if product already exists in the file
             if (product.Price != 0M)
             {
+                ///TODO:New
+                product.LastAmountSold = Math.Round(product.LastQuantitySold * product.Price, 2);
                 CurrentCartProducts.Insert(0, product);
                 PaymentTotalMXN = CalculateCurrentCartTotal();
             }
@@ -4483,6 +4522,7 @@ namespace Zeus
         {
             var productIndex = CurrentCartProducts.IndexOf(product);
             product.LastQuantitySold = product.LastQuantitySold + 1;
+            product.LastAmountSold = product.Price * product.LastQuantitySold;
             CurrentCartProducts.RemoveAt(productIndex);
             CurrentCartProducts.Insert(productIndex,product);
         }
@@ -5127,6 +5167,52 @@ namespace Zeus
         {
             ProcessInventoryRemoval(transactionType);
             CurrentCartProducts.Clear();
+        }
+
+        /// <summary>
+        /// Initializes main payment procedure
+        /// </summary>
+        /// <param name="parameter">Method of payment</param>
+        /// <param name="transactionType">Payment transaction type</param>
+        public void OrderProcessStart()
+        {
+            var transaction = new QueueTransaction(null, MySqlQueueDb);
+
+            var user = CurrentUser.Name;
+            var fiscalReceipt = false;
+            var transactionDate = DateTime.Now;
+            decimal totalDue = 0M;
+            //Get customer, if registered
+            string customer = CurrentCustomer != null ? CurrentCustomer.Name : "General";
+            //Create order number
+            string orderNumberString = transactionDate.DayOfYear.ToString() + transactionDate.Hour.ToString() +
+                                 transactionDate.Minute.ToString() + transactionDate.Second.ToString();
+            
+            if(!int.TryParse(orderNumberString, out var orderNumber)) orderNumber = 0;
+
+            //Record each item in the transactions db
+            foreach (var product in CurrentCartProducts)
+            {
+                //product info
+                transaction.ProductCode = product.Code;
+                transaction.ProductDescription = product.Description;
+                transaction.ProductCategory = product.Category;
+                transaction.PriceSold = product.LastAmountSold;
+                transaction.UnitsSold = product.LastQuantitySold;
+                transaction.TotalAmountSold = Math.Round(product.LastAmountSold * product.LastQuantitySold, 2);
+                //other info
+                transaction.Date = transactionDate;
+                transaction.Customer = customer;
+                transaction.Seller = user;
+                transaction.FiscalReceiptRequired = fiscalReceipt;
+                transaction.OrderNumber = orderNumber;
+
+                //Update db
+                transaction.Insert();
+            }
+
+            CurrentCartProducts.Clear();
+            PaymentTotalMXN = 0;
         }
 
         #endregion

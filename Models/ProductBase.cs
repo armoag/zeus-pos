@@ -143,6 +143,8 @@ namespace Zeus
             //dates
             this.LastPurchaseDate = product.LastPurchaseDate;
             this.LastSaleDate = product.LastSaleDate;
+            //TODO: Check
+            this.LastAmountSold = this.Price * this.LastQuantitySold;
         }
 
         #endregion
