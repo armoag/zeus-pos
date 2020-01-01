@@ -242,16 +242,6 @@ namespace Zeus
         internal void Execute_StartCarRegistrationCommand(object parameter)
         {
             var parts = CarPart.ReadPartsFile(Constants.DataFolderPath + Constants.DefaultPartsListFileName);
-            //var car = new CarPart()
-            //{
-            //    Vin = "10000",
-            //    Make = "Honda",
-            //    Model = "Civic",
-            //    Year = 2010,
-            //    Color = "Azul",
-            //    Transmission = "Std",
-            //    Motor = "1.8T"
-            //};
             CarParts = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
             CarPartsSearchedEntries = CarParts;
             MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.CarRegistrationListPage;

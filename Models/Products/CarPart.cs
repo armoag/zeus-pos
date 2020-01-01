@@ -469,7 +469,7 @@ namespace Zeus
             foreach (var part in parts)
             {
                 var partialVin = car.Vin.Substring(car.Vin.Length - 5);
-                var description = partialVin + " " + car.Model + " " + part.Item1;
+                var description = partialVin + " " + car.Year + " " + car.Model + " " + part.Item1;
                 var category = part.Item2;
                 var quantity = part.Item3;
                 var price = part.Item4;

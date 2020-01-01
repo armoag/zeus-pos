@@ -529,9 +529,9 @@ namespace Zeus
                                    .FiscalStreetAddress;
                     Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
                     //Files to be emailed
-                    var transactionsFile = Constants.DataFolderPath + Constants.TransactionsXFileName;
+                    var transactionsFile = Constants.DataFolderPath + Constants.TransactionsZFileName;
                     var expensesFile = Constants.DataFolderPath + Constants.ExpenseZFileName;
-                    var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName;
+                    var paymentsFile = Constants.DataFolderPath + Constants.TransactionsPaymentsZFileName;
 
                     var attachments = new List<string>()
                     {
@@ -618,7 +618,7 @@ namespace Zeus
                 Constants.DataFolderPath + Constants.TransactionsBackupFolderPath);
             //Update POS Data
             Pos.UpdateAllData();
-                Pos.SaveDataTableToCsv();
+            Pos.SaveDataTableToCsv();
         }
 
         /// <summary>

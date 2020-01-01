@@ -1956,10 +1956,11 @@ namespace Zeus
 
             if (product.Code != null)
             {
-                if (product.PriceCurrency == CurrencyTypeEnum.USD)
-                {
-                    product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
-                }
+                //if (product.PriceCurrency == CurrencyTypeEnum.USD)
+                //{
+                //    product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
+                //    product.PriceCurrency = CurrencyTypeEnum.MXN;
+                //}
                 product.LastQuantitySold = 1;
                 AddProductToCart(product);
                 Code = "";
@@ -2922,12 +2923,13 @@ namespace Zeus
             //Create a new object for every product 
             IProduct product = new ProductBase((IProduct)parameter) { LastQuantitySold = 1 };
 
-            if (product.PriceCurrency == CurrencyTypeEnum.USD)
-            {
-                product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
-            }
+            //if (product.PriceCurrency == CurrencyTypeEnum.USD)
+            //{
+            //    product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
+            //    product.PriceCurrency = CurrencyTypeEnum.MXN;
+            //}
 
-            product.LastAmountSold = product.LastQuantitySold * product.Price;
+            ////product.LastAmountSold = product.LastQuantitySold * product.Price;
             AddProductToCart(product);
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda Agregada al Carrito:" + " " + product.Code);
@@ -3016,21 +3018,35 @@ namespace Zeus
 
         internal void Execute_InventorySaveChangesCommand(object parameter)
         {
+            var validChanges = false;
             //Save temporal product changes to actual product by looking for Code
-
             //Check if code was updated
             if(SelectedInventoryProduct != null)
             {
                 InventoryInstance.UpdateProductToTable(InventoryTemporalItem);
                 if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
+                validChanges = true;
                 CurrentPage = Constants.PosMenuPage;
             }
-            else
+            else //new code/product
             {
-                InventoryInstance.AddNewProductToTable(InventoryTemporalItem);
-                if (SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
-                CurrentPage = Constants.PosMenuPage;
+                //check if code already exists
+                var prod = InventoryInstance.GetProduct(InventoryTemporalItem.Code);
+                if (prod.Code != null)
+                {
+                    Code = "Codigo Duplicado";
+                    CodeColor = Constants.ColorCodeError;
+                    validChanges = false;
+                }
+                else
+                {
+                    InventoryInstance.AddNewProductToTable(InventoryTemporalItem);
+                    if (SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
+                    validChanges = true;
+                    CurrentPage = Constants.PosMenuPage;
+                }
             }
+            if (!validChanges) return;
 
             Code = "Producto Guardado";
             CodeColor = Constants.ColorCodeSave;
@@ -3134,7 +3150,8 @@ namespace Zeus
             product.Category = ((QueueTransaction) parameter).ProductCategory;
             product.LastAmountSold = ((QueueTransaction) parameter).TotalAmountSold;
             product.Seller = ((QueueTransaction) parameter).Seller;
-
+            //all items in queue are in default currency already
+            product.PriceCurrency = CurrencyTypeEnum.MXN;
             //temporary disable indirect to cart
             if (SystemConfig.IndirectPrice)
             {
@@ -4617,7 +4634,15 @@ namespace Zeus
             //Check if product already exists in the file
             if (product.Price != 0M && !SystemConfig.IndirectPrice)
             {
-                if(!CategoriesList.Contains(product.Category)) product.Category = "General";
+                //Set to default currency
+                if (product.PriceCurrency == CurrencyTypeEnum.USD)
+                {
+                    product.Price = Math.Round(product.Price * MainWindowViewModel.GetInstance(null, null).ExchangeRate, 2);
+                    product.PriceCurrency = CurrencyTypeEnum.MXN;
+                }
+                product.LastAmountSold = product.Price * product.LastQuantitySold;
+
+                if (!CategoriesList.Contains(product.Category)) product.Category = "General";
                 for (var index = 0; index < CurrentCartProducts.Count; index++)
                 {
                     if (product.Code == null || (product.Code != _currentCartProducts[index].Code) || product.Price == 0M) continue;
@@ -5392,7 +5417,7 @@ namespace Zeus
             CurrentCartProducts.Clear();
             PaymentTotalMXN = 0;
             CodeColor = Constants.ColorCodeSave;
-            Code = "Número: transaction.OrderNumber.ToString()";
+            Code = "Número:" + transaction.OrderNumber.ToString();
         }
 
         #endregion
