@@ -2672,10 +2672,36 @@ namespace Zeus
                         };
                     }
                     //Add more products types here
-                    //else if ()
-                    //{
-
-                    //}
+                    else if (_productType is RetailItem)
+                    {
+                        temporalProduct = new RetailItem()
+                        {
+                            Id = SelectedInventoryProduct.Id,
+                            Code = SelectedInventoryProduct.Code,
+                            AlternativeCode = SelectedInventoryProduct.AlternativeCode,
+                            AmountSold = SelectedInventoryProduct.AmountSold,
+                            Category = SelectedInventoryProduct.Category,
+                            Cost = SelectedInventoryProduct.Cost,
+                            CostCurrency = SelectedInventoryProduct.CostCurrency,
+                            Description = SelectedInventoryProduct.Description,
+                            Image = SelectedInventoryProduct.Image,
+                            ImageName = SelectedInventoryProduct.ImageName,
+                            InternalQuantity = SelectedInventoryProduct.InternalQuantity,
+                            LastPurchaseDate = SelectedInventoryProduct.LastPurchaseDate,
+                            LastQuantitySold = SelectedInventoryProduct.LastQuantitySold,
+                            LastSaleDate = SelectedInventoryProduct.LastSaleDate,
+                            LocalQuantityAvailable = SelectedInventoryProduct.LocalQuantityAvailable,
+                            MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                            Name = SelectedInventoryProduct.Name,
+                            Price = SelectedInventoryProduct.Price,
+                            PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                            Provider = SelectedInventoryProduct.Provider,
+                            ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                            QuantitySold = SelectedInventoryProduct.QuantitySold,
+                            TotalQuantityAvailable = SelectedInventoryProduct.TotalQuantityAvailable,
+                            Brand = SelectedInventoryProduct.Brand
+                        };
+                    }
                     else
                     {
                         temporalProduct = new ProductBase()
@@ -2755,6 +2781,36 @@ namespace Zeus
                             ImportCost = ((CarPart)SelectedInventoryProduct).ImportCost,
                             ImportCostCurrency = ((CarPart)SelectedInventoryProduct).ImportCostCurrency
                         };
+                    }
+                    else if (_productType is RetailItem)
+                    {
+                        temporalClonedProduct = new RetailItem()
+                            {
+                                Id = InventoryInstance.GetLastItemNumber() + 1,
+                                Code = "",
+                                AlternativeCode = "NA",
+                                AmountSold = 0,
+                                Category = SelectedInventoryProduct.Category,
+                                Cost = SelectedInventoryProduct.Cost,
+                                CostCurrency = SelectedInventoryProduct.CostCurrency,
+                                Description = SelectedInventoryProduct.Description,
+                                Image = SelectedInventoryProduct.Image,
+                                ImageName = SelectedInventoryProduct.ImageName,
+                                InternalQuantity = 0,
+                                LastPurchaseDate = DateTime.Today,
+                                LastQuantitySold = 0,
+                                LastSaleDate = DateTime.Today,
+                                LocalQuantityAvailable = 0,
+                                MinimumStockQuantity = SelectedInventoryProduct.MinimumStockQuantity,
+                                Name = SelectedInventoryProduct.Name,
+                                Price = SelectedInventoryProduct.Price,
+                                PriceCurrency = SelectedInventoryProduct.PriceCurrency,
+                                Provider = SelectedInventoryProduct.Provider,
+                                ProviderProductId = SelectedInventoryProduct.ProviderProductId,
+                                QuantitySold = 0,
+                                TotalQuantityAvailable = 0,
+                                Brand = SelectedInventoryProduct.Brand
+                            };
                     }
                     else
                     {
@@ -2857,6 +2913,38 @@ namespace Zeus
                             ImportCostCurrency = CurrencyTypeEnum.USD,
                             Location = "",
                             SpecificLocation = ""
+                        };
+                        if (!SystemConfig.CloudInventory)
+                        {
+                            temporalProduct.Id = InventoryInstance.GetLastItemNumber() + 1;
+                        }
+                    }
+                    else if (_productType is RetailItem)
+                    {
+                        temporalProduct = new RetailItem()
+                        {
+                            Code = "",
+                            AlternativeCode = "",
+                            AmountSold = 0M,
+                            Category = "",
+                            Cost = 0M,
+                            CostCurrency = CurrencyTypeEnum.MXN,
+                            Description = "",
+                            ImageName = "NA.jpg",
+                            InternalQuantity = 0,
+                            LastPurchaseDate = DateTime.Now,
+                            LastQuantitySold = 0,
+                            LastSaleDate = DateTime.Now,
+                            LocalQuantityAvailable = 0,
+                            MinimumStockQuantity = 1,
+                            Name = "",
+                            Price = 0M,
+                            PriceCurrency = CurrencyTypeEnum.MXN,
+                            Provider = "",
+                            ProviderProductId = "",
+                            QuantitySold = 0,
+                            TotalQuantityAvailable = 0,
+                            Brand = "",
                         };
                         if (!SystemConfig.CloudInventory)
                         {
