@@ -303,7 +303,18 @@ namespace Zeus
                     var carParts = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
                     foreach (var carPart in CarParts)
                     {
-                        carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum>(carPart.Description, carPart.Category,
+                        //remove detailed information to create default list
+                        //remove model
+                        var desc = carPart.Description.Replace(Car.Model, "");
+                        //remove year
+                        desc = desc.Replace(Car.Year.ToString(), "");
+                        //remove vin
+                        var firstSpaceIndex = desc.IndexOf(" ", StringComparison.Ordinal);
+                        desc = desc.Remove(0, firstSpaceIndex + 1);
+                        //remove spaces
+                        desc = desc.TrimStart(' ');
+
+                        carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum>(desc, carPart.Category,
                             carPart.TotalQuantityAvailable, carPart.Price, carPart.PriceCurrency));
                     }
                     CarPart.WritePartsFile(saveFileDialog.FileName, carParts);
