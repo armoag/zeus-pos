@@ -300,7 +300,7 @@ namespace Zeus
 
                 if (saveFileDialog.ShowDialog() == true)
                 {
-                    var carParts = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
+                    var carParts = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>>();
                     foreach (var carPart in CarParts)
                     {
                         //remove detailed information to create default list
@@ -314,8 +314,8 @@ namespace Zeus
                         //remove spaces
                         desc = desc.TrimStart(' ');
 
-                        carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum>(desc, carPart.Category,
-                            carPart.TotalQuantityAvailable, carPart.Price, carPart.PriceCurrency));
+                        carParts.Add(new Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>(desc, carPart.Category,
+                            carPart.TotalQuantityAvailable, carPart.Price, carPart.PriceCurrency, carPart.Valid));
                     }
                     CarPart.WritePartsFile(saveFileDialog.FileName, carParts);
                 }

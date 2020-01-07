@@ -462,7 +462,7 @@ namespace Zeus
             return Add(description, category, soldPrice, lastQuantitySold);
         }
 
-        public static List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
+        public static List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> parts)
         {
             var list = new List<CarPart>();
 
@@ -475,7 +475,8 @@ namespace Zeus
                 var price = part.Item4;
                 var currency = part.Item5;
                 var index = parts.IndexOf(part) + 1;
-                
+                var valid = part.Item6;
+
                 var newPart = new CarPart()
                 {
                     Code = partialVin + index,
@@ -508,7 +509,7 @@ namespace Zeus
                     MinimumStockQuantity = 0,
                     LastSaleDate = car.LastPurchaseDate,
                     ImageName = "NA.jpg",
-                    Valid = true
+                    Valid = valid
                 };
 
                 list.Add(newPart);
@@ -516,17 +517,17 @@ namespace Zeus
             return list;
         }
 
-        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> ReadPartsFile(string fullFilePath)
+        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> ReadPartsFile(string fullFilePath)
         {
-            var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum>>();
+            var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>>();
             var db = new DataBase(fullFilePath);        
             db.LoadCsvToDataTable();
             for (int index = 0; index < db.DataTable.Rows.Count; index++)
             {
                 var row = db.DataTable.Rows[index];
-                var newPartData = new Tuple<string, string, int, decimal, CurrencyTypeEnum>(row["Descripcion"].ToString(), 
+                var newPartData = new Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>(row["Descripcion"].ToString(), 
                     row["Categoria"].ToString(), Int32.Parse(row["Cantidad"].ToString()), decimal.Parse(row["Precio"].ToString()),
-                        row["Moneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN);
+                        row["Moneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN, row["Incluir"].ToString() == "1");
 
                 partsList.Add(newPartData);
             }
@@ -534,13 +535,14 @@ namespace Zeus
             return partsList;
         }
 
-        public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum>> parts)
+        public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> parts)
         {
-            File.WriteAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda" + Environment.NewLine);
+            File.WriteAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda,Incluir" + Environment.NewLine);
 
             foreach (var part in parts)
             {
-                string data = string.Format("{0},{1},{2},{3},{4}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString())
+                var valid = part.Item6 ? 1 : 0;
+                var data = string.Format("{0},{1},{2},{3},{4},{5}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString(), valid.ToString())
                               + Environment.NewLine;
 
                 File.AppendAllText(fullFilePath, data);

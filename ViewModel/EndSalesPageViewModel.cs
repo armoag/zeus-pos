@@ -481,6 +481,9 @@ namespace Zeus
             EndOfSalesType = "Z";
             Pos.GetNextCorteZNumber();
             //Calculate sales and print receipts
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Comienzo de corte Z");
+
             if (master)
             {
                 //Regular
@@ -508,6 +511,9 @@ namespace Zeus
                 //Print Full Detailed Receipt
                 PrintReceipt(ReceiptType.DailyRegular, false);
             }
+
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte Z realizado y recibo impreso");
 
             //Email Receipts if option is enabled
             if (MainWindowViewModel.SystemConfig.EmailTransactionsFileAfterEndSalesReport)
@@ -541,7 +547,10 @@ namespace Zeus
                     };
 
                     //Get the current date receipts files
-                    var directory = new DirectoryInfo(Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
+
+                    var dirPath = Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath;
+                    dirPath = dirPath.TrimEnd('\\');
+                    var directory = new DirectoryInfo(dirPath);
                     var searchString = "*" + DateTime.Now.Day.ToString("00") + DateTime.Now.Month.ToString("00") +
                                        DateTime.Now.Year.ToString("0000") + "*";
 
@@ -562,8 +571,13 @@ namespace Zeus
                     {
                         MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
                         MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                        MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                            this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al enviar corte Z por correo");
                     }
                     attachments.Clear();
+
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Archivos de corte enviados por correo");
                 }
                 catch (Exception e)
                 {
@@ -571,6 +585,8 @@ namespace Zeus
                         this.ToString() + MethodBase.GetCurrentMethod().Name, e.ToString());
                     MainWindowViewModel.GetInstance(null, null).Code = "Error al leer directorio";
                     MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al enviar corte Z por correo");
                 }
             }
 
@@ -585,17 +601,25 @@ namespace Zeus
             }
             else if (MainWindowViewModel.SystemConfig.CloudInventory)
             {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
-                var currentTime = DateTime.Now;
-                var fileName = Path.GetFileNameWithoutExtension("Inventario");
+                try
+                {
+                    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+                    var currentTime = DateTime.Now;
+                    var fileName = Path.GetFileNameWithoutExtension("Inventario");
 
-                //Load inventory csv file and create a backup copy
-                var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
-                     + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
-                    currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
-                    currentTime.Second.ToString("00") + ".csv";
-                var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
-                Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
+                    //Load inventory csv file and create a backup copy
+                    var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
+                                                                               + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
+                                                                               currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
+                                                                               currentTime.Second.ToString("00") + ".csv";
+                    var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
+                    Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
+                }
+                catch (Exception e)
+                {
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error en respaldo de inventario: " + e.Message);
+                }
             }
             //Inventory.InventoryBackUp(Constants.DataFolderPath + Constants.InventoryFileName);
             //BackUp Z Expenses files
@@ -616,6 +640,10 @@ namespace Zeus
                 Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
             FileIO.FileBackUp(Constants.DataFolderPath + Constants.TransactionsPaymentsFileName,
                 Constants.DataFolderPath + Constants.TransactionsBackupFolderPath);
+
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Archivos de gastos y transacciones Z respaldados");
+
             //Update POS Data
             Pos.UpdateAllData();
             Pos.SaveDataTableToCsv();
@@ -628,7 +656,8 @@ namespace Zeus
         {
             EndOfSalesType = "X";
             SaveRegisterCashAmount();
-
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Comienzo de corte X");
             if (master)
             {
                 CalculateSales(false, MainWindowViewModel.SystemConfig.IntFlag);
@@ -657,6 +686,9 @@ namespace Zeus
                 //Print Receipt
                 PrintReceipt(ReceiptType.DailyRegular, true);
             }
+
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Corte X realizado y recibo impreso");
 
             //Email Receipts if option is enabled
             if (MainWindowViewModel.SystemConfig.EmailTransactionsFileAfterEndSalesReport)
@@ -689,9 +721,10 @@ namespace Zeus
                         paymentsFile
                     };
 
-                    //Get the current date receipts files
-                    var directory = new DirectoryInfo(Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath);
-                    var searchString = "*"+ DateTime.Now.Day.ToString("00") + DateTime.Now.Month.ToString("00") +
+                    var dirPath = Constants.DataFolderPath + Constants.EndOfDaySalesBackupFolderPath;
+                    dirPath = dirPath.TrimEnd('\\');
+                    var directory = new DirectoryInfo(dirPath);
+                    var searchString = "*" + DateTime.Now.Day.ToString("00") + DateTime.Now.Month.ToString("00") +
                                        DateTime.Now.Year.ToString("0000") + "*";
 
                     var receipts = directory.GetFiles(searchString);
@@ -704,13 +737,15 @@ namespace Zeus
                     var fromEmailAddress = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
                         .EmailSender;
                     var fromPassword = Pos.GetInstance(Constants.DataFolderPath + Constants.PosDataFileName)
-                        .EmailSenderPassword;
+                        .EmailSenderPassword;  
 
                     if (!Notification.SendNotificationMultipleAttachments(toName, toEmailAddress, subject, body,
                         attachments, fromEmailAddress, fromPassword))
                     {
                         MainWindowViewModel.GetInstance(null, null).Code = "Error al enviar reportes";
                         MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                        MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                            this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al enviar corte Z por correo");
                     }
                     attachments.Clear();
                 }
@@ -720,6 +755,8 @@ namespace Zeus
                         this.ToString() + MethodBase.GetCurrentMethod().Name, e.ToString());
                     MainWindowViewModel.GetInstance(null, null).Code = "Error al leer directorio";
                     MainWindowViewModel.GetInstance(null, null).CodeColor = Constants.ColorCodeError;
+                    MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                        this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al enviar corte Z por correo");
                 }
             }
 
@@ -729,30 +766,33 @@ namespace Zeus
             Transaction.ClearTransactionFile(Constants.DataFolderPath + Constants.TransactionsXFileName);
             //Transaction.ClearTransactionMasterFile(Constants.DataFolderPath + Constants.TransactionsMasterFileName);
             // Inventory.InventoryBackUp(Constants.DataFolderPath + Constants.InventoryFileName);
-            if (MainWindowViewModel.SystemConfig.LocalInventory)
-            {
-                FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
-            }
-            else if (MainWindowViewModel.SystemConfig.CloudInventory)
-            {
-                Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
-                var currentTime = DateTime.Now;
-                var fileName = Path.GetFileNameWithoutExtension("Inventario");
+            //if (MainWindowViewModel.SystemConfig.LocalInventory)
+            //{
+            //    FileIO.FileBackUp(Constants.DataFolderPath + Constants.InventoryFileName, Constants.DataFolderPath + Constants.InventoryBackupFolderPath);
+            //}
+            //else if (MainWindowViewModel.SystemConfig.CloudInventory)
+            //{
+            //    Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
+            //    var currentTime = DateTime.Now;
+            //    var fileName = Path.GetFileNameWithoutExtension("Inventario");
 
-                //Load inventory csv file and create a backup copy
-                var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
-                                                                           + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
-                                                                           currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
-                                                                           currentTime.Second.ToString("00") + ".csv";
-                var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
-                Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
-            }
+            //    //Load inventory csv file and create a backup copy
+            //    var inventoryFileBackUpCopyName = Constants.DataFolderPath + Constants.InventoryBackupFolderPath
+            //                                                               + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
+            //                                                               currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
+            //                                                               currentTime.Second.ToString("00") + ".csv";
+            //    var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
+            //    Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
+            //}
             //BackUp X Expenses files
             Expense.BackUpExpensesFile(Constants.DataFolderPath + Constants.ExpenseXFileName, false);
             Expense.ClearExpensesFile(Constants.DataFolderPath + Constants.ExpenseXFileName);
             //Backup X Payments Files
             Transaction.BackUpPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName, false);
             Transaction.ClearPaymentsFile(Constants.DataFolderPath + Constants.TransactionsPaymentsXFileName);
+
+            MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Archivos de gastos y transacciones X respaldados");
 
             //Update POS Data
             Pos.LastReceiptNumber = TransactionData.LastReceiptNumber;

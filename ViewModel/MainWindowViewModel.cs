@@ -6,11 +6,9 @@ using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Reflection;
-using System.Runtime.InteropServices.WindowsRuntime;
 using System.Threading;
 using System.Windows.Controls;
 using System.Windows.Input;
-using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Xml.Linq;
 using MySql.Data.MySqlClient;
@@ -3024,6 +3022,28 @@ namespace Zeus
         }
 
         internal bool CanExecute_InventoryAddItemToCartCommand(object parameter)
+        {
+            return parameter != null;
+        }
+
+        #endregion
+
+        #region InventoryOpenImageCommand
+
+        public ICommand InventoryOpenImageCommand { get { return _inventoryOpenImageCommand ?? (_inventoryOpenImageCommand = new DelegateCommand(Execute_InventoryOpenImageCommand, CanExecute_InventoryOpenImageCommand)); } }
+        private ICommand _inventoryOpenImageCommand;
+
+        internal void Execute_InventoryOpenImageCommand(object parameter)
+        {
+            //Create a new object for every product 
+            IProduct product = new ProductBase((IProduct) parameter);
+
+            System.Diagnostics.Process.Start(Constants.DataFolderPath + Constants.ImagesFolderPath + product.ImageName);
+            //Log
+            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Abrir foto de:" + " " + product.Code);
+        }
+
+        internal bool CanExecute_InventoryOpenImageCommand(object parameter)
         {
             return parameter != null;
         }

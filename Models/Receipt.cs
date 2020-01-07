@@ -318,7 +318,8 @@ namespace Zeus
             }
             catch (Exception)
             {
-
+                MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                    this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al imprimir recibo");
             }
 
             printDocument.PrintPage -= PrintEndOfDaySalesReceipt;
@@ -332,7 +333,7 @@ namespace Zeus
             bool printToFileOnly = false;
 
             PrintDocument printDocument = new PrintDocument();
-
+            printDocument.DefaultPageSettings.PaperSize = new PaperSize("ticket", 283, 1200);
             printDocument.PrintPage += new PrintPageEventHandler(PrintEndOfDaySalesFullReceipt);
 
             var currentTime = DateTime.Now;
@@ -357,7 +358,8 @@ namespace Zeus
             }
             catch (Exception)
             {
-
+                MainWindowViewModel.GetInstance(null, null).Log.Write(MainWindowViewModel.GetInstance(null, null).CurrentUser.Name,
+                    this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error al imprimir recibo completo");
             }
 
             printDocument.PrintPage -= PrintEndOfDaySalesFullReceipt;
