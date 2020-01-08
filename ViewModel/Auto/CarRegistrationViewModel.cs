@@ -216,15 +216,57 @@ namespace Zeus
 
         internal void Execute_RegisterCarCommand(object parameter)
         {
-            foreach (var carPart in CarParts)
+            if (MainWindowViewModel.MySqlInventoryDb != null && MainWindowViewModel.SystemConfig.CloudInventory)
             {
-                if (carPart.Valid)
+                var productColValPairsList = new List<List<Tuple<string, string>>>();
+                //Add products to inventory database
+
+                foreach (var carPart in CarParts)
                 {
-                    if(MainWindowViewModel.SystemConfig.LocalInventory) carPart.Id = MainWindowViewModel.InventoryInstance.GetLastItemNumber() + 1;
-                    MainWindowViewModel.InventoryInstance.AddNewProductToTable(carPart);
+                    if (!carPart.Valid) continue;
+
+                    var productColValPairs = new List<Tuple<string, string>>()
+                    {
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[1], carPart.Code),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[2], carPart.AlternativeCode),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[3], carPart.ProviderProductId),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[4], carPart.Description),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[5], carPart.Vin),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[6], carPart.Make),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[7], carPart.Model),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[8], carPart.Year.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[9], carPart.Transmission),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[10], carPart.Motor),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[11], carPart.Color),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[12], carPart.Provider),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[13], carPart.Category),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[14], carPart.LastPurchaseDateString),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[15],
+                            carPart.Cost.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[16], carPart.CostCurrency.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[17],
+                            carPart.ImportCost.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[18], carPart.ImportCostCurrency.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[19],
+                            carPart.Price.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[20], carPart.PriceCurrency.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[21], carPart.Location),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[22], carPart.SpecificLocation),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[23], carPart.InternalQuantity.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[24], carPart.QuantitySold.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[25],
+                            carPart.AmountSold.ToString(CultureInfo.InvariantCulture)),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[26], carPart.LocalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[27], carPart.TotalQuantityAvailable.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[28], carPart.MinimumStockQuantity.ToString()),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[29], carPart.LastSaleDateString),
+                        new Tuple<string, string>(MainWindowViewModel.InventoryInstance.DbColumns[30], carPart.ImageName)
+                    };
+                    productColValPairsList.Add(productColValPairs);
                 }
+
+                MainWindowViewModel.MySqlInventoryDb.InsertMultipleItems(productColValPairsList);
             }
-            if (MainWindowViewModel.SystemConfig.LocalInventory) MainWindowViewModel.InventoryInstance.SaveDataTableToCsv();
 
             MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;
         }
@@ -241,6 +283,8 @@ namespace Zeus
 
         internal void Execute_StartCarRegistrationCommand(object parameter)
         {
+            //remove Vin spaces, if any
+            Car.Vin = Car.Vin.Trim();
             var parts = CarPart.ReadPartsFile(Constants.DataFolderPath + Constants.DefaultPartsListFileName);
             CarParts = new ObservableCollection<CarPart>(CarPart.CreateCarParts(Car, parts));
             CarPartsSearchedEntries = CarParts;

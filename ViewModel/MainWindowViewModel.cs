@@ -3038,7 +3038,15 @@ namespace Zeus
             //Create a new object for every product 
             IProduct product = new ProductBase((IProduct) parameter);
 
-            System.Diagnostics.Process.Start(Constants.DataFolderPath + Constants.ImagesFolderPath + product.ImageName);
+            if (File.Exists(Constants.DataFolderPath + Constants.ImagesFolderPath + product.ImageName))
+            {
+                System.Diagnostics.Process.Start(Constants.DataFolderPath + Constants.ImagesFolderPath + product.ImageName);
+            }
+            else
+            {
+                Code = "No existe foto!";
+                CodeColor = Constants.ColorCodeError;
+            }
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Abrir foto de:" + " " + product.Code);
         }
