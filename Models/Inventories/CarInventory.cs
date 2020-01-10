@@ -503,7 +503,7 @@ namespace Zeus
 
                 var descriptionFilter = allFields.Where(r => r.Field<string>("Descripcion").ToLower().Contains(input));
                 var codeFilter = allFields.Where(r => r.Field<string>("Codigo").ToLower().Contains(input));
-
+  
                 foreach (var row in codeFilter)
                 {
                     var product = new CarPart()

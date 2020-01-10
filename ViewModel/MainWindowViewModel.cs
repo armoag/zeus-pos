@@ -3066,6 +3066,13 @@ namespace Zeus
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
             InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText, InitialInventorySearch));
+
+            if (InventorySearchedProducts == null || InventorySearchedProducts.Count == 0)
+            {
+                Code = "No se encontro producto!";
+                CodeColor = Constants.ColorCodeSave;
+            }
+
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Inventario:" + " " + InventorySearchText);
             InventorySearchText = "";
