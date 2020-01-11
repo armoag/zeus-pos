@@ -1628,10 +1628,13 @@ namespace Zeus
                     }
                     else if (SystemConfig.SystemType == SystemTypeEnum.Slave)
                     {
-                        OrderProcessStart();
+                        var orderNum = OrderProcessStart();
                         //Log
                         Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Orden Registrada");
-                        SystemUnlock = false;
+                        SystemUnlock = true;
+                        PaymentEndProcess(null);
+                        CodeColor = Constants.ColorCodeSave;
+                        Code = "Número de orden: " + orderNum.ToString();
                         CurrentPage = Constants.PosGeneralPage;
                         break;
                     }
@@ -3192,13 +3195,23 @@ namespace Zeus
 
         internal void Execute_InventoryDeleteCommand(object parameter)
         {
+            if (CurrentUser.Rights != UserAccessLevelEnum.Administrador)
+            {
+                CurrentPage = Constants.InventoryMainPage;
+
+                Code = "No se permite eliminar producto";
+                CodeColor = Constants.ColorCodeError;
+                //Log
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Intento de eliminar producto:" + " " + SelectedInventoryProduct.Code);
+                //Reset list
+                InventorySearchedProducts = null;
+                SelectedInventoryProduct = null;
+            }
             //Check if code was updated
             if (SelectedInventoryProduct != null)
             {
                 InventoryInstance.DeleteItemInDataTable(SelectedInventoryProduct.Code, "Codigo");
                 if(SystemConfig.LocalInventory) InventoryInstance.SaveDataTableToCsv();
-
-                CurrentPage = Constants.InventoryMainPage;
 
                 Code = "Producto Eliminado";
                 CodeColor = Constants.ColorCodeError;
@@ -3207,6 +3220,8 @@ namespace Zeus
                 //Reset list
                 InventorySearchedProducts = null;
                 SelectedInventoryProduct = null;
+
+                CurrentPage = Constants.PosMenuPage;
             }           
         }
 
@@ -5064,10 +5079,11 @@ namespace Zeus
 
             //Set total due amount and total paid and calculate the change due
             transaction.TotalDue = totalDue;
-            //Calculate amount paid if it is in cash
-            if (PaymentReceivedMXN == 0 && paymentType == PaymentTypeEnum.Efectivo)
+
+            //Calculate amount paid
+            if (paymentType == PaymentTypeEnum.Efectivo)
             {
-                transaction.AmountPaid = paymentType == PaymentTypeEnum.Efectivo ? Math.Round(PaymentReceivedUSD * ExchangeRate, 2) : PaymentTotalMXN;
+                transaction.AmountPaid = Math.Round(PaymentReceivedUSD * ExchangeRate, 2) + PaymentReceivedMXN;
             }
             else
             {
@@ -5166,19 +5182,12 @@ namespace Zeus
             else
             {
                 //if it is a return
-                if (invProduct.LocalQuantityAvailable > 0)
-                {
-                    invProduct.LocalQuantityAvailable = invProduct.LocalQuantityAvailable + product.LastQuantitySold;
-                }
-
-                if (invProduct.TotalQuantityAvailable > 0)
-                {
-                    invProduct.TotalQuantityAvailable = invProduct.TotalQuantityAvailable + product.LastQuantitySold;
-                }
+                invProduct.LocalQuantityAvailable += product.LastQuantitySold;
+                invProduct.TotalQuantityAvailable += product.LastQuantitySold;
 
                 invProduct.LastSaleDate = transactionDate;
-                invProduct.QuantitySold = invProduct.QuantitySold + product.LastQuantitySold;
-                invProduct.AmountSold = invProduct.AmountSold + product.LastAmountSold;
+                if(invProduct.QuantitySold > 0 ) invProduct.QuantitySold -= product.LastQuantitySold;
+                if(invProduct.AmountSold > 0) invProduct.AmountSold -= product.LastAmountSold;
 
                 InventoryInstance.UpdateProductToTable(invProduct);
             }
@@ -5500,7 +5509,7 @@ namespace Zeus
         /// </summary>
         /// <param name="parameter">Method of payment</param>
         /// <param name="transactionType">Payment transaction type</param>
-        public void OrderProcessStart()
+        public int OrderProcessStart()
         {
             var transaction = new QueueTransaction(null, MySqlQueueDb);
 
@@ -5539,8 +5548,7 @@ namespace Zeus
 
             CurrentCartProducts.Clear();
             PaymentTotalMXN = 0;
-            CodeColor = Constants.ColorCodeSave;
-            Code = "Número:" + transaction.OrderNumber.ToString();
+            return orderNumber;
         }
 
         #endregion
