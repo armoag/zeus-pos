@@ -2621,6 +2621,16 @@ namespace Zeus
 
         internal void Execute_InventorModifyItemCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             ///TODO: Add Retail Item here
             //Change main frame page based on the parameter
             switch ((string)parameter)
@@ -2665,6 +2675,7 @@ namespace Zeus
                             Model = ((CarPart)SelectedInventoryProduct).Model,
                             Year = ((CarPart)SelectedInventoryProduct).Year,
                             Transmission = ((CarPart)SelectedInventoryProduct).Transmission,
+                            Motor = ((CarPart)SelectedInventoryProduct).Motor,
                             Color = ((CarPart)SelectedInventoryProduct).Color,
                             Location = ((CarPart)SelectedInventoryProduct).Location,
                             SpecificLocation = ((CarPart)SelectedInventoryProduct).SpecificLocation,
@@ -2776,6 +2787,7 @@ namespace Zeus
                             Model = ((CarPart)SelectedInventoryProduct).Model,
                             Year = ((CarPart)SelectedInventoryProduct).Year,
                             Transmission = ((CarPart)SelectedInventoryProduct).Transmission,
+                            Motor = ((CarPart)SelectedInventoryProduct).Motor,
                             Color = ((CarPart)SelectedInventoryProduct).Color,
                             Location = ((CarPart)SelectedInventoryProduct).Location,
                             SpecificLocation = ((CarPart)SelectedInventoryProduct).SpecificLocation,
@@ -2910,6 +2922,7 @@ namespace Zeus
                             Year = 2000,
                             Color = "",
                             Transmission = "Automatica",
+                            Motor ="",
                             ImportCost = 0M,
                             ImportCostCurrency = CurrencyTypeEnum.USD,
                             Location = "",
@@ -3068,6 +3081,17 @@ namespace Zeus
 
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if(!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
+
             InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText, InitialInventorySearch));
 
             if (InventorySearchedProducts == null || InventorySearchedProducts.Count == 0)
@@ -3144,6 +3168,17 @@ namespace Zeus
 
         internal void Execute_InventorySaveChangesCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
+
             var validChanges = false;
             //Save temporal product changes to actual product by looking for Code
             //Check if code was updated
@@ -3195,6 +3230,17 @@ namespace Zeus
 
         internal void Execute_InventoryDeleteCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
+
             if (CurrentUser.Rights != UserAccessLevelEnum.Administrador)
             {
                 CurrentPage = Constants.InventoryMainPage;
@@ -3238,6 +3284,17 @@ namespace Zeus
 
         internal void Execute_VinDeleteCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
+
             //Check if code was updated
             if (SelectedInventoryProduct is CarPart part)
             {
@@ -3277,6 +3334,16 @@ namespace Zeus
 
         internal void Execute_QueueAddItemToCartCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //TODO: Check to make sure the item is found, otherwise show error message
             //Create a new product for order line
             IProduct product;
@@ -3326,6 +3393,16 @@ namespace Zeus
 
         internal void Execute_QueueStartSearchCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             QueueSearchedProducts = new ObservableCollection<QueueTransaction>(new QueueTransaction(null, MySqlQueueDb).Search(QueueSearchText.ToString()));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Ordenes:" + " " + QueueSearchText);
@@ -3348,6 +3425,16 @@ namespace Zeus
 
         internal void Execute_QueueDeleteCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudInventory)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //Check if code was updated
             if (SelectedQueueProduct != null)
             {
@@ -3546,6 +3633,16 @@ namespace Zeus
 
         internal void Execute_CustomerUpdateCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudCustomers)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //Change main frame page based on the parameter
             switch ((string)parameter)
             {
@@ -3629,6 +3726,16 @@ namespace Zeus
 
         internal void Execute_CustomerStartSearchCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudCustomers)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //Inventory search method that returns a list of products for the datagrid
             CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(CustomersSearchText));
             //Log
@@ -3648,6 +3755,16 @@ namespace Zeus
 
         internal void Execute_CustomerSaveChangesCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudCustomers)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //Check if code was updated
             if (SelectedCustomer != null)
             {
@@ -3693,6 +3810,16 @@ namespace Zeus
 
         internal void Execute_CustomerDeleteCommand(object parameter)
         {
+            //check internet access
+            if (SystemConfig.CloudCustomers)
+            {
+                if (!InternetAvailability.IsInternetAvailable())
+                {
+                    Code = "No hay acceso internet!";
+                    CodeColor = Constants.ColorCodeError;
+                    return;
+                }
+            }
             //Check if code was updated
             if (SelectedCustomer != null)
             {
@@ -4783,7 +4910,7 @@ namespace Zeus
                 if (!CategoriesList.Contains(product.Category)) product.Category = "General";
                 for (var index = 0; index < CurrentCartProducts.Count; index++)
                 {
-                    if (product.Code == null || (product.Code != _currentCartProducts[index].Code) || product.Price == 0M) continue;
+                    if (product.Code == null || (product.Code != _currentCartProducts[index].Code) || product.Price == 0M || product.Code == "") continue;
                     AddOneAdditinoalQuantityToProductInCart(CurrentCartProducts[index], index);
                     PaymentTotalMXN = CalculateCurrentCartTotal();
                     return;
