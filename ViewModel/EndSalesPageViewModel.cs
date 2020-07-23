@@ -612,7 +612,7 @@ namespace Zeus
                                                                                + fileName + currentTime.Day.ToString("00") + currentTime.Month.ToString("00") +
                                                                                currentTime.Year.ToString("0000") + currentTime.Hour.ToString("00") + currentTime.Minute.ToString("00") +
                                                                                currentTime.Second.ToString("00") + ".csv";
-                    var dataTable = MainWindowViewModel.MySqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
+                    var dataTable = MainWindowViewModel.SqlInventoryDb.SelectAll(MainWindowViewModel.InventoryInstance.DbColumns);
                     Utilities.SaveDataTableToCsv(inventoryFileBackUpCopyName, dataTable);
                 }
                 catch (Exception e)

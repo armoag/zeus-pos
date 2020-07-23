@@ -216,7 +216,7 @@ namespace Zeus
 
         internal void Execute_RegisterCarCommand(object parameter)
         {
-            if (MainWindowViewModel.MySqlInventoryDb != null && MainWindowViewModel.SystemConfig.CloudInventory)
+            if (MainWindowViewModel.SqlInventoryDb != null && MainWindowViewModel.SystemConfig.CloudInventory)
             {
                 var productColValPairsList = new List<List<Tuple<string, string>>>();
                 //Add products to inventory database
@@ -265,7 +265,7 @@ namespace Zeus
                     productColValPairsList.Add(productColValPairs);
                 }
 
-                MainWindowViewModel.MySqlInventoryDb.InsertMultipleItems(productColValPairsList);
+                MainWindowViewModel.SqlInventoryDb.InsertMultipleItems(productColValPairsList);
             }
 
             MainWindowViewModel.GetInstance(null, null).CurrentPage = Constants.PosGeneralPage;

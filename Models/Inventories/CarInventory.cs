@@ -19,7 +19,7 @@ namespace Zeus
     /// <summary>
     /// Class for products to be used in the inventory and point of sale system
     /// </summary>
-    public class CarInventory: IInventory, ISqLDataBase
+    public class CarInventory: IInventory
     {
 
         #region Fields
@@ -74,7 +74,7 @@ namespace Zeus
         public string Password { get; set; }
         public string SqlDataBase { get; set; }
         public string Table { get; set; }
-        public MySqlDatabase MySqlData { get; set; }
+        public ISqlDatabase MySqlData { get; set; }
         #endregion
 
         /// <summary>
@@ -108,7 +108,7 @@ namespace Zeus
 
         #region Constructors
         //Singleton pattern
-        protected CarInventory(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
+        protected CarInventory(string filePath, ISqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             Thread.CurrentThread.CurrentCulture = new CultureInfo("es-MX");
             //Read inventory CSV format
@@ -124,7 +124,7 @@ namespace Zeus
                 LoadCsvToDataTable();
             }
         }
-        public static IInventory GetInstance(string filePath, MySqlDatabase mySqlDb, ISystemConfiguration systemConfig)
+        public static IInventory GetInstance(string filePath, ISqlDatabase mySqlDb, ISystemConfiguration systemConfig)
         {
             if (_inventory == null)
                 _inventory = new CarInventory(filePath, mySqlDb, systemConfig);

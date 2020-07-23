@@ -131,21 +131,38 @@ namespace Zeus
             }
 
             //Initialize DBs
-            if (SystemConfig.CloudInventory)
+            if (SystemConfig.CloudInventory || (SystemConfig.LocalInventory && SystemConfig.DbType == DatabaseTypeEnum.Sqlite))
             {
-                MySqlInventoryDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.InventoryTableName,
-                    SystemConfig.UserID, SystemConfig.Password);
+                if (SystemConfig.DbType == DatabaseTypeEnum.MySql)
+                {
+                    SqlInventoryDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.InventoryTableName,
+                        SystemConfig.UserID, SystemConfig.Password);
+                }
+                else if (SystemConfig.DbType == DatabaseTypeEnum.Sqlite)
+                {
+                    SqlInventoryDb = new SqliteDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.InventoryTableName,
+                        SystemConfig.UserID, SystemConfig.Password);
+                }
             }
 
-            if (SystemConfig.CloudCustomers)
+            if (SystemConfig.CloudCustomers || (SystemConfig.LocalCustomers && SystemConfig.DbType == DatabaseTypeEnum.Sqlite))
             {
-                MySqlCustomerDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.CustomerTableName,
-                    SystemConfig.UserID, SystemConfig.Password);
+                if (SystemConfig.DbType == DatabaseTypeEnum.MySql)
+                {
+                    SqlCustomerDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.CustomerTableName,
+                        SystemConfig.UserID, SystemConfig.Password);
+                }
+                else if (SystemConfig.DbType == DatabaseTypeEnum.Sqlite)
+                {
+                    SqlCustomerDb = new SqliteDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.CustomerTableName,
+                        SystemConfig.UserID, SystemConfig.Password);
+                }
             }
 
+            ///TODO:Check when it should be enabled
             if (SystemConfig.SystemType == SystemTypeEnum.Slave || SystemConfig.SystemType == SystemTypeEnum.Master)
             {
-                MySqlQueueDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.QueueTableName,
+                SqlQueueDb = new MySqlDatabase(SystemConfig.Server, SystemConfig.DataBaseName, SystemConfig.QueueTableName,
                     SystemConfig.UserID, SystemConfig.Password);
             }
 
@@ -153,19 +170,19 @@ namespace Zeus
             if (productType is CarPart part)
             {
                 _productType = part;
-                InventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb, 
+                InventoryInstance = CarInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, SqlInventoryDb, 
                     SystemConfig);
             }
             else if (productType is RetailItem item)
             {
                 _productType = item;
-                InventoryInstance = RetailInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb,
+                InventoryInstance = RetailInventory.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, SqlInventoryDb,
                     SystemConfig);
             }
             else
             {
                 //TODO:set different inventory file name depending on the type of program
-                InventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, MySqlInventoryDb,
+                InventoryInstance = InventoryBase.GetInstance(Constants.DataFolderPath + Constants.InventoryFileName, SqlInventoryDb,
                     SystemConfig);
             }
 
@@ -194,9 +211,9 @@ namespace Zeus
 
         #region Properties
 
-        public static MySqlDatabase MySqlCustomerDb { get; set; }
-        public static MySqlDatabase MySqlInventoryDb { get; set; }
-        public static MySqlDatabase MySqlQueueDb { get; set; }
+        public static ISqlDatabase SqlCustomerDb { get; set; }
+        public static ISqlDatabase SqlInventoryDb { get; set; }
+        public static ISqlDatabase SqlQueueDb { get; set; }
         public static Pos PosInstance
         {
             get { return _posInstance; }
@@ -1609,7 +1626,8 @@ namespace Zeus
         {
             string pageTitleHolder;
             TransactionType transactionType;
-            ClearSearchLists();
+           
+            if(CurrentPage != Constants.InventoryMainPage && CurrentPage!= Constants.PosGeneralPage) ClearSearchLists();
             //Change main frame page based on the parameter
             switch ((string)parameter)
             {
@@ -2360,7 +2378,7 @@ namespace Zeus
         internal void Execute_PaymentCustomerSearchCommand(object parameter)
         {
             //Inventory search method that returns a list of products for the datagrid
-            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(PaymentCustomerSearchInput.ToString()));
+            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb).Search(PaymentCustomerSearchInput.ToString()));
             if(CustomersSearchedEntries.Count > 0)
                 CurrentCustomer = CustomersSearchedEntries.First();
             PaymentCustomerSearchInput = "";
@@ -3081,23 +3099,34 @@ namespace Zeus
 
         internal void Execute_InventoryStartSearchCommand(object parameter)
         {
-            //check internet access
-            if (SystemConfig.CloudInventory)
+            try
             {
-                if(!InternetAvailability.IsInternetAvailable())
+                //check internet access
+                if (SystemConfig.CloudInventory)
                 {
-                    Code = "No hay acceso internet!";
-                    CodeColor = Constants.ColorCodeError;
-                    return;
+                    if (!InternetAvailability.IsInternetAvailable())
+                    {
+                        Code = "No hay acceso internet!";
+                        CodeColor = Constants.ColorCodeError;
+                        return;
+                    }
+                }
+
+                InventorySearchedProducts =
+                    new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText,
+                        InitialInventorySearch));
+
+                if (InventorySearchedProducts == null || InventorySearchedProducts.Count == 0)
+                {
+                    Code = "No se encontro producto!";
+                    CodeColor = Constants.ColorCodeSave;
                 }
             }
-
-            InventorySearchedProducts = new ObservableCollection<IProduct>(InventoryInstance.Search(InventorySearchText, InitialInventorySearch));
-
-            if (InventorySearchedProducts == null || InventorySearchedProducts.Count == 0)
+            catch (Exception e)
             {
-                Code = "No se encontro producto!";
-                CodeColor = Constants.ColorCodeSave;
+                Code = "Error al buscar producto!";
+                CodeColor = Constants.ColorCodeError;
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error en busqueda de producto: " + e.Message);
             }
 
             //Log
@@ -3373,7 +3402,7 @@ namespace Zeus
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Orden Agregada al Carrito:" + " " + product.Code);
             //Get customer
-            //CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(((QueueTransaction) parameter).Customer));
+            //CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb).Search(((QueueTransaction) parameter).Customer));
             //if (CustomersSearchedEntries.Count > 0)
             //    CurrentCustomer = CustomersSearchedEntries.First();
             
@@ -3393,19 +3422,28 @@ namespace Zeus
 
         internal void Execute_QueueStartSearchCommand(object parameter)
         {
-            //check internet access
-            if (SystemConfig.CloudInventory)
+            try
             {
-                if (!InternetAvailability.IsInternetAvailable())
+                //check internet access
+                if (SystemConfig.CloudInventory)
                 {
-                    Code = "No hay acceso internet!";
-                    CodeColor = Constants.ColorCodeError;
-                    return;
+                    if (!InternetAvailability.IsInternetAvailable())
+                    {
+                        Code = "No hay acceso internet!";
+                        CodeColor = Constants.ColorCodeError;
+                        return;
+                    }
                 }
+                QueueSearchedProducts = new ObservableCollection<QueueTransaction>(new QueueTransaction(null, SqlQueueDb).Search(QueueSearchText, InitialQueueSearch));
+                //Log
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Ordenes:" + " " + QueueSearchText);
             }
-            QueueSearchedProducts = new ObservableCollection<QueueTransaction>(new QueueTransaction(null, MySqlQueueDb).Search(QueueSearchText.ToString()));
-            //Log
-            Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Ordenes:" + " " + QueueSearchText);
+            catch(Exception e)
+            {
+                Code = "Error en busqueda de orden";
+                CodeColor = Constants.ColorCodeError;
+                Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Error en Ordenes: " + e.Message);
+            }
             QueueSearchText = "";
             //it won't research the db unless the user goes to a different page
             InitialQueueSearch = false;
@@ -3414,7 +3452,6 @@ namespace Zeus
         {
             return true;
         }
-
 
         #endregion
 
@@ -3438,7 +3475,7 @@ namespace Zeus
             //Check if code was updated
             if (SelectedQueueProduct != null)
             {
-                var queue = new QueueTransaction(null, MySqlQueueDb);
+                var queue = new QueueTransaction(null, SqlQueueDb);
                 queue.OrderNumber = SelectedQueueProduct.OrderNumber;
                 queue.DeleteOrder();
 
@@ -3647,7 +3684,7 @@ namespace Zeus
             switch ((string)parameter)
             {
                 case "customer_details":
-                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb)
+                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb)
                     {
                         Id = SelectedCustomer.Id,
                         Name = SelectedCustomer.Name,
@@ -3690,7 +3727,7 @@ namespace Zeus
                 case "customer_add":
                     SelectedCustomer = null;    //Clear selected item in the user list
                     //Create new productt
-                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb)
+                    var temporalCustomer = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb)
                     {
                         Name = "",
                         Email = "",
@@ -3737,7 +3774,7 @@ namespace Zeus
                 }
             }
             //Inventory search method that returns a list of products for the datagrid
-            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb).Search(CustomersSearchText));
+            CustomersSearchedEntries = new ObservableCollection<Customer>(new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb).Search(CustomersSearchText));
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda de Cliente:" + " " + CustomersSearchText);
             CustomersSearchText = "";
@@ -3773,7 +3810,7 @@ namespace Zeus
             }
             else
             {
-                var cusObj = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, MySqlCustomerDb);
+                var cusObj = new Customer(Constants.DataFolderPath + Constants.CustomersFileName, SqlCustomerDb);
                 var phones = cusObj.Search(CustomerTemporalItem.Phone.ToString());
                 var codes = (cusObj.Search(CustomerTemporalItem.Code));
                 if (phones.Count == 0 && codes.Count == 0)
@@ -4789,8 +4826,8 @@ namespace Zeus
 
                             if (result == true)
                             {
-                                var customer = new Customer(" ", MySqlCustomerDb);
-                                var dataTable = MySqlCustomerDb.SelectAll(customer.DbColumns);
+                                var customer = new Customer(" ", SqlCustomerDb);
+                                var dataTable = SqlCustomerDb.SelectAll(customer.DbColumns);
                                 Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
                             }
                         }
@@ -4820,7 +4857,7 @@ namespace Zeus
                             
                             if(result == true)
                             {
-                                var dataTable = MySqlInventoryDb.SelectAll(InventoryInstance.DbColumns);
+                                var dataTable = SqlInventoryDb.SelectAll(InventoryInstance.DbColumns);
                                 Utilities.SaveDataTableToCsv(dialog.FileName, dataTable);
                             }
                         }
@@ -5638,7 +5675,7 @@ namespace Zeus
         /// <param name="transactionType">Payment transaction type</param>
         public int OrderProcessStart()
         {
-            var transaction = new QueueTransaction(null, MySqlQueueDb);
+            var transaction = new QueueTransaction(null, SqlQueueDb);
 
             var user = CurrentUser.Name;
             var fiscalReceipt = false;
@@ -5700,6 +5737,8 @@ namespace Zeus
             SelectedExpense = null;
             TransactionsSearchedEntries = null;
             SelectedTransaction = null;
+            QueueSearchedProducts = null;
+            SelectedQueueProduct = null;
         }
 
         private void ClearPaymentInput()

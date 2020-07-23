@@ -73,7 +73,7 @@ namespace Zeus
             }
         }
 
-        public MySqlDatabase MySqlData
+        public ISqlDatabase MySqlData
         {
             get { return _mySqlData; }
             set { _mySqlData = value; }
@@ -82,14 +82,15 @@ namespace Zeus
 
         #region Fields
 
-        private MySqlDatabase _mySqlData;
+        private ISqlDatabase _mySqlData;
         private string _dbPath;
+        public EnumerableRowCollection<DataRow> allFields { get; set; }
 
         #endregion
 
         #region Constructors
 
-        public QueueTransaction(string dbPath, MySqlDatabase mySqlDb) : base(dbPath)
+        public QueueTransaction(string dbPath, ISqlDatabase mySqlDb) : base(dbPath)
         {
             //TODO: Check if path exists
             DbPath = dbPath;
@@ -140,7 +141,7 @@ namespace Zeus
             MySqlData.Update(parameter, item, updateData);
         }
 
-        public List<QueueTransaction> Search(string searchInput)
+        public List<QueueTransaction> Search(string searchInput, bool updateFromDataBase = true)
          {
             var transactions = new List<QueueTransaction>();
             var columns = new List<string>
@@ -159,10 +160,11 @@ namespace Zeus
                 "NumeroPedido"
             };
             //Return empty list if invalid inputs are entered for the search
-            if (string.IsNullOrWhiteSpace(searchInput) || searchInput == "x")
+            if (string.IsNullOrWhiteSpace(searchInput))
                 return transactions;
 
-            var allFields = MySqlData.SelectAll(columns).AsEnumerable();
+            
+            if (updateFromDataBase || allFields == null) allFields = MySqlData.SelectAll(columns).AsEnumerable();
             if (searchInput == "*")
             {
                 foreach (var row in allFields)
