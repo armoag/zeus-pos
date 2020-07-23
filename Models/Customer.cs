@@ -6,7 +6,7 @@ using Shun;
 
 namespace Zeus
 {
-    public class Customer : DataBase, IBasicEntityInfo, ISqLDataBase
+    public class Customer : DataBase, IBasicEntityInfo
     {
         #region Fields
         private string _dbPath;
@@ -29,7 +29,7 @@ namespace Zeus
         private string _password;
         private string _sqlDataBase;
         private string _table;
-        private MySqlDatabase _mySqlData;
+        private ISqlDatabase _mySqlData;
 
         #endregion
 
@@ -104,7 +104,7 @@ namespace Zeus
             set { _table = value; }
         }
 
-        public MySqlDatabase MySqlData
+        public ISqlDatabase MySqlData
         {
             get { return _mySqlData; }
             set { _mySqlData = value; }
@@ -138,7 +138,7 @@ namespace Zeus
 
         #region Constructors
 
-        public Customer(string dbPath, MySqlDatabase mySqlDb) : base(dbPath)
+        public Customer(string dbPath, ISqlDatabase mySqlDb) : base(dbPath)
         {
             //TODO: Check if path exists
             DbPath = dbPath;
@@ -153,7 +153,7 @@ namespace Zeus
             }
         }
 
-        public Customer(string dbPath, MySqlDatabase mySqlDb, string name, string code, string email, long phone, int id, string rfc, double pointsAvailable,
+        public Customer(string dbPath, ISqlDatabase mySqlDb, string name, string code, string email, long phone, int id, string rfc, double pointsAvailable,
             double pointsUsed, int totalVisits, decimal totalSpent) : base(dbPath)
         {
             //TODO: Check if path exists and review MYSQL DB

@@ -25,6 +25,8 @@ namespace Zeus
         bool IndirectPrice { get; set; }
         
         SystemTypeEnum SystemType { get; set; }
+        //db type for inventory and customers only
+        DatabaseTypeEnum DbType { get; set; }
 
     }
 }

@@ -68,6 +68,7 @@
   <ItemGroup>
     <Compile Include="Constants.cs" />
     <Compile Include="Converters\StringFormatConverter.cs" />
+    <Compile Include="Enums\DatabaseTypeEnum.cs" />
     <Compile Include="Enums\SystemTypeEnum.cs" />
     <Compile Include="Interfaces\IBasicEntityInfo.cs" />
     <Compile Include="Interfaces\IDataBase.cs" />
