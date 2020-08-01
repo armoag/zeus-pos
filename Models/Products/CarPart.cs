@@ -57,7 +57,7 @@ namespace Zeus
         private string _location;
         private string _specificLocation;
         private bool _valid;
-
+        private bool _imageCarRegistretionValid;
         private string _seller;
         #endregion
 
@@ -371,6 +371,36 @@ namespace Zeus
         {
             get { return _valid; }
             set { _valid = value; }
+        }
+        public bool ImageCarRegistretionValid
+        {
+            get { return _imageCarRegistretionValid;}
+            set
+            {
+                var imageSelected = "NA.jpg";
+                //Open dialog and select jpg image
+                var dialog = new Microsoft.Win32.OpenFileDialog { DefaultExt = ".jpg" };
+                //Display dialog
+                bool? result = dialog.ShowDialog();
+
+                if (result == true)
+                {
+                    var fileName = Path.GetFileName(dialog.FileName);
+
+                    //Move the file to the images file and append the time at the beginning of the name
+                    fileName = DateTime.Now.Year.ToString() + DateTime.Now.Hour.ToString() +
+                               DateTime.Now.Minute.ToString() + DateTime.Now.Second.ToString() + "_" + fileName;
+
+                    File.Copy(dialog.FileName, Constants.DataFolderPath + Constants.ImagesFolderPath + fileName);
+                    imageSelected = fileName;
+                    this.ImageName = imageSelected;
+                    _imageCarRegistretionValid = true;
+                }
+                else
+                {
+                    _imageCarRegistretionValid = false;
+                }
+            }
         }
         public string Seller
         {
