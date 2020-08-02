@@ -448,7 +448,9 @@ namespace Zeus
 
             if (MySqlData != null && SystemConfig.CloudInventory)
             {
-                if (updateFromDataBase || allFields == null) allFields = MySqlData.Select(DbColumns).AsEnumerable();
+                allFields = input == "*"
+                    ? MySqlData.Select(DbColumns).AsEnumerable()
+                    : MySqlData.Select(DbColumns, input).AsEnumerable();
 
                 if (input == "*")
                 {

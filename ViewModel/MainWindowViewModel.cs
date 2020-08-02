@@ -3131,9 +3131,12 @@ namespace Zeus
 
             //Log
             Log.Write(CurrentUser.Name, this.ToString() + " " + System.Reflection.MethodBase.GetCurrentMethod().Name, "Busqueda en Inventario:" + " " + InventorySearchText);
-            InventorySearchText = "";
+
             //it won't research the db unless the user goes to a different page
-            InitialInventorySearch = false;
+            InitialInventorySearch = InventorySearchText != "*";
+
+            InventorySearchText = "";
+
         }
         internal bool CanExecute_InventoryStartSearchCommand(object parameter)
         {
