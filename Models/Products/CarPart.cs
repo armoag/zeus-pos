@@ -491,8 +491,13 @@ namespace Zeus
         {
             return Add(description, category, soldPrice, lastQuantitySold);
         }
-
-        public static List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> parts)
+        /// <summary>
+        /// Creates car parts object list based on a list of parts from default
+        /// </summary>
+        /// <param name="car"></param>
+        /// <param name="parts"></param>
+        /// <returns></returns>
+        public static List<CarPart> CreateCarParts(CarPart car, List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool, string>> parts)
         {
             var list = new List<CarPart>();
 
@@ -506,6 +511,7 @@ namespace Zeus
                 var currency = part.Item5;
                 var index = parts.IndexOf(part) + 1;
                 var valid = part.Item6;
+                var image = part.Item7;
 
                 var newPart = new CarPart()
                 {
@@ -538,7 +544,7 @@ namespace Zeus
                     TotalQuantityAvailable = quantity,
                     MinimumStockQuantity = 0,
                     LastSaleDate = car.LastPurchaseDate,
-                    ImageName = "NA.jpg",
+                    ImageName = image,
                     Valid = valid
                 };
 
@@ -546,33 +552,44 @@ namespace Zeus
             }
             return list;
         }
-
-        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> ReadPartsFile(string fullFilePath)
+        /// <summary>
+        /// Reads parts file and returns a list of basic parts
+        /// </summary>
+        /// <param name="fullFilePath"></param>
+        /// <returns></returns>
+        public static List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool, string>> ReadPartsFile(string fullFilePath)
         {
-            var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>>();
+            var partsList = new List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool, string>>();
             var db = new DataBase(fullFilePath);        
             db.LoadCsvToDataTable();
             for (int index = 0; index < db.DataTable.Rows.Count; index++)
             {
                 var row = db.DataTable.Rows[index];
-                var newPartData = new Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>(row["Descripcion"].ToString(), 
-                    row["Categoria"].ToString(), Int32.Parse(row["Cantidad"].ToString()), decimal.Parse(row["Precio"].ToString()),
-                        row["Moneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN, row["Incluir"].ToString() == "1");
+                try
+                {
+                    var newPartData = new Tuple<string, string, int, decimal, CurrencyTypeEnum, bool, string>(row["Descripcion"].ToString(),
+                        row["Categoria"].ToString(), Int32.Parse(row["Cantidad"].ToString()), decimal.Parse(row["Precio"].ToString()),
+                        row["Moneda"].ToString().ToUpper() == "USD" ? CurrencyTypeEnum.USD : CurrencyTypeEnum.MXN, row["Incluir"].ToString() == "1", row["Imagen"].ToString());
 
-                partsList.Add(newPartData);
+                    partsList.Add(newPartData);
+                }
+                catch (Exception e)
+                {
+
+                }
             }
 
             return partsList;
         }
 
-        public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool>> parts)
+        public static void WritePartsFile(string fullFilePath , List<Tuple<string, string, int, decimal, CurrencyTypeEnum, bool, string>> parts)
         {
-            File.WriteAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda,Incluir" + Environment.NewLine);
+            File.WriteAllText(fullFilePath, "Descripcion,Categoria,Cantidad,Precio,Moneda,Incluir,Imagen" + Environment.NewLine);
 
             foreach (var part in parts)
             {
                 var valid = part.Item6 ? 1 : 0;
-                var data = string.Format("{0},{1},{2},{3},{4},{5}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString(), valid.ToString())
+                var data = string.Format("{0},{1},{2},{3},{4},{5},{6}", part.Item1, part.Item2, part.Item3.ToString(), part.Item4.ToString(), part.Item5.ToString(), valid.ToString(), part.Item7.ToString())
                               + Environment.NewLine;
 
                 File.AppendAllText(fullFilePath, data);
